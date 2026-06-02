@@ -133,6 +133,17 @@ export const WEATHER_LABELS: Record<string, string> = {
   windy: "Nhiều gió",
 };
 
+export const WORKER_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Đang làm",
+  INACTIVE: "Ngưng làm",
+};
+
+export const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
+  PRESENT: "Có mặt",
+  ABSENT: "Vắng mặt",
+  LATE: "Đi trễ",
+};
+
 export type ModulePermission = "view" | "create" | "edit" | "delete";
 export type ModuleName =
   | "dashboard"

@@ -105,9 +105,7 @@ export async function getAttendanceByDate(date: Date) {
       },
     },
     include: {
-      worker: {
-        where: { deletedAt: null },
-      },
+      worker: true,
     },
     orderBy: { worker: { name: "asc" } },
   });

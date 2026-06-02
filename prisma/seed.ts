@@ -96,7 +96,7 @@ async function main() {
         progress: sd.progress,
         estimatedBudget: sd.estimatedBudget,
         actualCost: Math.round(sd.estimatedBudget * (sd.progress / 100) * 1.1),
-        status: sd.status,
+        status: sd.status as any,
       },
     });
     stages.push(stage);
@@ -139,7 +139,7 @@ async function main() {
         data: {
           stageId: stage.id,
           name: td.name,
-          status: td.status,
+          status: td.status as any,
           progress: td.progress,
         },
       });

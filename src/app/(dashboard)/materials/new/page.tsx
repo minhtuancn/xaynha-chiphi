@@ -1,0 +1,32 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MaterialForm } from "@/components/forms/material-form";
+import { createMaterial } from "@/actions/materials";
+import { getMaterialCategories } from "@/actions/materials";
+import { prisma } from "@/lib/prisma";
+
+export default async function NewMaterialPage() {
+  const categories = await getMaterialCategories();
+  const suppliers = await prisma.supplier.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" },
+  });
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Thêm vật liệu mới</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Thông tin vật liệu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MaterialForm
+            onSubmit={createMaterial}
+            submitLabel="Tạo vật liệu"
+            categories={categories}
+            suppliers={suppliers}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

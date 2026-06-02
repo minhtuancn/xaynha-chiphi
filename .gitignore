@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+*.db
+*.db-journal
+.env.local
+.env*.local
+dist/
+build/
+uploads/
+.superpowers/
+.DS_Store
+*.log

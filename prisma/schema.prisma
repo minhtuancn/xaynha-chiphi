@@ -1,0 +1,746 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH & USERS
+// ============================================
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role      @default(USER)
+  permissions   String    @default("{}")
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  settings      Setting[]
+  expenses      Expense[]
+  transactions  Transaction[]
+  accounts      AuthAccount[]
+
+  @@index([email])
+  @@index([deletedAt])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuthAccount {
+  id                 String   @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// ============================================
+// PROJECTS
+// ============================================
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  address     String
+  budget      Decimal       @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  status      ProjectStatus @default(PLANNING)
+  progress    Int           @default(0)
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  stages          ConstructionStage[]
+  dailyLogs       DailyLog[]
+  photos          Photo[]
+  documents       Document[]
+  expenses        Expense[]
+  purchaseOrders  PurchaseOrder[]
+  projectBudget   Budget?
+  weatherRecords  WeatherRecord[]
+  materialUsages  MaterialUsage[]
+
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ============================================
+// CONSTRUCTION STAGES & TASKS
+// ============================================
+
+enum StageStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+}
+
+model ConstructionStage {
+  id             String      @id @default(uuid())
+  projectId      String
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name           String
+  order          Int
+  status         StageStatus @default(NOT_STARTED)
+  startDate      DateTime?
+  endDate        DateTime?
+  progress       Int         @default(0)
+  estimatedBudget Decimal    @default(0)
+  actualCost     Decimal     @default(0)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
+
+  tasks       ConstructionTask[]
+  checklists  Checklist[]
+  stageBudget StageBudget?
+
+  @@index([projectId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model ConstructionTask {
+  id          String      @id @default(uuid())
+  stageId     String
+  stage       ConstructionStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      TaskStatus  @default(PENDING)
+  assignee    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Int         @default(0)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  materialUsages MaterialUsage[]
+
+  @@index([stageId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Checklist {
+  id        String   @id @default(uuid())
+  stageId   String
+  stage     ConstructionStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  items ChecklistItem[]
+
+  @@index([stageId])
+  @@index([deletedAt])
+}
+
+model ChecklistItem {
+  id          String   @id @default(uuid())
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  name        String
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([checklistId])
+  @@index([deletedAt])
+}
+
+// ============================================
+// DAILY LOGS & WEATHER
+// ============================================
+
+model DailyLog {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date        DateTime
+  weather     String?
+  temperature Float?
+  notes       String?
+  issues      String?
+  workerCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  photos         Photo[]
+  materialUsages MaterialUsage[]
+
+  @@unique([projectId, date])
+  @@index([projectId, date])
+  @@index([deletedAt])
+}
+
+enum WeatherSource {
+  AUTO
+  MANUAL
+}
+
+model WeatherRecord {
+  id         String   @id @default(uuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date       DateTime
+  condition  String
+  temperature Float
+  humidity   Float
+  windSpeed  Float
+  source     WeatherSource @default(AUTO)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([projectId, date])
+  @@index([projectId, date])
+}
+
+// ============================================
+// MATERIALS & INVENTORY
+// ============================================
+
+model MaterialCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  materials Material[]
+
+  @@index([deletedAt])
+}
+
+model Material {
+  id           String   @id @default(uuid())
+  categoryId   String
+  category     MaterialCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name         String
+  unit         String
+  currentStock Decimal  @default(0)
+  minStock     Decimal  @default(0)
+  unitCost     Decimal  @default(0)
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  inventoryTransactions InventoryTransaction[]
+  purchaseOrderItems    PurchaseOrderItem[]
+  materialUsages        MaterialUsage[]
+
+  @@index([categoryId])
+  @@index([deletedAt])
+}
+
+enum InventoryType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+model InventoryTransaction {
+  id         String           @id @default(uuid())
+  materialId String
+  material   Material         @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  type       InventoryType
+  quantity   Decimal
+  date       DateTime
+  reference  String?
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([materialId])
+  @@index([date])
+}
+
+model MaterialUsage {
+  id          String   @id @default(uuid())
+  materialId  String
+  material    Material         @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  dailyLogId  String
+  dailyLog    DailyLog         @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        ConstructionTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  projectId   String
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  quantity    Decimal
+  date        DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([materialId])
+  @@index([dailyLogId])
+  @@index([projectId])
+  @@index([date])
+}
+
+// ============================================
+// SUPPLIERS & PURCHASE ORDERS
+// ============================================
+
+model Supplier {
+  id           String   @id @default(uuid())
+  name         String
+  contact      String?
+  phone        String?
+  email        String?
+  address      String?
+  taxCode      String?
+  debtBalance  Decimal  @default(0)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  materials        Material[]
+  purchaseOrders   PurchaseOrder[]
+  debts            Debt[]
+
+  @@index([deletedAt])
+}
+
+enum POStatus {
+  DRAFT
+  SENT
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id          String        @id @default(uuid())
+  supplierId  String
+  supplier    Supplier      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  orderDate   DateTime
+  deliveryDate DateTime?
+  status      POStatus      @default(DRAFT)
+  totalAmount Decimal       @default(0)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  items PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([projectId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model PurchaseOrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  materialId String
+  material   Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  quantity   Decimal
+  unitPrice  Decimal
+  total      Decimal
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([materialId])
+}
+
+// ============================================
+// WORKERS & ATTENDANCE
+// ============================================
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Worker {
+  id         String       @id @default(uuid())
+  name       String
+  phone      String?
+  idCard     String?
+  skill      String?
+  dailyWage  Decimal      @default(0)
+  status     WorkerStatus @default(ACTIVE)
+  notes      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  deletedAt  DateTime?
+
+  attendances WorkerAttendance[]
+  debts       Debt[]
+
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+model WorkerAttendance {
+  id        String          @id @default(uuid())
+  workerId  String
+  worker    Worker          @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  date      DateTime
+  checkIn   DateTime?
+  checkOut  DateTime?
+  status    AttendanceStatus @default(PRESENT)
+  notes     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([workerId, date])
+  @@index([workerId, date])
+}
+
+// ============================================
+// FINANCIAL
+// ============================================
+
+enum AccountType {
+  CASH
+  BANK
+}
+
+model Account {
+  id        String        @id @default(uuid())
+  name      String
+  type      AccountType   @default(CASH)
+  balance   Decimal       @default(0)
+  currency  String        @default("VND")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  transactions Transaction[]
+
+  @@index([type])
+  @@index([deletedAt])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type        TransactionType
+  amount      Decimal
+  date        DateTime
+  category    String?
+  description String?
+  reference   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([userId])
+  @@index([date])
+  @@index([type])
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Expense {
+  id          String        @id @default(uuid())
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  amount      Decimal
+  date        DateTime
+  description String?
+  receipt     String?
+  status      ExpenseStatus @default(PENDING)
+  createdBy   String?
+  creator     User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  @@index([projectId])
+  @@index([categoryId])
+  @@index([date])
+  @@index([deletedAt])
+}
+
+model ExpenseCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  budget      Decimal  @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  expenses Expense[]
+
+  @@index([deletedAt])
+}
+
+model Budget {
+  id           String   @id @default(uuid())
+  projectId    String   @unique
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  totalBudget  Decimal  @default(0)
+  allocated    Decimal  @default(0)
+  spent        Decimal  @default(0)
+  remaining    Decimal  @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model StageBudget {
+  id           String   @id @default(uuid())
+  stageId      String   @unique
+  stage        ConstructionStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  estimatedCost Decimal @default(0)
+  actualCost   Decimal  @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([stageId])
+}
+
+enum DebtType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum DebtStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+model Debt {
+  id          String      @id @default(uuid())
+  supplierId  String?
+  supplier    Supplier?   @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  workerId    String?
+  worker      Worker?     @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  type        DebtType
+  amount      Decimal
+  paidAmount  Decimal     @default(0)
+  dueDate     DateTime?
+  status      DebtStatus  @default(UNPAID)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  payments Payment[]
+
+  @@index([supplierId])
+  @@index([workerId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum PaymentMethod {
+  CASH
+  BANK
+  TRANSFER
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  debtId    String
+  debt      Debt          @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  amount    Decimal
+  date      DateTime
+  method    PaymentMethod @default(CASH)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([debtId])
+  @@index([date])
+}
+
+// ============================================
+// PHOTOS & DOCUMENTS
+// ============================================
+
+model Photo {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dailyLogId  String?
+  dailyLog    DailyLog? @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
+  url         String
+  thumbnail   String?
+  caption     String?
+  tags        String   @default("[]")
+  takenAt     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([projectId])
+  @@index([dailyLogId])
+  @@index([takenAt])
+  @@index([deletedAt])
+}
+
+enum DocumentType {
+  CONTRACT
+  DRAWING
+  INVOICE
+  PERMIT
+  OTHER
+}
+
+model Document {
+  id         String        @id @default(uuid())
+  projectId  String
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  type       DocumentType  @default(OTHER)
+  category   String?
+  url        String
+  size       Int           @default(0)
+  uploadedAt DateTime
+  tags       String        @default("[]")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  deletedAt  DateTime?
+
+  @@index([projectId])
+  @@index([type])
+  @@index([deletedAt])
+}
+
+// ============================================
+// AUDIT & NOTIFICATIONS
+// ============================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  action    AuditAction
+  entity    String
+  entityId  String
+  changes   String   @default("{}")
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([timestamp])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}

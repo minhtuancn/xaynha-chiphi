@@ -5,7 +5,7 @@ export async function logAudit(
   action: "CREATE" | "UPDATE" | "DELETE",
   entity: string,
   entityId: string,
-  changes: { oldValues?: Record<string, any>; newValues?: Record<string, any> }
+  changes: { oldValues?: Record<string, unknown>; newValues?: Record<string, unknown> }
 ) {
   try {
     await prisma.auditLog.create({

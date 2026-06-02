@@ -262,7 +262,7 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
 
           {stage.tasks.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">
-              Chưa có task nào. Nhấn "Thêm task" để tạo.
+              Chưa có task nào. Nhấn &quot;Thêm task&quot; để tạo.
             </p>
           ) : (
             <div className="space-y-3">

@@ -90,10 +90,58 @@ export async function updateProject(id: string, data: ProjectFormData) {
 export async function deleteProject(id: string) {
   await requirePermission("projects", "delete");
 
+  const [
+    stageCount,
+    dailyLogCount,
+    materialUsageCount,
+    expenseCount,
+    purchaseOrderCount,
+    photoCount,
+    documentCount,
+    budget,
+  ] = await Promise.all([
+    prisma.constructionStage.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.dailyLog.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.materialUsage.count({ where: { projectId: id } }),
+    prisma.expense.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.purchaseOrder.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.photo.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.document.count({ where: { projectId: id, deletedAt: null } }),
+    prisma.budget.findUnique({ where: { projectId: id } }),
+  ]);
+
+  const hasDependencies =
+    stageCount > 0 ||
+    dailyLogCount > 0 ||
+    materialUsageCount > 0 ||
+    expenseCount > 0 ||
+    purchaseOrderCount > 0 ||
+    photoCount > 0 ||
+    documentCount > 0 ||
+    budget !== null;
+
+  if (hasDependencies) {
+    const parts: string[] = [];
+    if (stageCount > 0) parts.push(`${stageCount} giai đoạn`);
+    if (dailyLogCount > 0) parts.push(`${dailyLogCount} nhật ký`);
+    if (materialUsageCount > 0) parts.push(`${materialUsageCount} lượt sử dụng vật tư`);
+    if (expenseCount > 0) parts.push(`${expenseCount} khoản chi phí`);
+    if (purchaseOrderCount > 0) parts.push(`${purchaseOrderCount} đơn đặt hàng`);
+    if (photoCount > 0) parts.push(`${photoCount} ảnh`);
+    if (documentCount > 0) parts.push(`${documentCount} tài liệu`);
+    if (budget !== null) parts.push(`1 ngân sách`);
+
+    return {
+      success: false,
+      error: `Dự án có ${parts.join(", ")}. Vui lòng xóa các liên kết trước.`,
+    };
+  }
+
   await prisma.project.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
 
   revalidatePath("/projects");
+  return { success: true };
 }

@@ -120,7 +120,10 @@ export function DailyLogForm({
         setWeatherSource("AUTO");
         form.setValue("weatherSource", "AUTO");
       })
-      .catch(() => {})
+      .catch(() => {
+        setWeatherSource("MANUAL");
+        form.setValue("weatherSource", "MANUAL");
+      })
       .finally(() => setWeatherLoading(false));
   }, [selectedProjectId, projects, form]);
 

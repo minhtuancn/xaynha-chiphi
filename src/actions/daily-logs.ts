@@ -78,13 +78,17 @@ export async function createDailyLog(
 
   if (photos && photos.length > 0) {
     for (const photo of photos) {
-      const url = await saveUploadedPhoto(photo, "daily-logs");
-      await prisma.dailyLogPhoto.create({
-        data: {
-          dailyLogId: dailyLog.id,
-          url,
-        },
-      });
+      try {
+        const url = await saveUploadedPhoto(photo, "daily-logs");
+        await prisma.dailyLogPhoto.create({
+          data: {
+            dailyLogId: dailyLog.id,
+            url,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to save photo:", e);
+      }
     }
   }
 
@@ -123,13 +127,17 @@ export async function updateDailyLog(
 
   if (photos && photos.length > 0) {
     for (const photo of photos) {
-      const url = await saveUploadedPhoto(photo, "daily-logs");
-      await prisma.dailyLogPhoto.create({
-        data: {
-          dailyLogId: id,
-          url,
-        },
-      });
+      try {
+        const url = await saveUploadedPhoto(photo, "daily-logs");
+        await prisma.dailyLogPhoto.create({
+          data: {
+            dailyLogId: id,
+            url,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to save photo:", e);
+      }
     }
   }
 

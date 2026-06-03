@@ -34,7 +34,7 @@ export async function getDailyLog(id: string) {
   return prisma.dailyLog.findUnique({
     where: { id, deletedAt: null },
     include: {
-      photos: {
+      dailyLogPhotos: {
         where: { deletedAt: null },
       },
       project: {

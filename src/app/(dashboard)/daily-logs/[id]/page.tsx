@@ -123,14 +123,14 @@ export default async function DailyLogDetailPage({
         </Card>
       )}
 
-      {log.photos && log.photos.length > 0 && (
+      {log.dailyLogPhotos && log.dailyLogPhotos.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Ảnh đính kèm ({log.photos.length})</CardTitle>
+            <CardTitle>Ảnh đính kèm ({log.dailyLogPhotos.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {log.photos.map((photo) => (
+              {log.dailyLogPhotos.map((photo) => (
                 <div
                   key={photo.id}
                   className="relative aspect-square rounded-lg border overflow-hidden bg-muted flex items-center justify-center"

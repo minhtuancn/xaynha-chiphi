@@ -27,7 +27,6 @@ export async function createPhoto(data: {
   caption?: string;
   tags?: string[];
   takenAt: Date;
-  dailyLogId?: string;
 }) {
   await requirePermission("photos", "create");
 
@@ -46,7 +45,6 @@ export async function createPhoto(data: {
       caption: data.caption ?? null,
       tags: data.tags ? JSON.stringify(data.tags) : "[]",
       takenAt: data.takenAt,
-      dailyLogId: data.dailyLogId ?? null,
     },
   });
 

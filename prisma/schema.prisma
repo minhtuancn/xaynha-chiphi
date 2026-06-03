@@ -241,12 +241,11 @@ model DailyLog {
   workerCount      Int               @default(0)
   timeOfDay        TimeOfDay?
   weatherCondition WeatherCondition?
-  weatherSource    String?
+  weatherSource    WeatherSource?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   deletedAt        DateTime?
 
-  photos           Photo[]
   dailyLogPhotos   DailyLogPhoto[]
   materialUsages   MaterialUsage[]
 
@@ -275,6 +274,8 @@ model DailyLogPhoto {
   url         String
   caption     String?
   takenAt     DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
   @@index([dailyLogId])
@@ -691,8 +692,6 @@ model Photo {
   id          String   @id @default(uuid())
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  dailyLogId  String?
-  dailyLog    DailyLog? @relation(fields: [dailyLogId], references: [id], onDelete: SetNull)
   url         String
   thumbnail   String?
   caption     String?
@@ -703,7 +702,6 @@ model Photo {
   deletedAt   DateTime?
 
   @@index([projectId])
-  @@index([dailyLogId])
   @@index([takenAt])
   @@index([deletedAt])
 }

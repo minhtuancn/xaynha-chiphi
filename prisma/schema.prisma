@@ -230,25 +230,54 @@ model ChecklistItem {
 // ============================================
 
 model DailyLog {
-  id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  date        DateTime
-  weather     String?
-  temperature Float?
-  notes       String?
-  issues      String?
-  workerCount Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  id               String            @id @default(uuid())
+  projectId        String
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date             DateTime
+  weather          String?
+  temperature      Float?
+  notes            String?
+  issues           String?
+  workerCount      Int               @default(0)
+  timeOfDay        TimeOfDay?
+  weatherCondition WeatherCondition?
+  weatherSource    String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
 
-  photos         Photo[]
-  materialUsages MaterialUsage[]
+  photos           Photo[]
+  dailyLogPhotos   DailyLogPhoto[]
+  materialUsages   MaterialUsage[]
 
   @@unique([projectId, date])
   @@index([projectId, date])
   @@index([deletedAt])
+}
+
+enum TimeOfDay {
+  MORNING
+  AFTERNOON
+}
+
+enum WeatherCondition {
+  SUN
+  RAIN
+  CLOUDY
+  STORM
+  OVERCAST
+}
+
+model DailyLogPhoto {
+  id          String   @id @default(uuid())
+  dailyLogId  String
+  dailyLog    DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  url         String
+  caption     String?
+  takenAt     DateTime @default(now())
+  deletedAt   DateTime?
+
+  @@index([dailyLogId])
 }
 
 enum WeatherSource {

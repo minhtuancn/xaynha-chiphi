@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -46,6 +47,8 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
   const [showForm, setShowForm] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const isSubmitting = useRef(false);
+  const router = useRouter();
 
   const [formName, setFormName] = useState("");
   const [formStatus, setFormStatus] = useState("NOT_STARTED");
@@ -53,7 +56,6 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
   const [formNotes, setFormNotes] = useState("");
 
   const filteredStages = stages.filter((s) => s.projectId === selectedProjectId);
-  const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
   function resetForm() {
     setFormName("");
@@ -65,23 +67,31 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formName.trim() || !selectedProjectId) return;
+    if (!formName.trim() || !selectedProjectId || isSubmitting.current) return;
 
+    isSubmitting.current = true;
     const order = filteredStages.length;
-    startTransition(async () => {
-      await createStage(
-        {
-          name: formName.trim(),
-          status: formStatus as "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD",
-          estimatedBudget: parseFloat(formBudget) || 0,
-          progress: 0,
-          notes: formNotes.trim() || undefined,
-        },
-        selectedProjectId,
-        order,
-      );
-      resetForm();
-    });
+    try {
+      startTransition(async () => {
+        await createStage(
+          {
+            name: formName.trim(),
+            status: formStatus as "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD",
+            estimatedBudget: parseFloat(formBudget) || 0,
+            progress: 0,
+            notes: formNotes.trim() || undefined,
+          },
+          selectedProjectId,
+          order,
+        );
+        resetForm();
+        router.refresh();
+      });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Có lỗi xảy ra khi tạo giai đoạn");
+    } finally {
+      isSubmitting.current = false;
+    }
   }
 
   if (projects.length === 0) {

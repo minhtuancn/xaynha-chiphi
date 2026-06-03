@@ -70,10 +70,22 @@ test.describe('Dashboard', () => {
     await expect(page.locator('a[href="/projects"]').first()).toBeVisible();
   });
 
-  test('stages page shows stages', async ({ page }) => {
+  test('stages page shows project tabs and stages', async ({ page }) => {
     await page.goto(`${BASE_URL}/stages`);
     await expect(page).toHaveURL(/.*stages/, { timeout: 10000 });
-    await expect(page.getByText('Móng và nền').first()).toBeVisible({ timeout: 10000 });
+
+    // Page loads successfully with header
+    await expect(page.getByText('Giai đoạn thi công')).toBeVisible({ timeout: 10000 });
+
+    // Shows project tabs (at least one project tab visible)
+    const tabsList = page.getByRole('tablist');
+    await expect(tabsList).toBeVisible({ timeout: 10000 });
+    const tabs = tabsList.getByRole('tab');
+    expect(await tabs.count()).toBeGreaterThanOrEqual(1);
+
+    // Shows stages for the selected project (first tab is selected by default)
+    // Verify at least one stage card is visible
+    await expect(page.getByText('Tiến độ').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('materials page shows materials', async ({ page }) => {

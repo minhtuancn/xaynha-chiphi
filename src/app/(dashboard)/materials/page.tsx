@@ -3,78 +3,11 @@ import { Plus } from "lucide-react";
 import { getMaterials } from "@/actions/materials";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatUnit } from "@/lib/utils";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { Material, MaterialCategory, Supplier } from "@prisma/client";
-
-type MaterialWithRelations = Material & {
-  category: MaterialCategory;
-  supplier: Supplier | null;
-};
-
-const columns: ColumnDef<MaterialWithRelations>[] = [
-  {
-    accessorKey: "name",
-    header: "Tên vật liệu",
-    cell: ({ row }) => (
-      <Link
-        href={`/materials/${row.original.id}/edit`}
-        className="font-medium hover:underline"
-      >
-        {row.getValue("name")}
-      </Link>
-    ),
-  },
-  {
-    accessorKey: "category.name",
-    header: "Danh mục",
-    cell: ({ row }) => row.original.category.name,
-  },
-  {
-    accessorKey: "currentStock",
-    header: "Tồn kho",
-    cell: ({ row }) => {
-      const current = row.original.currentStock.toNumber();
-      const min = row.original.minStock.toNumber();
-      const isLow = current < min;
-      return (
-        <span className={isLow ? "text-red-600 font-semibold" : ""}>
-          {formatUnit(current, row.original.unit)}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "minStock",
-    header: "Tối thiểu",
-    cell: ({ row }) =>
-      formatUnit(row.original.minStock.toNumber(), row.original.unit),
-  },
-  {
-    accessorKey: "unitCost",
-    header: "Đơn giá",
-    cell: ({ row }) => formatCurrency(row.original.unitCost.toNumber()),
-  },
-  {
-    accessorKey: "supplier.name",
-    header: "Nhà cung cấp",
-    cell: ({ row }) => row.original.supplier?.name ?? "-",
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <Link href={`/materials/${row.original.id}/edit`}>
-        <Button variant="outline" size="sm">
-          Sửa
-        </Button>
-      </Link>
-    ),
-  },
-];
+import { serialize } from "@/lib/serialize";
+import { columns, type MaterialWithRelations } from "./columns";
 
 export default async function MaterialsPage() {
-  const materials = await getMaterials();
+  const materials = serialize(await getMaterials()) as unknown as MaterialWithRelations[];
 
   return (
     <div className="space-y-6">
@@ -92,6 +25,12 @@ export default async function MaterialsPage() {
         data={materials}
         searchColumn="name"
         searchPlaceholder="Tìm kiếm vật liệu..."
+        filters={[
+          {
+            column: "category.name",
+            placeholder: "Lọc theo danh mục...",
+          },
+        ]}
       />
     </div>
   );

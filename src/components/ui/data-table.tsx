@@ -24,11 +24,17 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
+interface FilterConfig {
+  column: string;
+  placeholder: string;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchColumn?: string;
   searchPlaceholder?: string;
+  filters?: FilterConfig[];
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +42,7 @@ export function DataTable<TData, TValue>({
   data,
   searchColumn,
   searchPlaceholder = "Tìm kiếm...",
+  filters,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -54,19 +61,32 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      {searchColumn && (
-        <div className="flex items-center py-4">
-          <Input
-            placeholder={searchPlaceholder}
-            value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
+      {(searchColumn || (filters && filters.length > 0)) && (
+        <div className="flex items-center gap-4 py-4 flex-wrap">
+          {searchColumn && (
+            <Input
+              placeholder={searchPlaceholder}
+              value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn(searchColumn)?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          )}
+          {filters?.map((filter) => (
+            <Input
+              key={filter.column}
+              placeholder={filter.placeholder}
+              value={(table.getColumn(filter.column)?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn(filter.column)?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          ))}
         </div>
       )}
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

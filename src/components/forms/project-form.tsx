@@ -22,6 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { PROJECT_STATUS_LABELS } from "@/lib/utils";
 import { formatDateInput } from "@/lib/utils";
 
@@ -38,6 +40,8 @@ export function ProjectForm({
   isSubmitting = false,
   submitLabel = "Lưu",
 }: ProjectFormProps) {
+  const { toast } = useToast();
+  const [isLocating, setIsLocating] = useState(false);
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
@@ -231,23 +235,33 @@ export function ProjectForm({
         <Button
           type="button"
           variant="outline"
+          disabled={isLocating}
           onClick={() => {
             if (!navigator.geolocation) {
-              alert("Trình duyệt không hỗ trợ định vị.");
+              toast({
+                title: "Trình duyệt không hỗ trợ định vị.",
+                variant: "destructive",
+              });
               return;
             }
+            setIsLocating(true);
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 form.setValue("latitude", position.coords.latitude);
                 form.setValue("longitude", position.coords.longitude);
+                setIsLocating(false);
               },
               (error) => {
-                alert(`Không thể lấy vị trí: ${error.message}`);
+                toast({
+                  title: `Không thể lấy vị trí: ${error.message}`,
+                  variant: "destructive",
+                });
+                setIsLocating(false);
               }
             );
           }}
         >
-          Lấy vị trí từ trình duyệt
+          {isLocating ? "Đang lấy vị trí..." : "Lấy vị trí từ trình duyệt"}
         </Button>
         <FormField
           control={form.control}

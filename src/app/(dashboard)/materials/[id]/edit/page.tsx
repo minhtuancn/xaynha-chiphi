@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MaterialForm } from "@/components/forms/material-form";
+import { MaterialPriceSection } from "@/components/material-price-section";
 import { getMaterial, updateMaterial, getMaterialCategories } from "@/actions/materials";
 import { prisma } from "@/lib/prisma";
+import { serialize } from "@/lib/serialize";
 import type { MaterialFormData } from "@/schemas/material";
 
 export default async function EditMaterialPage({
@@ -21,15 +23,17 @@ export default async function EditMaterialPage({
     orderBy: { name: "asc" },
   });
 
-  const defaultValues: Partial<MaterialFormData> = {
+  const defaultValues: Partial<MaterialFormData> = serialize({
     name: material.name,
     categoryId: material.categoryId,
     unit: material.unit,
-    currentStock: material.currentStock.toNumber(),
-    minStock: material.minStock.toNumber(),
-    unitCost: material.unitCost.toNumber(),
+    currentStock: material.currentStock,
+    minStock: material.minStock,
+    unitCost: material.unitCost,
     supplierId: material.supplierId ?? "",
-  };
+  });
+
+  const prices = serialize(material.prices ?? []);
 
   return (
     <div className="space-y-6">
@@ -41,13 +45,14 @@ export default async function EditMaterialPage({
         <CardContent>
           <MaterialForm
             defaultValues={defaultValues}
-            onSubmit={(data) => updateMaterial(id, data)}
+            onSubmit={updateMaterial.bind(null, id)}
             submitLabel="Cập nhật"
             categories={categories}
             suppliers={suppliers}
           />
         </CardContent>
       </Card>
+      <MaterialPriceSection materialId={id} prices={prices} />
     </div>
   );
 }

@@ -28,6 +28,9 @@ export async function getMaterial(id: string) {
     include: {
       category: true,
       supplier: true,
+      prices: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }
@@ -93,4 +96,22 @@ export async function getMaterialCategories() {
     where: { deletedAt: null },
     orderBy: { name: "asc" },
   });
+}
+
+export async function addManualPrice(
+  materialId: string,
+  data: { price: number; notes?: string }
+) {
+  await requirePermission("materials", "edit");
+
+  await prisma.materialPrice.create({
+    data: {
+      materialId,
+      price: new Decimal(data.price),
+      source: "MANUAL",
+      notes: data.notes || null,
+    },
+  });
+
+  revalidatePath("/materials");
 }

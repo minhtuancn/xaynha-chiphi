@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Camera, X } from "lucide-react";
 
@@ -27,6 +27,15 @@ export function PhotoUpload({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      photos.forEach((p) => URL.revokeObjectURL(p.preview));
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [photos]);
+
   const updatePhotos = (newPhotos: PhotoFile[]) => {
     setPhotos(newPhotos);
     onPhotosChange(newPhotos.map((p) => p.file));
@@ -43,6 +52,7 @@ export function PhotoUpload({
   };
 
   const removePhoto = (index: number) => {
+    URL.revokeObjectURL(photos[index].preview);
     const newPhotos = photos.filter((_, i) => i !== index);
     updatePhotos(newPhotos);
   };
@@ -55,7 +65,7 @@ export function PhotoUpload({
         setCameraActive(true);
       }
     } catch (err) {
-      alert("Không thể truy cập camera");
+      console.error("Không thể truy cập camera");
     }
   };
 
@@ -108,10 +118,11 @@ export function PhotoUpload({
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo, i) => (
             <div key={i} className="relative group">
-              <img src={photo.preview} alt="" className="w-full h-24 object-cover rounded border" />
+              <img src={photo.preview} alt={`Ảnh ${i + 1}`} className="w-full h-24 object-cover rounded border" />
               <button
                 type="button"
                 onClick={() => removePhoto(i)}
+                aria-label="Xóa ảnh"
                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="h-3 w-3" />

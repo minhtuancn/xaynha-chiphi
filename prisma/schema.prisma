@@ -338,6 +338,7 @@ model Material {
   inventoryTransactions InventoryTransaction[]
   purchaseOrderItems    PurchaseOrderItem[]
   materialUsages        MaterialUsage[]
+  prices                MaterialPrice[]
 
   @@index([categoryId])
   @@index([deletedAt])
@@ -347,6 +348,27 @@ enum InventoryType {
   IN
   OUT
   ADJUSTMENT
+}
+
+enum PriceSource {
+  PO
+  MANUAL
+}
+
+model MaterialPrice {
+  id              String      @id @default(uuid())
+  materialId      String
+  material        Material    @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  price           Decimal
+  source          PriceSource
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  notes           String?
+  createdAt       DateTime    @default(now())
+
+  @@index([materialId])
+  @@index([purchaseOrderId])
+  @@index([createdAt])
 }
 
 model InventoryTransaction {
@@ -433,7 +455,8 @@ model PurchaseOrder {
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
 
-  items PurchaseOrderItem[]
+  items          PurchaseOrderItem[]
+  materialPrices MaterialPrice[]
 
   @@index([supplierId])
   @@index([projectId])

@@ -9,6 +9,8 @@ export const projectSchema = z.object({
   status: z.enum(["PLANNING", "ACTIVE", "PAUSED", "COMPLETED"]),
   progress: z.coerce.number().min(0).max(100).default(0),
   description: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
 });
 
 export type ProjectFormData = z.infer<typeof projectSchema>;

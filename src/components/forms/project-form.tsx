@@ -49,6 +49,8 @@ export function ProjectForm({
       status: defaultValues?.status ?? "PLANNING",
       progress: defaultValues?.progress ?? 0,
       description: defaultValues?.description ?? "",
+      latitude: defaultValues?.latitude ?? null,
+      longitude: defaultValues?.longitude ?? null,
     },
   });
 
@@ -178,6 +180,75 @@ export function ProjectForm({
             )}
           />
         </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="latitude"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Vĩ độ</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    min={-90}
+                    max={90}
+                    placeholder="Ví dụ: 10.762622"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : null)
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="longitude"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Kinh độ</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    min={-180}
+                    max={180}
+                    placeholder="Ví dụ: 106.629663"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : null)
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            if (!navigator.geolocation) {
+              alert("Trình duyệt không hỗ trợ định vị.");
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                form.setValue("latitude", position.coords.latitude);
+                form.setValue("longitude", position.coords.longitude);
+              },
+              (error) => {
+                alert(`Không thể lấy vị trí: ${error.message}`);
+              }
+            );
+          }}
+        >
+          Lấy vị trí từ trình duyệt
+        </Button>
         <FormField
           control={form.control}
           name="description"

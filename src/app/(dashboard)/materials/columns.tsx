@@ -24,7 +24,7 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
     header: "Tên vật liệu",
     cell: ({ row }) => (
       <Link
-        href={`/materials/${row.original.id}/edit`}
+        href={`/materials/${row.original.id}/edit?tab=view`}
         className="font-medium hover:underline"
       >
         {row.getValue("name")}
@@ -32,7 +32,8 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
     ),
   },
   {
-    accessorKey: "category.name",
+    id: "categoryName",
+    accessorFn: (row) => row.category?.name ?? "",
     header: "Danh mục",
     cell: ({ row }) => row.original.category.name,
   },
@@ -62,15 +63,15 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
     cell: ({ row }) => formatCurrency(Number(row.original.unitCost)),
   },
   {
-    accessorKey: "supplier.name",
+    id: "supplierName",
+    accessorFn: (row) => row.supplier?.name ?? "-",
     header: "Nhà cung cấp",
-    cell: ({ row }) => row.original.supplier?.name ?? "-",
   },
   {
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Link href={`/materials/${row.original.id}/edit`}>
+      <Link href={`/materials/${row.original.id}/edit?tab=edit`}>
         <Button variant="outline" size="sm">
           Sửa
         </Button>

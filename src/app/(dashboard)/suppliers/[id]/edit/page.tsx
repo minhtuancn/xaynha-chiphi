@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { SupplierForm } from "@/components/forms/supplier-form";
+import { DetailViewTabs } from "@/components/detail-view-tabs";
+import { SupplierDetail } from "@/components/detail-views/supplier-detail";
 import { getSupplier, updateSupplier } from "@/actions/suppliers";
+import { serialize } from "@/lib/serialize";
 import type { SupplierFormData } from "@/schemas/supplier";
 
 export default async function EditSupplierPage({
@@ -26,19 +29,21 @@ export default async function EditSupplierPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Chỉnh sửa nhà cung cấp</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>{supplier.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SupplierForm
-            defaultValues={defaultValues}
-            onSubmit={(data) => updateSupplier(id, data)}
-            submitLabel="Cập nhật"
-          />
-        </CardContent>
-      </Card>
+      <h1 className="text-2xl font-bold">{supplier.name}</h1>
+      <DetailViewTabs
+        viewTab={<SupplierDetail supplier={serialize(supplier)} />}
+        editTab={
+          <Card>
+            <CardContent className="pt-6">
+              <SupplierForm
+                defaultValues={defaultValues}
+                onSubmit={updateSupplier.bind(null, id)}
+                submitLabel="Cập nhật"
+              />
+            </CardContent>
+          </Card>
+        }
+      />
     </div>
   );
 }

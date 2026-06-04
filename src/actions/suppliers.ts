@@ -34,6 +34,9 @@ export async function getSupplier(id: string) {
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
       },
+      _count: {
+        select: { purchaseOrders: { where: { deletedAt: null } } },
+      },
     },
   });
 }

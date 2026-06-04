@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { WorkerForm } from "@/components/forms/worker-form";
+import { DetailViewTabs } from "@/components/detail-view-tabs";
+import { WorkerDetail } from "@/components/detail-views/worker-detail";
 import { getWorker, updateWorker } from "@/actions/workers";
+import { serialize } from "@/lib/serialize";
 import type { WorkerFormData } from "@/schemas/worker";
 
 export default async function EditWorkerPage({
@@ -11,33 +14,34 @@ export default async function EditWorkerPage({
 }) {
   const { id } = await params;
   const worker = await getWorker(id);
-
   if (!worker) notFound();
 
-  const defaultValues: Partial<WorkerFormData> = {
+  const defaultValues: Partial<WorkerFormData> = serialize({
     name: worker.name,
     phone: worker.phone ?? "",
     idCard: worker.idCard ?? "",
     skill: worker.skill ?? "",
-    dailyWage: worker.dailyWage.toNumber(),
+    dailyWage: worker.dailyWage,
     notes: worker.notes ?? "",
-  };
+  });
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Chỉnh sửa công nhân</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>{worker.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <WorkerForm
-            defaultValues={defaultValues}
-            onSubmit={(data) => updateWorker(id, data)}
-            submitLabel="Cập nhật"
-          />
-        </CardContent>
-      </Card>
+      <h1 className="text-2xl font-bold">{worker.name}</h1>
+      <DetailViewTabs
+        viewTab={<WorkerDetail worker={serialize(worker)} />}
+        editTab={
+          <Card>
+            <CardContent className="pt-6">
+              <WorkerForm
+                defaultValues={defaultValues}
+                onSubmit={updateWorker.bind(null, id)}
+                submitLabel="Cập nhật"
+              />
+            </CardContent>
+          </Card>
+        }
+      />
     </div>
   );
 }

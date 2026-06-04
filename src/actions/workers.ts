@@ -26,12 +26,13 @@ export async function getWorker(id: string) {
   return prisma.worker.findUnique({
     where: { id, deletedAt: null },
     include: {
-      attendances: {
-        orderBy: { date: "desc" },
-      },
+      _count: { select: { attendances: true } },
+      attendances: { orderBy: { date: "desc" }, take: 10 },
       debts: {
         where: { deletedAt: null },
+        select: { id: true, amount: true, paidAmount: true, type: true, status: true, createdAt: true },
         orderBy: { createdAt: "desc" },
+        take: 10,
       },
     },
   });

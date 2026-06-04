@@ -10,6 +10,7 @@ import {
 } from "@/actions/financial";
 import { formatCurrency, formatDate, EXPENSE_STATUS_LABELS } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { serialize } from "@/lib/serialize";
 
 const EXPENSE_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
   PENDING: "secondary",
@@ -23,13 +24,15 @@ export default async function ExpensesPage() {
     getExpenseCategories(),
   ]);
 
-  const totalPending = expenses
-    .filter((e) => e.status === "PENDING")
-    .reduce((sum, e) => sum + e.amount.toNumber(), 0);
+  const sExpenses = serialize(expenses);
 
-  const totalApproved = expenses
+  const totalPending = sExpenses
+    .filter((e) => e.status === "PENDING")
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const totalApproved = sExpenses
     .filter((e) => e.status === "APPROVED")
-    .reduce((sum, e) => sum + e.amount.toNumber(), 0);
+    .reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -44,7 +47,7 @@ export default async function ExpensesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(expenses.reduce((sum, e) => sum + e.amount.toNumber(), 0))}
+              {formatCurrency(sExpenses.reduce((sum, e) => sum + e.amount, 0))}
             </div>
           </CardContent>
         </Card>
@@ -59,7 +62,7 @@ export default async function ExpensesPage() {
               {formatCurrency(totalPending)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {expenses.filter((e) => e.status === "PENDING").length} khoản
+              {sExpenses.filter((e) => e.status === "PENDING").length} khoản
             </p>
           </CardContent>
         </Card>
@@ -94,7 +97,7 @@ export default async function ExpensesPage() {
           <CardTitle>Danh sách chi phí</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -107,14 +110,14 @@ export default async function ExpensesPage() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.length === 0 ? (
+                {sExpenses.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       Chưa có chi phí nào
                     </td>
                   </tr>
                 ) : (
-                  expenses.map((expense) => (
+                  sExpenses.map((expense) => (
                     <tr key={expense.id} className="border-b last:border-0">
                       <td className="px-4 py-3 text-sm">
                         {formatDate(expense.date)}
@@ -123,7 +126,7 @@ export default async function ExpensesPage() {
                         {expense.category.name}
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-mono">
-                        {formatCurrency(expense.amount.toNumber())}
+                        {formatCurrency(expense.amount)}
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={EXPENSE_STATUS_VARIANTS[expense.status]}>

@@ -33,6 +33,7 @@ model User {
   auditLogs     AuditLog[]
   notifications Notification[]
   settings      Setting[]
+  userSetting   UserSetting?
   expenses      Expense[]
   transactions  Transaction[]
   accounts      AuthAccount[]
@@ -105,6 +106,7 @@ model Project {
   projectBudget   Budget?
   weatherRecords  WeatherRecord[]
   materialUsages  MaterialUsage[]
+  inventoryTransactions InventoryTransaction[]
 
   @@index([status])
   @@index([deletedAt])
@@ -124,6 +126,22 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@index([key])
+}
+
+model UserSetting {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language     String   @default("vi")
+  theme        String   @default("light")
+  dateFormat   String   @default("dd/MM/yyyy")
+  timezone     String   @default("Asia/Ho_Chi_Minh")
+  currency     String   @default("VND")
+  currencyDec  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // ============================================
@@ -347,6 +365,8 @@ model Material {
 enum InventoryType {
   IN
   OUT
+  USAGE
+  RETURN
   ADJUSTMENT
 }
 
@@ -380,19 +400,25 @@ model InventoryTransaction {
   date       DateTime
   reference  String?
   notes      String?
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  projectId       String?
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 
   @@index([materialId])
   @@index([date])
+  @@index([purchaseOrderId])
+  @@index([projectId])
 }
 
 model MaterialUsage {
   id          String   @id @default(uuid())
   materialId  String
   material    Material         @relation(fields: [materialId], references: [id], onDelete: Cascade)
-  dailyLogId  String
-  dailyLog    DailyLog         @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  dailyLogId  String?
+  dailyLog    DailyLog?         @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
   taskId      String?
   task        ConstructionTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
   projectId   String
@@ -401,6 +427,8 @@ model MaterialUsage {
   date        DateTime
   notes       String?
   createdAt   DateTime @default(now())
+
+  photos      MaterialUsagePhoto[]
 
   @@index([materialId])
   @@index([dailyLogId])
@@ -457,6 +485,7 @@ model PurchaseOrder {
 
   items          PurchaseOrderItem[]
   materialPrices MaterialPrice[]
+  inventoryTransactions InventoryTransaction[]
 
   @@index([supplierId])
   @@index([projectId])
@@ -795,4 +824,18 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+model MaterialUsagePhoto {
+  id              String        @id @default(uuid())
+  materialUsageId String
+  materialUsage   MaterialUsage @relation(fields: [materialUsageId], references: [id], onDelete: Cascade)
+  url             String
+  caption         String?
+  takenAt         DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  @@index([materialUsageId])
 }

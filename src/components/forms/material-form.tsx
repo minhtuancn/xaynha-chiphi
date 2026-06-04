@@ -77,7 +77,7 @@ export function MaterialForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Danh mục</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn danh mục" />
@@ -101,7 +101,7 @@ export function MaterialForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Đơn vị tính</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn đơn vị" />
@@ -125,14 +125,14 @@ export function MaterialForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nhà cung cấp (tùy chọn)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} value={field.value || "__none__"}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn nhà cung cấp" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Không chọn</SelectItem>
+                    <SelectItem value="__none__">Không chọn</SelectItem>
                     {suppliers.map((sup) => (
                       <SelectItem key={sup.id} value={sup.id}>
                         {sup.name}

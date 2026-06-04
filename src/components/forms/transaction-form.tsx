@@ -147,14 +147,14 @@ export function TransactionForm({ accounts, onSubmit, isSubmitting = false }: Tr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Danh mục (tùy chọn)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} value={field.value || "__none__"}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Không chọn</SelectItem>
+                    <SelectItem value="__none__">Không chọn</SelectItem>
                     {PAYMENT_METHOD_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}

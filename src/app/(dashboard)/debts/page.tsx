@@ -1,14 +1,25 @@
+import Link from "next/link";
+import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PaymentForm } from "@/components/forms/payment-form";
 import {
   getDebts,
   getPayments,
-  createDebt,
   addPayment,
 } from "@/actions/financial";
 import { formatCurrency, formatDate, DEBT_STATUS_LABELS } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { serialize } from "@/lib/serialize";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const DEBT_TYPE_LABELS: Record<string, string> = {
   PAYABLE: "Phải trả",
@@ -33,21 +44,31 @@ export default async function DebtsPage() {
     getPayments(),
   ]);
 
-  const totalPayable = debts
+  const sDebts = serialize(debts);
+  const sPayments = serialize(payments);
+  const totalPayable = sDebts
     .filter((d) => d.type === "PAYABLE")
-    .reduce((sum, d) => sum + d.amount.sub(d.paidAmount).toNumber(), 0);
+    .reduce((sum, d) => sum + (d.amount - d.paidAmount), 0);
 
-  const totalReceivable = debts
+  const totalReceivable = sDebts
     .filter((d) => d.type === "RECEIVABLE")
-    .reduce((sum, d) => sum + d.amount.sub(d.paidAmount).toNumber(), 0);
+    .reduce((sum, d) => sum + (d.amount - d.paidAmount), 0);
 
-  const activeDebts = debts.filter((d) => d.status !== "PAID");
+  const activeDebts = sDebts.filter((d) => d.status !== "PAID");
+
+  const methodLabels: Record<string, string> = {
+    CASH: "Tiền mặt",
+    BANK: "Ngân hàng",
+    TRANSFER: "Chuyển khoản",
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản lý công nợ</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Quản lý công nợ</h1>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -94,8 +115,8 @@ export default async function DebtsPage() {
           <PaymentForm
             debts={activeDebts.map((d) => ({
               id: d.id,
-              amount: d.amount.toNumber(),
-              paidAmount: d.paidAmount.toNumber(),
+              amount: d.amount,
+              paidAmount: d.paidAmount,
               type: d.type,
               supplierName: d.supplier?.name,
               workerName: d.worker?.name,
@@ -110,70 +131,75 @@ export default async function DebtsPage() {
           <CardTitle>Danh sách công nợ</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left text-sm font-medium">Đối tượng</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Loại</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Tổng nợ</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Đã trả</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Còn lại</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Hạn</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody>
-                {debts.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Đối tượng</TableHead>
+                  <TableHead>Loại</TableHead>
+                  <TableHead className="text-right">Tổng nợ</TableHead>
+                  <TableHead className="text-right">Đã trả</TableHead>
+                  <TableHead className="text-right">Còn lại</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Hạn</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sDebts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Chưa có khoản nợ nào
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  debts.map((debt) => {
+                  sDebts.map((debt) => {
                     const name = debt.supplier?.name || debt.worker?.name || "Không xác định";
-                    const remaining = debt.amount.sub(debt.paidAmount).toNumber();
+                    const remaining = debt.amount - debt.paidAmount;
                     return (
-                      <tr key={debt.id} className="border-b last:border-0">
-                        <td className="px-4 py-3 text-sm font-medium">
-                          {name}
-                        </td>
-                        <td className="px-4 py-3">
+                      <TableRow
+                        key={debt.id}
+                        className="group hover:bg-muted/50 transition-colors cursor-pointer"
+                      >
+                        <TableCell className="font-medium">{name}</TableCell>
+                        <TableCell>
                           <Badge variant={DEBT_TYPE_VARIANTS[debt.type]}>
                             {DEBT_TYPE_LABELS[debt.type]}
                           </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono">
-                          {formatCurrency(debt.amount.toNumber())}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600">
-                          {formatCurrency(debt.paidAmount.toNumber())}
-                        </td>
-                        <td className={cn(
-                          "px-4 py-3 text-sm text-right font-mono",
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatCurrency(debt.amount)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          {formatCurrency(debt.paidAmount)}
+                        </TableCell>
+                        <TableCell className={cn(
+                          "text-right font-mono",
                           remaining > 0 ? "text-red-600" : "text-muted-foreground"
                         )}>
                           {formatCurrency(remaining)}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell>
                           <Badge variant={DEBT_STATUS_VARIANTS[debt.status]}>
                             {DEBT_STATUS_LABELS[debt.status]}
                           </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {debt.dueDate ? formatDate(debt.dueDate) : "-"}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
-                          {debt.notes || "-"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Badge variant="outline" className="text-xs cursor-default">
+                              {debt.notes ? debt.notes.slice(0, 30) + (debt.notes.length > 30 ? "…" : "") : "Chi tiết"}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
@@ -183,56 +209,47 @@ export default async function DebtsPage() {
           <CardTitle>Lịch sử thanh toán</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left text-sm font-medium">Ngày</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Khoản nợ</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Số tiền</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Phương thức</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Ngày</TableHead>
+                  <TableHead>Khoản nợ</TableHead>
+                  <TableHead className="text-right">Số tiền</TableHead>
+                  <TableHead>Phương thức</TableHead>
+                  <TableHead>Ghi chú</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sPayments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Chưa có thanh toán nào
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  payments.map((payment) => {
+                  sPayments.map((payment) => {
                     const debtName = payment.debt.supplier?.name || payment.debt.worker?.name || "Không xác định";
                     const typeLabel = payment.debt.type === "PAYABLE" ? "Phải trả" : "Phải thu";
-                    const methodLabels: Record<string, string> = {
-                      CASH: "Tiền mặt",
-                      BANK: "Ngân hàng",
-                      TRANSFER: "Chuyển khoản",
-                    };
                     return (
-                      <tr key={payment.id} className="border-b last:border-0">
-                        <td className="px-4 py-3 text-sm">
-                          {formatDate(payment.date)}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium">
+                      <TableRow key={payment.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell>{formatDate(payment.date)}</TableCell>
+                        <TableCell className="font-medium">
                           {debtName} ({typeLabel})
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600">
-                          {formatCurrency(payment.amount.toNumber())}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {methodLabels[payment.method] || payment.method}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-green-600">
+                          {formatCurrency(payment.amount)}
+                        </TableCell>
+                        <TableCell>{methodLabels[payment.method] || payment.method}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-xs truncate">
                           {payment.notes || "-"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

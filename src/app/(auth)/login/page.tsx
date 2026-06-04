@@ -85,9 +85,9 @@ export default function LoginPage() {
           </Button>
         </form>
         <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted rounded-lg">
-          <p className="font-medium mb-1">Demo accounts:</p>
-          <p>Admin: admin@local.com / admin123</p>
-          <p>User: user@local.com / user123</p>
+          <p className="font-medium mb-1">Tài khoản dùng thử:</p>
+          <p>Quản trị: admin@local.com / admin123</p>
+          <p>Người dùng: user@local.com / user123</p>
         </div>
       </CardContent>
     </Card>

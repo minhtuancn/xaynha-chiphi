@@ -42,7 +42,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
 
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || "Upload failed");
+          throw new Error(data.error || "Tải lên thất bại");
         }
 
         const { url, thumbnail } = await res.json();
@@ -53,7 +53,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
           takenAt: new Date(),
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed");
+        setError(err instanceof Error ? err.message : "Tải lên thất bại");
       }
     }
 
@@ -66,7 +66,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
       await deletePhoto(id);
       setPhotoList((prev) => prev.filter((p) => p.id !== id));
     } catch {
-      setError("Failed to delete photo");
+      setError("Xóa ảnh thất bại");
     }
   };
 

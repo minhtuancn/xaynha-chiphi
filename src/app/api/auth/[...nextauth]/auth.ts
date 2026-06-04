@@ -7,12 +7,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Mật khẩu", type: "password" },
+        email: {},
+        password: {},
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Vui lòng nhập email và mật khẩu");
+          return null;
         }
 
         const email = credentials.email as string;
@@ -23,12 +23,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!user || !user.isActive) {
-          throw new Error("Email hoặc mật khẩu không đúng");
+          return null;
         }
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
-          throw new Error("Email hoặc mật khẩu không đúng");
+          return null;
         }
 
         await prisma.user.update({
@@ -55,16 +55,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role as string;
+        token.role = (user as { role: string }).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        (session.user as Record<string, unknown>).role = token.role;
+        (session.user as unknown as Record<string, unknown>).role = token.role;
       }
       return session;
     },
   },
+  trustHost: true,
 });

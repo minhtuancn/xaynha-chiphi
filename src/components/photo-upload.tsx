@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Camera, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface PhotoFile {
   file: File;
@@ -22,6 +26,7 @@ export function PhotoUpload({
   allowCamera = true,
   allowUpload = true,
 }: PhotoUploadProps) {
+  const { toast } = useToast();
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -43,7 +48,36 @@ export function PhotoUpload({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+    const invalid = files.find((f) => !ALLOWED_TYPES.includes(f.type));
+    if (invalid) {
+      toast({
+        title: "Định dạng không hỗ trợ",
+        description: "Chỉ chấp nhận JPEG, PNG hoặc WebP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const oversized = files.find((f) => f.size > MAX_FILE_SIZE);
+    if (oversized) {
+      toast({
+        title: "Ảnh quá lớn",
+        description: "Kích thước tối đa 10MB mỗi ảnh",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const remaining = maxPhotos - photos.length;
+    if (files.length > remaining) {
+      toast({
+        title: "Vượt quá số lượng",
+        description: `Chỉ được chọn tối đa ${remaining} ảnh`,
+        variant: "destructive",
+      });
+    }
+
     const newFiles = files.slice(0, remaining).map((file) => ({
       file,
       preview: URL.createObjectURL(file),

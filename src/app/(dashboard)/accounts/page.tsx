@@ -9,6 +9,7 @@ import {
 } from "@/actions/financial";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { serialize } from "@/lib/serialize";
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CASH: "Tiền mặt",
@@ -31,7 +32,10 @@ export default async function AccountsPage() {
     getTransactions(),
   ]);
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance.toNumber(), 0);
+  const serializedAccounts = serialize(accounts);
+  const serializedTransactions = serialize(transactions);
+
+  const totalBalance = serializedAccounts.reduce((sum, acc) => sum + acc.balance, 0);
 
   return (
     <div className="space-y-6">
@@ -50,7 +54,7 @@ export default async function AccountsPage() {
             </div>
           </CardContent>
         </Card>
-        {accounts.map((acc) => (
+        {serializedAccounts.map((acc) => (
           <Card key={acc.id}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -60,15 +64,15 @@ export default async function AccountsPage() {
             <CardContent>
               <div className={cn(
                 "text-2xl font-bold",
-                acc.balance.lessThan(0) && "text-red-600"
+                acc.balance < 0 && "text-red-600"
               )}>
-                {formatCurrency(acc.balance.toNumber())}
+                {formatCurrency(acc.balance)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 <Badge variant="outline">
                   {ACCOUNT_TYPE_LABELS[acc.type]}
                 </Badge>
-              </p>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -80,7 +84,7 @@ export default async function AccountsPage() {
         </CardHeader>
         <CardContent>
           <TransactionForm
-            accounts={accounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
+            accounts={serializedAccounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
             onSubmit={createTransaction}
           />
         </CardContent>
@@ -91,7 +95,7 @@ export default async function AccountsPage() {
           <CardTitle>Lịch sử giao dịch</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -104,14 +108,14 @@ export default async function AccountsPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
+                {serializedTransactions.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       Chưa có giao dịch nào
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((tx) => (
+                  serializedTransactions.map((tx) => (
                     <tr key={tx.id} className="border-b last:border-0">
                       <td className="px-4 py-3 text-sm">
                         {formatDate(tx.date)}
@@ -128,7 +132,7 @@ export default async function AccountsPage() {
                         "px-4 py-3 text-sm text-right font-mono",
                         tx.type === "INCOME" ? "text-green-600" : "text-red-600"
                       )}>
-                        {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(tx.amount.toNumber())}
+                        {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(tx.amount)}
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {tx.category || "-"}

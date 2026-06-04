@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Project {
   id: string;
@@ -65,6 +66,7 @@ export function DailyLogForm({
   showPhotoUpload = true,
 }: DailyLogFormProps) {
   const [photos, setPhotos] = useState<File[]>([]);
+  const { toast } = useToast();
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherSource, setWeatherSource] = useState<"AUTO" | "MANUAL">(
     "AUTO"
@@ -105,22 +107,31 @@ export function DailyLogForm({
         if (data.condition) {
           const conditionMap: Record<string, string> = {
             sunny: "SUN",
+            clear: "SUN",
             rainy: "RAIN",
+            rain: "RAIN",
             cloudy: "CLOUDY",
+            partly_cloudy: "CLOUDY",
             stormy: "STORM",
+            thunderstorm: "STORM",
             windy: "OVERCAST",
             overcast: "OVERCAST",
+            foggy: "OVERCAST",
           };
-          const mapped = conditionMap[data.condition.toLowerCase()] ?? "CLOUDY";
-          form.setValue(
-            "weatherCondition",
-            mapped as "SUN" | "RAIN" | "CLOUDY" | "STORM" | "OVERCAST"
-          );
+          const mapped = conditionMap[data.condition.toLowerCase()];
+          if (mapped) {
+            form.setValue("weatherCondition", mapped as DailyLogFormData["weatherCondition"]);
+          }
         }
         setWeatherSource("AUTO");
         form.setValue("weatherSource", "AUTO");
       })
       .catch(() => {
+        toast({
+          title: "Không thể tải dữ liệu thời tiết",
+          description: "Vui lòng nhập thủ công",
+          variant: "destructive",
+        });
         setWeatherSource("MANUAL");
         form.setValue("weatherSource", "MANUAL");
       })
@@ -151,7 +162,7 @@ export function DailyLogForm({
                 <FormLabel>Dự án *</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value || undefined}
                 >
                   <FormControl>
                     <SelectTrigger>

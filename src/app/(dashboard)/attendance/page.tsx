@@ -151,7 +151,7 @@ export default function AttendancePage() {
         </Badge>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
@@ -176,7 +176,7 @@ export default function AttendancePage() {
                     {worker.skill ?? "-"}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {formatCurrency(worker.dailyWage.toNumber())}
+                    {formatCurrency(Number(worker.dailyWage))}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">

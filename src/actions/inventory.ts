@@ -57,27 +57,57 @@ export async function createTransaction(data: InventoryFormData) {
         throw new Error("Số lượng xuất vượt quá tồn kho hiện tại");
       }
       break;
+    case "USAGE":
+      newStock = material.currentStock.sub(quantity);
+      if (newStock.lessThan(0)) {
+        throw new Error("Số lượng xuất vượt quá tồn kho hiện tại");
+      }
+      break;
+    case "RETURN":
+      newStock = material.currentStock.add(quantity);
+      break;
     case "ADJUSTMENT":
       newStock = quantity;
       break;
   }
 
+  const txData = {
+    materialId: validated.materialId,
+    type: validated.type,
+    quantity,
+    date: validated.date,
+    reference: validated.reference || null,
+    notes: validated.notes || null,
+    ...(validated.projectId ? { projectId: validated.projectId } : {}),
+    ...(validated.purchaseOrderId ? { purchaseOrderId: validated.purchaseOrderId } : {}),
+  };
+
   await prisma.$transaction([
-    prisma.inventoryTransaction.create({
-      data: {
-        materialId: validated.materialId,
-        type: validated.type,
-        quantity,
-        date: validated.date,
-        reference: validated.reference || null,
-        notes: validated.notes || null,
-      },
-    }),
+    prisma.inventoryTransaction.create({ data: txData }),
     prisma.material.update({
       where: { id: validated.materialId },
       data: { currentStock: newStock },
     }),
   ]);
+
+  // For USAGE, also create a MaterialUsage record
+  if (validated.type === "USAGE" && validated.projectId) {
+    const dailyLog = await prisma.dailyLog.findFirst({
+      where: { projectId: validated.projectId, deletedAt: null },
+      orderBy: { date: "desc" },
+    });
+
+    await prisma.materialUsage.create({
+      data: {
+        materialId: validated.materialId,
+        projectId: validated.projectId,
+        quantity,
+        date: validated.date,
+        ...(dailyLog ? { dailyLogId: dailyLog.id } : {}),
+        notes: validated.notes || null,
+      },
+    });
+  }
 
   revalidatePath("/inventory");
 }

@@ -58,7 +58,7 @@ export function InventoryForm({ materials, onSubmit, isSubmitting = false }: Inv
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Vật liệu</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn vật liệu" />

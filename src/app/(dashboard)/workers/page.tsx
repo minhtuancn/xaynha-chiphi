@@ -3,82 +3,12 @@ import { Plus } from "lucide-react";
 import { getWorkers } from "@/actions/workers";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { Worker } from "@prisma/client";
-
-type WorkerWithCount = Worker & {
-  _count: { attendances: number };
-};
-
-const WORKER_STATUS_LABELS: Record<string, string> = {
-  ACTIVE: "Đang làm",
-  INACTIVE: "Ngưng làm",
-};
-
-const WORKER_STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  ACTIVE: "default",
-  INACTIVE: "secondary",
-};
-
-const columns: ColumnDef<WorkerWithCount>[] = [
-  {
-    accessorKey: "name",
-    header: "Tên công nhân",
-    cell: ({ row }) => (
-      <Link
-        href={`/workers/${row.original.id}/edit`}
-        className="font-medium hover:underline"
-      >
-        {row.getValue("name")}
-      </Link>
-    ),
-  },
-  {
-    accessorKey: "phone",
-    header: "Số điện thoại",
-    cell: ({ row }) => row.original.phone ?? "-",
-  },
-  {
-    accessorKey: "skill",
-    header: "Tay nghề",
-    cell: ({ row }) => row.original.skill ?? "-",
-  },
-  {
-    accessorKey: "dailyWage",
-    header: "Lương ngày",
-    cell: ({ row }) => formatCurrency(row.original.dailyWage.toNumber()),
-  },
-  {
-    accessorKey: "status",
-    header: "Trạng thái",
-    cell: ({ row }) => (
-      <Badge variant={WORKER_STATUS_VARIANT[row.original.status] ?? "outline"}>
-        {WORKER_STATUS_LABELS[row.original.status] ?? row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "_count.attendances",
-    header: "Số lần chấm công",
-    cell: ({ row }) => row.original._count.attendances,
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <Link href={`/workers/${row.original.id}/edit`}>
-        <Button variant="outline" size="sm">
-          Sửa
-        </Button>
-      </Link>
-    ),
-  },
-];
+import { serialize } from "@/lib/serialize";
+import { columns } from "./columns";
+import type { WorkerRow } from "./columns";
 
 export default async function WorkersPage() {
-  const workers = await getWorkers();
+  const workers = serialize(await getWorkers()) as unknown as WorkerRow[];
 
   return (
     <div className="space-y-6">

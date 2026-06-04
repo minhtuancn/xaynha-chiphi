@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { WeatherWidget } from "@/components/dashboard/weather-widget";
 import { ProgressChart } from "@/components/dashboard/progress-chart";
 import { RecentPhotos } from "@/components/dashboard/recent-photos";
+import { serialize } from "@/lib/serialize";
 import { formatCurrency, formatDate, STAGE_STATUS_LABELS, TASK_STATUS_LABELS } from "@/lib/utils";
 import { Building2, Wallet, TrendingUp, ListChecks } from "lucide-react";
 
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { project, stats, stages, recentPhotos, weather, upcomingTasks, recentExpenses } = data;
+  const { project, stats, stages, recentPhotos, weather, upcomingTasks, recentExpenses } = serialize(data);
 
   return (
     <div className="space-y-6">
@@ -51,7 +52,7 @@ export default async function DashboardPage() {
           icon={Building2}
         />
         <StatCard
-          title="Tasks"
+          title="Công việc"
           value={`${stats?.completedTasks ?? 0}/${stats?.totalTasks ?? 0}`}
           subtitle="Hoàn thành"
           icon={ListChecks}
@@ -86,7 +87,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                     <span>{stage.progress}%</span>
-                    <span>{stage._count.tasks} tasks</span>
+                    <span>{stage._count.tasks} nhiệm vụ</span>
                   </div>
                   <Progress value={stage.progress} className="h-1.5 mt-2" />
                 </div>
@@ -97,7 +98,7 @@ export default async function DashboardPage() {
 
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold mb-3">Task sắp tới</h2>
+            <h2 className="text-lg font-semibold mb-3">Nhiệm vụ sắp tới</h2>
             <div className="space-y-2">
               {upcomingTasks.map((task) => (
                 <div key={task.id} className="p-3 rounded-lg border">

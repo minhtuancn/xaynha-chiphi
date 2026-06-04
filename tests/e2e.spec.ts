@@ -87,7 +87,18 @@ test.describe('Dashboard', () => {
   test('materials page shows materials', async ({ page }) => {
     await page.goto(`${BASE_URL}/materials`);
     await expect(page).toHaveURL(/.*materials/, { timeout: 10000 });
+
+    // Page loads with heading
+    await expect(page.getByText('Quản lý vật liệu')).toBeVisible({ timeout: 10000 });
+
+    // At least one material is displayed
     await expect(page.getByText(/Xi măng|Vật liệu/).first()).toBeVisible({ timeout: 15000 });
+
+    // STT column is present
+    await expect(page.getByText('STT')).toBeVisible();
+
+    // Category filter is present
+    await expect(page.getByPlaceholder('Lọc theo danh mục...')).toBeVisible();
   });
 
   test('daily logs page shows logs', async ({ page }) => {

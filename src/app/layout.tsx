@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ["latin", "vietnamese"] });
 export const metadata: Metadata = {
   title: "Xay Nha - Quan ly xay dung",
   description: "He thong quan ly xay dung nha o ca nhan",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({

@@ -68,23 +68,26 @@ const MODULES: ModuleName[] = [
 const PERMISSIONS: ModulePermission[] = ["view", "create", "edit", "delete"];
 
 const MODULE_LABELS: Record<ModuleName, string> = {
-  dashboard: "Dashboard",
-  projects: "Projects",
-  stages: "Stages",
-  dailyLogs: "Daily Logs",
-  materials: "Materials",
-  inventory: "Inventory",
-  purchaseOrders: "Purchase Orders",
-  suppliers: "Suppliers",
-  workers: "Workers",
-  attendance: "Attendance",
-  expenses: "Expenses",
-  accounts: "Accounts",
-  debts: "Debts",
-  photos: "Photos",
-  documents: "Documents",
-  reports: "Reports",
-  settings: "Settings",
+  dashboard: "Tổng quan",
+  projects: "Dự án",
+  stages: "Giai đoạn",
+  dailyLogs: "Nhật ký",
+  materials: "Vật liệu",
+  inventory: "Tồn kho",
+  purchaseOrders: "Đặt hàng",
+  suppliers: "Nhà cung cấp",
+  workers: "Công nhân",
+  attendance: "Chấm công",
+  expenses: "Chi phí",
+  accounts: "Tài khoản",
+  debts: "Công nợ",
+  photos: "Hình ảnh",
+  documents: "Tài liệu",
+  materialUsage: "Vật tư sử dụng",
+  checklists: "Checklist",
+  notifications: "Thông báo",
+  reports: "Báo cáo",
+  settings: "Cài đặt",
 };
 
 const PERMISSION_LABELS: Record<ModulePermission, string> = {
@@ -149,7 +152,7 @@ export default function UsersPage() {
     } catch (e: unknown) {
       toast({
         title: "Lỗi khi tạo user",
-        description: e instanceof Error ? e.message : "Unknown error",
+        description: e instanceof Error ? e.message : "Lỗi không xác định",
         variant: "destructive",
       });
     } finally {
@@ -179,7 +182,7 @@ export default function UsersPage() {
     } catch (e: unknown) {
       toast({
         title: "Lỗi khi cập nhật",
-        description: e instanceof Error ? e.message : "Unknown error",
+        description: e instanceof Error ? e.message : "Lỗi không xác định",
         variant: "destructive",
       });
     } finally {
@@ -194,7 +197,7 @@ export default function UsersPage() {
     } catch (e: unknown) {
       toast({
         title: "Lỗi",
-        description: e instanceof Error ? e.message : "Unknown error",
+        description: e instanceof Error ? e.message : "Lỗi không xác định",
         variant: "destructive",
       });
     }
@@ -247,7 +250,7 @@ export default function UsersPage() {
               </TableCell>
               <TableCell>
                 <Badge variant={user.isActive ? "default" : "outline"}>
-                  {user.isActive ? "Active" : "Inactive"}
+                  {user.isActive ? "Hoạt động" : "Ngưng"}
                 </Badge>
               </TableCell>
               <TableCell>{formatDate(user.lastLoginAt)}</TableCell>
@@ -320,65 +323,65 @@ export default function UsersPage() {
                 <SelectTrigger id="create-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleCreate} disabled={saving}>
-              {saving ? "Đang tạo..." : "Tạo"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa người dùng</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Tên</Label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Vai trò</Label>
-                <Select
-                  value={editForm.role}
-                  onValueChange={(v: "ADMIN" | "USER") =>
-                    setEditForm({ ...editForm, role: v })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USER">User</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
+                    <SelectItem value="USER">Người dùng</SelectItem>
+                    <SelectItem value="ADMIN">Quản trị</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreate(false)}>
+                Hủy
+              </Button>
+              <Button onClick={handleCreate} disabled={saving}>
+                {saving ? "Đang tạo..." : "Tạo"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Chỉnh sửa người dùng</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>Tên</Label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    value={editForm.email}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Vai trò</Label>
+                  <Select
+                    value={editForm.role}
+                    onValueChange={(v: "ADMIN" | "USER") =>
+                      setEditForm({ ...editForm, role: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USER">Người dùng</SelectItem>
+                      <SelectItem value="ADMIN">Quản trị</SelectItem>
+                    </SelectContent>
+                  </Select>
               </div>
             </div>
 

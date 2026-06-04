@@ -2,6 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import { ThemeToggle } from "./theme-toggle";
+import { NotificationsDropdown } from "./notifications-dropdown";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -12,7 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
+import { useSidebar } from "./sidebar-provider";
 
 interface HeaderProps {
   userName: string;
@@ -21,9 +23,18 @@ interface HeaderProps {
 }
 
 export function Header({ userName, userEmail, userRole }: HeaderProps) {
+  const { toggle } = useSidebar();
+
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 md:px-6">
+      <button
+        onClick={toggle}
+        className="rounded-md p-1 hover:bg-accent md:hidden"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
       <div className="flex-1" />
+      <NotificationsDropdown />
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

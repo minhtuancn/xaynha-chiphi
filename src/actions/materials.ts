@@ -98,6 +98,49 @@ export async function getMaterialCategories() {
   });
 }
 
+export async function createMaterialCategory(data: { name: string; description?: string }) {
+  await requirePermission("materials", "edit");
+
+  return prisma.materialCategory.create({
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+  });
+}
+
+export async function updateMaterialCategory(id: string, data: { name: string; description?: string }) {
+  await requirePermission("materials", "edit");
+
+  return prisma.materialCategory.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+  });
+}
+
+export async function deleteMaterialCategory(id: string) {
+  await requirePermission("materials", "edit");
+
+  // Check if any materials use this category
+  const materialCount = await prisma.material.count({
+    where: { categoryId: id, deletedAt: null },
+  });
+
+  if (materialCount > 0) {
+    throw new Error(`Danh mục đang được sử dụng bởi ${materialCount} vật liệu. Không thể xóa.`);
+  }
+
+  await prisma.materialCategory.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+
+  revalidatePath("/materials");
+}
+
 export async function addManualPrice(
   materialId: string,
   data: { price: number; notes?: string }

@@ -18,6 +18,17 @@
    docker compose exec app npm run db:seed
    ```
 
+## Local Development
+
+```bash
+npm install
+npx prisma migrate dev
+npm run db:seed
+npm run dev
+```
+
+App runs on http://localhost:3050
+
 ## Backup/Restore
 
 ```bash
@@ -34,7 +45,7 @@
 |----------|-------------|---------|
 | DATABASE_URL | SQLite file path | file:./data.db |
 | NEXTAUTH_SECRET | Session secret | - |
-| NEXTAUTH_URL | App URL | http://localhost:3000 |
+| NEXTAUTH_URL | App URL | http://localhost:3050 |
 | MINIO_ENDPOINT | MinIO host | localhost |
 | MINIO_PORT | MinIO port | 9000 |
 | MINIO_ACCESS_KEY | MinIO access key | minioadmin |

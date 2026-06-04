@@ -3,13 +3,14 @@ import { MaterialForm } from "@/components/forms/material-form";
 import { createMaterial } from "@/actions/materials";
 import { getMaterialCategories } from "@/actions/materials";
 import { prisma } from "@/lib/prisma";
+import { serialize } from "@/lib/serialize";
 
 export default async function NewMaterialPage() {
   const categories = await getMaterialCategories();
-  const suppliers = await prisma.supplier.findMany({
+  const suppliers = serialize(await prisma.supplier.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
-  });
+  }));
 
   return (
     <div className="space-y-6">

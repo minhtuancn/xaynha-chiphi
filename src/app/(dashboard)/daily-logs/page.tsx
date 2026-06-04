@@ -48,78 +48,85 @@ export default async function DailyLogsPage() {
             <CardTitle>Danh sách nhật ký</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ngày</TableHead>
-                  <TableHead>Thời tiết</TableHead>
-                  <TableHead>Ghi chú</TableHead>
-                  <TableHead>Công nhân</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => {
-                  const weather = log.weather ? JSON.parse(log.weather) : null;
-                  const Icon = weather
-                    ? weatherIcons[weather.condition] || Cloud
-                    : null;
-                  const label = weather
-                    ? WEATHER_LABELS[weather.condition] || weather.condition
-                    : "-";
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Ngày</TableHead>
+                    <TableHead>Thời tiết</TableHead>
+                    <TableHead>Ghi chú</TableHead>
+                    <TableHead className="text-center">Công nhân</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => {
+                    const weather = log.weather ? JSON.parse(log.weather) : null;
+                    const Icon = weather
+                      ? weatherIcons[weather.condition] || Cloud
+                      : null;
+                    const label = weather
+                      ? WEATHER_LABELS[weather.condition] || weather.condition
+                      : "-";
 
-                  return (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-medium">
-                        {formatDate(log.date)}
-                      </TableCell>
-                      <TableCell>
-                        {weather ? (
-                          <div className="flex items-center gap-2">
-                            {Icon && (
-                              <Icon className="h-4 w-4 text-muted-foreground" />
-                            )}
-                            <span>{weather.temperature}°C</span>
-                            <span className="text-muted-foreground text-sm">
-                              {label}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {log.notes || "-"}
-                      </TableCell>
-                      <TableCell>{log.workerCount}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Link href={`/daily-logs/${log.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                    return (
+                      <TableRow
+                        key={log.id}
+                        className="group cursor-pointer hover:bg-muted/50 transition-colors"
+                      >
+                        <TableCell className="font-medium">
+                          <Link href={`/daily-logs/${log.id}`} className="hover:text-primary">
+                            {formatDate(log.date)}
                           </Link>
-                          <form
-                            action={async () => {
-                              "use server";
-                              await deleteDailyLog(log.id);
-                            }}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive"
+                        </TableCell>
+                        <TableCell>
+                          {weather ? (
+                            <div className="flex items-center gap-2">
+                              {Icon && (
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span>{weather.temperature}°C</span>
+                              <span className="text-muted-foreground text-sm">
+                                {label}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {log.notes || <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="text-center">{log.workerCount}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Link href={`/daily-logs/${log.id}`}>
+                              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-8 w-8 p-0">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <form
+                              action={async () => {
+                                "use server";
+                                await deleteDailyLog(log.id);
+                              }}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </form>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive/80 h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </form>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

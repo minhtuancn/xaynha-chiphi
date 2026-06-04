@@ -398,7 +398,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
       formatNumber(m.minStock, 0),
       m.unit,
       formatCurrency(m.unitCost),
-      m.isLowStock ? "Thấp" : "OK",
+      m.isLowStock ? "Thấp" : "Đủ",
     ]);
     exportToCSV(headers, rows, "bao-cao-vat-tu");
   };
@@ -490,7 +490,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
                     {m.isLowStock ? (
                       <Badge variant="destructive">Thấp</Badge>
                     ) : (
-                      <Badge variant="default">OK</Badge>
+                      <Badge variant="default">Đủ</Badge>
                     )}
                   </TableCell>
                 </TableRow>

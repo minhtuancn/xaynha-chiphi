@@ -57,7 +57,7 @@ export function PaymentForm({ debts, onSubmit, isSubmitting = false }: PaymentFo
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Khoản nợ</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn khoản nợ" />

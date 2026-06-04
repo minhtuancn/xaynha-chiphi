@@ -44,7 +44,7 @@ function ActionsCell({ project }: { project: Project }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Link href={`/projects/${project.id}/edit`}>
+      <Link href={`/projects/${project.id}/edit?tab=edit`}>
         <Button variant="outline" size="sm">
           Sửa
         </Button>
@@ -80,7 +80,7 @@ export const columns: ColumnDef<Project>[] = [
     header: "Tên dự án",
     cell: ({ row }) => (
       <Link
-        href={`/projects/${row.original.id}/edit`}
+        href={`/projects/${row.original.id}/edit?tab=view`}
         className="font-medium hover:underline"
       >
         {row.getValue("name")}

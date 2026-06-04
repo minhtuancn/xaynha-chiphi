@@ -21,6 +21,7 @@ export async function getProject(id: string) {
 
   return prisma.project.findUnique({
     where: { id, deletedAt: null },
+    include: { _count: { select: { stages: true } } },
   });
 }
 
@@ -129,12 +130,17 @@ export async function deleteProject(id: string) {
     if (purchaseOrderCount > 0) parts.push(`${purchaseOrderCount} đơn đặt hàng`);
     if (photoCount > 0) parts.push(`${photoCount} ảnh`);
     if (documentCount > 0) parts.push(`${documentCount} tài liệu`);
-    if (budget !== null) parts.push(`1 ngân sách`);
 
-    return {
-      success: false,
-      error: `Dự án có ${parts.join(", ")}. Vui lòng xóa các liên kết trước.`,
-    };
+    if (parts.length > 0) {
+      return {
+        success: false,
+        error: `Dự án có ${parts.join(", ")}. Vui lòng xóa các liên kết trước.`,
+      };
+    }
+  }
+
+  if (budget !== null) {
+    await prisma.budget.delete({ where: { projectId: id } });
   }
 
   await prisma.project.update({

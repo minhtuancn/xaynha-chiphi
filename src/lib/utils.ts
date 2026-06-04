@@ -5,14 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number | string): string {
+export function formatCurrency(
+  amount: number | string,
+  options?: { currencyDec?: number }
+): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(num)) return "0 ₫";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: options?.currencyDec ?? 0,
+    maximumFractionDigits: options?.currencyDec ?? 0,
   }).format(num);
 }
 
@@ -161,6 +164,9 @@ export type ModuleName =
   | "debts"
   | "photos"
   | "documents"
+  | "materialUsage"
+  | "checklists"
+  | "notifications"
   | "reports"
   | "settings";
 

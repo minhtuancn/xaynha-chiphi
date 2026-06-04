@@ -109,6 +109,18 @@ export async function deleteExpense(id: string) {
 // ACCOUNTS
 // ============================================
 
+export async function getAccountDetail(id: string) {
+  const { requirePermission } = await import("@/lib/auth");
+  const { prisma } = await import("@/lib/prisma");
+  await requirePermission("accounts", "view");
+  return prisma.account.findUnique({
+    where: { id },
+    include: {
+      transactions: { orderBy: { date: "desc" }, take: 20 },
+    },
+  });
+}
+
 export async function getAccounts() {
   await requirePermission("accounts", "view");
 

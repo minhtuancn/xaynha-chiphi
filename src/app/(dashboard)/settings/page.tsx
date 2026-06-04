@@ -21,9 +21,10 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { updateSetting } from "@/actions/settings";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 const PACKAGE_VERSION = "0.1.0";
-const BUILD_INFO = process.env.NODE_ENV === "production" ? "Production" : "Development";
+const BUILD_INFO = process.env.NODE_ENV === "production" ? "Sản xuất" : "Phát triển";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -32,6 +33,31 @@ export default function SettingsPage() {
   const [weatherApiKey, setWeatherApiKey] = useState("");
   const [theme, setTheme] = useState("light");
   const [saving, setSaving] = useState(false);
+  const { settings, updateSettings } = useUserSettings();
+  const [lang, setLang] = useState(settings.language);
+  const [dateFmt, setDateFmt] = useState(settings.dateFormat);
+  const [tz, setTz] = useState(settings.timezone);
+  const [currency, setCurrency] = useState(settings.currency);
+  const [curDec, setCurDec] = useState(settings.currencyDec);
+
+  async function handleSavePersonalization() {
+    setSaving(true);
+    try {
+      await updateSettings({
+        language: lang,
+        theme,
+        dateFormat: dateFmt,
+        timezone: tz,
+        currency,
+        currencyDec: curDec,
+      });
+      toast({ title: "Đã lưu cá nhân hóa" });
+    } catch {
+      toast({ title: "Lỗi khi lưu", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     const storedLat = localStorage.getItem("settings:lat");
@@ -92,7 +118,7 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="lat">Vĩ độ (Latitude)</Label>
+              <Label htmlFor="lat">Vĩ độ</Label>
               <Input
                 id="lat"
                 type="number"
@@ -103,7 +129,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lon">Kinh độ (Longitude)</Label>
+              <Label htmlFor="lon">Kinh độ</Label>
               <Input
                 id="lon"
                 type="number"
@@ -115,7 +141,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weatherApiKey">Weather API Key</Label>
+            <Label htmlFor="weatherApiKey">API Key thời tiết</Label>
             <Input
               id="weatherApiKey"
               type="password"
@@ -153,6 +179,81 @@ export default function SettingsPage() {
           </div>
           <Button onClick={handleSaveAppearance} disabled={saving}>
             {saving ? "Đang lưu..." : "Lưu giao diện"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cá nhân hóa</CardTitle>
+          <CardDescription>Ngôn ngữ, định dạng ngày, múi giờ và tiền tệ</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="language">Ngôn ngữ</Label>
+            <Select value={lang} onValueChange={setLang}>
+              <SelectTrigger id="language">
+                <SelectValue placeholder="Chọn ngôn ngữ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vi">Tiếng Việt</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dateFormat">Định dạng ngày</Label>
+            <Select value={dateFmt} onValueChange={setDateFmt}>
+              <SelectTrigger id="dateFormat">
+                <SelectValue placeholder="Chọn định dạng ngày" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dd/MM/yyyy">dd/MM/yyyy</SelectItem>
+                <SelectItem value="MM/dd/yyyy">MM/dd/yyyy</SelectItem>
+                <SelectItem value="yyyy-MM-dd">yyyy-MM-dd</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="timezone">Múi giờ</Label>
+            <Select value={tz} onValueChange={setTz}>
+              <SelectTrigger id="timezone">
+                <SelectValue placeholder="Chọn múi giờ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (UTC+7)</SelectItem>
+                <SelectItem value="Asia/Bangkok">Asia/Bangkok (UTC+7)</SelectItem>
+                <SelectItem value="UTC">UTC</SelectItem>
+                <SelectItem value="Asia/Singapore">Asia/Singapore (UTC+8)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="currency">Tiền tệ</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger id="currency">
+                <SelectValue placeholder="Chọn tiền tệ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="VND">VND</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="currencyDec">Số thập phân tiền tệ</Label>
+            <Input
+              id="currencyDec"
+              type="number"
+              defaultValue={0}
+              value={curDec}
+              onChange={(e) => setCurDec(Number(e.target.value))}
+            />
+          </div>
+          <Button onClick={handleSavePersonalization} disabled={saving}>
+            {saving ? "Đang lưu..." : "Lưu cá nhân hóa"}
           </Button>
         </CardContent>
       </Card>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind, Loader2 } from "lucide-react";
+import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind } from "lucide-react";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
 import { deleteDailyLog } from "@/actions/daily-logs";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate, WEATHER_LABELS } from "@/lib/utils";
+import { TableSkeleton } from "@/components/ui/loading-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { BookOpen } from "lucide-react";
 
 const weatherIcons: Record<string, typeof Sun> = {
   sunny: Sun,
@@ -40,17 +43,14 @@ export default function DailyLogsPage() {
       </div>
 
       {isLoading ? (
-        <Card className="shadow-sm">
-          <CardContent className="py-12 flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
+        <TableSkeleton rows={4} cols={4} />
       ) : !logs || logs.length === 0 ? (
-        <Card className="shadow-sm">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Chưa có nhật ký nào. Hãy thêm nhật ký thi công đầu tiên.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<BookOpen className="h-8 w-8" />}
+          title="Chưa có nhật ký nào"
+          description="Thêm nhật ký thi công đầu tiên để theo dõi tiến độ hàng ngày."
+          action={{ label: "Thêm nhật ký", onClick: () => window.location.href = "/daily-logs/new" }}
+        />
       ) : (
         <Card className="shadow-sm">
           <CardHeader>

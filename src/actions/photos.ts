@@ -4,19 +4,15 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { deleteFile } from "@/lib/minio";
+import { getProjectScope } from "./project-scope";
 
 export async function getPhotos() {
   await requirePermission("photos", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return [];
+  const projectScope = await getProjectScope();
 
   return prisma.photo.findMany({
-    where: { projectId: project.id, deletedAt: null },
+    where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     orderBy: { takenAt: "desc" },
   });
 }
@@ -30,16 +26,12 @@ export async function createPhoto(data: {
 }) {
   await requirePermission("photos", "create");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) throw new Error("No active project found");
+  const projectScope = await getProjectScope();
+  if (!projectScope) throw new Error("Không có dự án đang hoạt động");
 
   await prisma.photo.create({
     data: {
-      projectId: project.id,
+      projectId: projectScope,
       url: data.url,
       thumbnail: data.thumbnail ?? null,
       caption: data.caption ?? null,

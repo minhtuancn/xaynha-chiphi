@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { columns } from "./columns";
 import { useProjects } from "@/hooks/use-projects";
+import { TableSkeleton } from "@/components/ui/loading-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FolderKanban } from "lucide-react";
 
 export default function ProjectsPage() {
   const { data: projects, isLoading } = useProjects();
@@ -24,13 +27,14 @@ export default function ProjectsPage() {
       </div>
 
       {isLoading ? (
-        <Card className="py-12 shadow-sm border-dashed flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/></Card>
+        <TableSkeleton />
       ) : !projects || projects.length === 0 ? (
-        <Card className="py-12 shadow-sm border-dashed text-center">
-          <CardContent>
-            <p className="text-muted-foreground">Không có dự án nào.</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<FolderKanban className="h-8 w-8" />}
+          title="Chưa có dự án nào"
+          description="Tạo dự án đầu tiên để bắt đầu quản lý thi công."
+          action={{ label: "Tạo dự án", onClick: () => window.location.href = "/projects/new" }}
+        />
       ) : (
         <Card className="shadow-sm">
           <CardContent className="pt-6">

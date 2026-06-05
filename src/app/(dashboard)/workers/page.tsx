@@ -1,13 +1,14 @@
 "use client"
 
 import Link from "next/link";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useWorkers } from "@/hooks/use-workers";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { columns } from "./columns";
 import type { WorkerRow } from "./columns";
+import { TableSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function WorkersPage() {
   const { data: workers, isLoading } = useWorkers();
@@ -26,9 +27,7 @@ export default function WorkersPage() {
 
       <Card className="shadow-sm p-6">
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <TableSkeleton rows={5} cols={5} />
         ) : (
           <DataTable
             columns={columns}

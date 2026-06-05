@@ -8,26 +8,37 @@ import { WeatherWidget } from "@/components/dashboard/weather-widget";
 import { ProgressChart } from "@/components/dashboard/progress-chart";
 import { RecentPhotos } from "@/components/dashboard/recent-photos";
 import { formatCurrency, formatDate, STAGE_STATUS_LABELS, TASK_STATUS_LABELS } from "@/lib/utils";
-import { Building2, Wallet, TrendingUp, ListChecks, Loader2 } from "lucide-react";
+import { Building2, Wallet, TrendingUp, ListChecks } from "lucide-react";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { CardSkeleton } from "@/components/ui/loading-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Home } from "lucide-react";
 
 export default function DashboardPage() {
   const { data, isLoading } = useDashboard();
 
   if (isLoading) {
     return (
-      <div className="h-[60vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6 animate-fade-in">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <CardSkeleton rows={6} />
       </div>
     );
   }
 
   if (!data?.project) {
     return (
-      <Card className="text-center py-12 shadow-sm border-dashed">
-        <h2 className="text-2xl font-heading font-semibold mb-2">Chưa có dự án nào</h2>
-        <p className="text-muted-foreground">Hãy tạo dự án mới để bắt đầu quản lý.</p>
-      </Card>
+      <EmptyState
+        icon={<Home className="h-8 w-8" />}
+        title="Chưa có dự án nào"
+        description="Hãy tạo dự án mới để bắt đầu quản lý thi công."
+        action={{ label: "Tạo dự án", onClick: () => window.location.href = "/projects/new" }}
+      />
     );
   }
 
@@ -93,7 +104,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-heading font-semibold text-foreground">Giai đoạn thi công</h2>
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
             {stages.length === 0 ? (
-                <Card className="p-6 text-center text-muted-foreground sm:col-span-2">Chưa có giai đoạn nào</Card>
+                <Card className="p-6 text-center text-muted-foreground sm:col-span-2 border-dashed">Chưa có giai đoạn nào</Card>
             ) : (
                 stages.map((stage: any) => (
                     <div key={stage.id} className="flex items-center gap-4 p-4 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 bg-card group">

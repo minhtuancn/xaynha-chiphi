@@ -14,6 +14,7 @@ import {
   type PaymentFormData,
 } from "@/schemas/financial";
 import { Decimal } from "@prisma/client/runtime/library";
+import { getProjectScope } from "./project-scope";
 
 // ============================================
 // EXPENSES
@@ -22,15 +23,10 @@ import { Decimal } from "@prisma/client/runtime/library";
 export async function getExpenses() {
   await requirePermission("expenses", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return [];
+  const projectScope = await getProjectScope();
 
   return prisma.expense.findMany({
-    where: { projectId: project.id, deletedAt: null },
+    where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     include: {
       category: { select: { id: true, name: true } },
       creator: { select: { id: true, name: true } },
@@ -53,12 +49,8 @@ export async function createExpense(data: ExpenseFormData) {
 
   const validated = expenseSchema.parse(data);
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) throw new Error("Không có dự án đang hoạt động");
+  const projectScope = await getProjectScope();
+  if (!projectScope) throw new Error("Không có dự án đang hoạt động");
 
   const category = await prisma.expenseCategory.findUnique({
     where: { id: validated.categoryId, deletedAt: null },
@@ -68,7 +60,7 @@ export async function createExpense(data: ExpenseFormData) {
 
   await prisma.expense.create({
     data: {
-      projectId: project.id,
+      projectId: projectScope,
       categoryId: validated.categoryId,
       amount: new Decimal(validated.amount),
       date: validated.date,

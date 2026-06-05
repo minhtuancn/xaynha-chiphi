@@ -2,19 +2,16 @@
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
+import { getProjectScope } from "./project-scope";
 
 export async function getProgressReport() {
   await requirePermission("reports", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return { stages: [], taskCompletionRate: 0, totalTasks: 0, completedTasks: 0 };
+  const projectScope = await getProjectScope();
+  if (!projectScope) return { stages: [], taskCompletionRate: 0, totalTasks: 0, completedTasks: 0 };
 
   const stages = await prisma.constructionStage.findMany({
-    where: { projectId: project.id, deletedAt: null },
+    where: { projectId: projectScope, deletedAt: null },
     orderBy: { order: "asc" },
     include: {
       tasks: {
@@ -39,10 +36,10 @@ export async function getProgressReport() {
   });
 
   const allTasks = await prisma.constructionTask.count({
-    where: { stage: { projectId: project.id }, deletedAt: null },
+    where: { stage: { projectId: projectScope }, deletedAt: null },
   });
   const completedTasks = await prisma.constructionTask.count({
-    where: { stage: { projectId: project.id }, status: "COMPLETED", deletedAt: null },
+    where: { stage: { projectId: projectScope }, status: "COMPLETED", deletedAt: null },
   });
 
   return {
@@ -56,16 +53,12 @@ export async function getProgressReport() {
 export async function getFinancialReport() {
   await requirePermission("reports", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return { categories: [], monthlySpending: [], budgetVsActual: { budget: 0, spent: 0, remaining: 0 } };
+  const projectScope = await getProjectScope();
+  if (!projectScope) return { categories: [], monthlySpending: [], budgetVsActual: { budget: 0, spent: 0, remaining: 0 } };
 
   const expensesByCategory = await prisma.expense.groupBy({
     by: ["categoryId"],
-    where: { projectId: project.id, deletedAt: null },
+    where: { projectId: projectScope, deletedAt: null },
     _sum: { amount: true },
     _count: true,
   });
@@ -85,7 +78,7 @@ export async function getFinancialReport() {
 
   const monthlySpendingRaw = await prisma.expense.groupBy({
     by: ["date"],
-    where: { projectId: project.id, deletedAt: null },
+    where: { projectId: projectScope, deletedAt: null },
     _sum: { amount: true },
   });
 
@@ -99,9 +92,9 @@ export async function getFinancialReport() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, total]) => ({ month, total }));
 
-  const budget = await prisma.budget.findUnique({ where: { projectId: project.id } });
+  const budget = await prisma.budget.findUnique({ where: { projectId: projectScope } });
   const totalSpent = await prisma.expense.aggregate({
-    where: { projectId: project.id, deletedAt: null },
+    where: { projectId: projectScope, deletedAt: null },
     _sum: { amount: true },
   });
 

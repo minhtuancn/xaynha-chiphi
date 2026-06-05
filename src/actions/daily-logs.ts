@@ -7,19 +7,15 @@ import { requirePermission } from "@/lib/auth";
 import { dailyLogSchema, type DailyLogFormData } from "@/schemas/daily-log";
 import { getWeatherForDate } from "@/lib/weather";
 import { saveUploadedPhoto } from "@/lib/upload";
+import { getProjectScope } from "./project-scope";
 
 export async function getDailyLogs() {
   await requirePermission("dailyLogs", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return [];
+  const projectScope = await getProjectScope();
 
   return prisma.dailyLog.findMany({
-    where: { projectId: project.id, deletedAt: null },
+    where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     orderBy: { date: "desc" },
     include: {
       project: {

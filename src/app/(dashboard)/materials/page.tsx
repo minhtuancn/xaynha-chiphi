@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMaterials } from "@/hooks/use-materials";
 import { useMaterialCategories } from "@/hooks/use-material-categories";
 import { DataTable } from "@/components/ui/data-table";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CategoryManager } from "@/components/category-manager";
 import { columns, type MaterialWithRelations } from "./columns";
+import { TableSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function MaterialsPage() {
   const { data: materials, isLoading: materialsLoading } = useMaterials();
@@ -32,9 +33,7 @@ export default function MaterialsPage() {
       </div>
       <Card className="shadow-sm p-6">
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <TableSkeleton rows={5} cols={5} />
         ) : (
           <DataTable
             columns={columns}

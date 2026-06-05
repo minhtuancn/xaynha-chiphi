@@ -20,6 +20,8 @@ import {
   markAllAsRead,
   deleteNotification,
 } from "@/actions/notifications";
+import { ListSkeleton } from "@/components/ui/loading-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface NotificationItem {
   id: string;
@@ -114,19 +116,13 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Đang tải...
-          </CardContent>
-        </Card>
+        <ListSkeleton items={4} />
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            {notifications.length === 0
-              ? "Không có thông báo nào"
-              : "Không có thông báo phù hợp"}
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<Bell className="h-8 w-8" />}
+          title={notifications.length === 0 ? "Không có thông báo nào" : "Không có thông báo phù hợp"}
+          description={notifications.length === 0 ? "Bạn sẽ nhận được thông báo khi có cập nhật." : "Thử thay đổi bộ lọc."}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((n) => (

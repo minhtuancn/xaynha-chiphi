@@ -5,19 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { materialUsageSchema } from "@/schemas/material-usage";
 import { saveUploadedPhoto } from "@/lib/upload";
+import { getProjectScope } from "./project-scope";
 
 export async function getMaterialUsages() {
   await requirePermission("materialUsage", "view");
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
-
-  if (!project) return [];
+  const projectScope = await getProjectScope();
 
   return prisma.materialUsage.findMany({
-    where: { projectId: project.id },
+    where: { ...(projectScope ? { projectId: projectScope } : {}) },
     include: {
       material: { select: { id: true, name: true, unit: true } },
       dailyLog: { select: { id: true, date: true } },

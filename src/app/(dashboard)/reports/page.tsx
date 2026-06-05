@@ -11,6 +11,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { Download, TrendingUp, Wallet, Package, Users, HardHat } from "lucide-react";
+import { PageSkeleton } from "@/components/ui/loading-skeleton";
 import { exportToCSV } from "@/lib/csv";
 import { formatCurrency, formatNumber, formatPercent, STAGE_STATUS_LABELS, WORKER_STATUS_LABELS } from "@/lib/utils";
 
@@ -62,11 +63,7 @@ export default function ReportsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Đang tải báo cáo...</p>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (

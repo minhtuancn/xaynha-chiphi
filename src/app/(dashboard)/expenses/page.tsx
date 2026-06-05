@@ -5,12 +5,13 @@ import { ExpenseForm } from "@/components/forms/expense-form";
 import { createExpense } from "@/actions/financial";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { PlusIcon, Loader2 } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { ApproveExpenseButton, RejectExpenseButton, DeleteExpenseButton } from "@/components/forms/expense-actions";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useQuery } from "@tanstack/react-query";
 import { getExpenseCategories } from "@/actions/financial";
 import { serialize } from "@/lib/serialize";
+import { PageSkeleton } from "@/components/ui/loading-skeleton";
 
 const STATUS_SEMANTIC: Record<string, { label: string; dot: string }> = {
   PENDING: { label: "Chờ duyệt", dot: "bg-orange-400" },
@@ -26,11 +27,7 @@ export default function ExpensesPage() {
   });
 
   if (expensesLoading || catLoading) {
-    return (
-      <div className="h-[60vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const totalPending = (sExpenses ?? [])

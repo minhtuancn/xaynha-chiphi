@@ -17,6 +17,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { getChecklists, createChecklist, deleteChecklist } from "@/actions/checklists";
 import { getStages } from "@/actions/stages";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ClipboardList } from "lucide-react";
 
 interface ChecklistItemInfo {
   id: string;
@@ -122,11 +124,11 @@ export default function ChecklistsPage() {
       </Card>
 
       {checklists.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Chưa có checklist nào
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<ClipboardList className="h-8 w-8" />}
+          title="Chưa có checklist nào"
+          description="Tạo checklist đầu tiên để theo dõi các hạng mục thi công."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {checklists.map((cl) => {

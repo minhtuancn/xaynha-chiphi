@@ -4,14 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { getWeatherForDate } from "@/lib/weather";
 import { serialize } from "@/lib/serialize";
+import { getProjectScope } from "@/actions/project-scope";
 
 export async function getDashboardData() {
   const user = await requireUser();
 
-  const project = await prisma.project.findFirst({
-    where: { status: "ACTIVE", deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-  });
+  const projectScope = await getProjectScope();
+
+  const project = projectScope
+    ? await prisma.project.findUnique({ where: { id: projectScope, deletedAt: null } })
+    : await prisma.project.findFirst({
+        where: { status: "ACTIVE", deletedAt: null },
+        orderBy: { updatedAt: "desc" },
+      });
 
   if (!project) {
     return { project: null, stats: null, stages: [], recentPhotos: [], weather: null, upcomingTasks: [], recentExpenses: [] };

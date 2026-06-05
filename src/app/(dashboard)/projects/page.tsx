@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { getProjects } from "@/actions/projects";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { serialize } from "@/lib/serialize";
 import { columns } from "./columns";
 import type { Project } from "@prisma/client";
@@ -21,12 +22,20 @@ export default async function ProjectsPage() {
           </Button>
         </Link>
       </div>
-      <DataTable
-        columns={columns}
-        data={projects}
-        searchColumn="name"
-        searchPlaceholder="Tìm kiếm dự án..."
-      />
+      {projects.length === 0 ? (
+        <Card className="py-12 shadow-sm text-center">
+          <CardContent>
+            <p className="text-muted-foreground">Không có dự án nào.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={projects}
+          searchColumn="name"
+          searchPlaceholder="Tìm kiếm dự án..."
+        />
+      )}
     </div>
   );
 }

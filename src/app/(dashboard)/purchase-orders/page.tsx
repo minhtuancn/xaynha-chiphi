@@ -4,6 +4,7 @@ import { getPurchaseOrders } from "@/actions/purchase-orders";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { serialize } from "@/lib/serialize";
+import { Card } from "@/components/ui/card";
 import { columns } from "./columns";
 import type { PurchaseOrderRow } from "./columns";
 
@@ -21,12 +22,14 @@ export default async function PurchaseOrdersPage() {
           </Button>
         </Link>
       </div>
-      <DataTable
-        columns={columns}
-        data={orders}
-        searchColumn="supplierName"
-        searchPlaceholder="Tìm kiếm đơn hàng..."
-      />
+      <Card className="shadow-sm p-6">
+        <DataTable
+          columns={columns}
+          data={orders}
+          searchColumn="supplierName"
+          searchPlaceholder="Tìm kiếm đơn hàng..."
+        />
+      </Card>
     </div>
   );
 }

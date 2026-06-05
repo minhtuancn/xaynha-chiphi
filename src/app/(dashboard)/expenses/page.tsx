@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ExpenseForm } from "@/components/forms/expense-form";
 import {
   getExpenses,
@@ -11,11 +12,13 @@ import {
 import { formatCurrency, formatDate, EXPENSE_STATUS_LABELS } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { serialize } from "@/lib/serialize";
+import { CheckIcon, XIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { ApproveExpenseButton, RejectExpenseButton } from "@/components/forms/expense-actions";
 
-const EXPENSE_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
-  PENDING: "secondary",
-  APPROVED: "default",
-  REJECTED: "destructive",
+const STATUS_SEMANTIC: Record<string, { label: string; dot: string }> = {
+  PENDING: { label: "Chờ duyệt", dot: "bg-orange-400" },
+  APPROVED: { label: "Đã duyệt", dot: "bg-green-500" },
+  REJECTED: { label: "Từ chối", dot: "bg-red-500" },
 };
 
 export default async function ExpensesPage() {

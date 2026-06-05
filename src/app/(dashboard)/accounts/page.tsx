@@ -42,7 +42,7 @@ export default async function AccountsPage() {
       <h1 className="text-2xl font-bold">Quản lý tài khoản</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Tổng số dư
@@ -55,7 +55,7 @@ export default async function AccountsPage() {
           </CardContent>
         </Card>
         {serializedAccounts.map((acc) => (
-          <Card key={acc.id}>
+          <Card key={acc.id} className="shadow-sm hover:shadow-md transition-all">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {acc.name}
@@ -82,7 +82,7 @@ export default async function AccountsPage() {
         <CardHeader>
           <CardTitle>Thêm giao dịch</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <TransactionForm
             accounts={serializedAccounts.map((a) => ({ id: a.id, name: a.name, type: a.type }))}
             onSubmit={createTransaction}
@@ -90,12 +90,12 @@ export default async function AccountsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle>Lịch sử giao dịch</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-muted/50">

@@ -289,7 +289,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Đã chi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(data.budgetVsActual.spent)}</div>
+            <div className="text-2xl font-bold text-destructive">{formatCurrency(data.budgetVsActual.spent)}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -297,7 +297,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Còn lại</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${data.budgetVsActual.remaining >= 0 ? "text-green-600" : "text-red-600"}`}>
+            <div className={`text-2xl font-bold ${data.budgetVsActual.remaining >= 0 ? "text-accent" : "text-destructive"}`}>
               {formatCurrency(data.budgetVsActual.remaining)}
             </div>
           </CardContent>
@@ -433,7 +433,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
       {data.lowStock.length > 0 && (
         <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader>
-            <CardTitle className="text-lg text-red-600">Cảnh báo tồn kho thấp ({data.lowStock.length})</CardTitle>
+            <CardTitle className="text-lg text-destructive">Cảnh báo tồn kho thấp ({data.lowStock.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -451,7 +451,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category}</TableCell>
-                    <TableCell className="text-red-600 font-medium">{formatNumber(item.currentStock, 0)}</TableCell>
+                    <TableCell className="text-destructive font-medium">{formatNumber(item.currentStock, 0)}</TableCell>
                     <TableCell>{formatNumber(item.minStock, 0)}</TableCell>
                     <TableCell>{item.unit}</TableCell>
                   </TableRow>
@@ -563,9 +563,9 @@ function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
                   <TableCell>{formatCurrency(s.totalOrderValue)}</TableCell>
                   <TableCell>
                     {s.outstandingDebt > 0 ? (
-                      <span className="text-red-600 font-medium">{formatCurrency(s.outstandingDebt)}</span>
+                      <span className="text-destructive font-medium">{formatCurrency(s.outstandingDebt)}</span>
                     ) : (
-                      <span className="text-green-600">0 ₫</span>
+                      <span className="text-accent">0 ₫</span>
                     )}
                   </TableCell>
                 </TableRow>

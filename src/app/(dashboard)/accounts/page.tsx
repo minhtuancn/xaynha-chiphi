@@ -64,7 +64,7 @@ export default async function AccountsPage() {
             <CardContent>
               <div className={cn(
                 "text-2xl font-bold",
-                acc.balance < 0 && "text-red-600"
+                acc.balance < 0 && "text-destructive"
               )}>
                 {formatCurrency(acc.balance)}
               </div>
@@ -130,7 +130,7 @@ export default async function AccountsPage() {
                       </td>
                       <td className={cn(
                         "px-4 py-3 text-sm text-right font-mono",
-                        tx.type === "INCOME" ? "text-green-600" : "text-red-600"
+                        tx.type === "INCOME" ? "text-accent" : "text-destructive"
                       )}>
                         {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(tx.amount)}
                       </td>

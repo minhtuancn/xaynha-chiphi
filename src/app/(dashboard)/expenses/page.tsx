@@ -1,15 +1,16 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseForm } from "@/components/forms/expense-form";
-import {
-  getExpenses,
-  getExpenseCategories,
-  createExpense,
-} from "@/actions/financial";
+import { createExpense } from "@/actions/financial";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { serialize } from "@/lib/serialize";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Loader2 } from "lucide-react";
 import { ApproveExpenseButton, RejectExpenseButton, DeleteExpenseButton } from "@/components/forms/expense-actions";
+import { useExpenses } from "@/hooks/use-expenses";
+import { useQuery } from "@tanstack/react-query";
+import { getExpenseCategories } from "@/actions/financial";
+import { serialize } from "@/lib/serialize";
 
 const STATUS_SEMANTIC: Record<string, { label: string; dot: string }> = {
   PENDING: { label: "Chờ duyệt", dot: "bg-orange-400" },
@@ -17,21 +18,30 @@ const STATUS_SEMANTIC: Record<string, { label: string; dot: string }> = {
   REJECTED: { label: "Từ chối", dot: "bg-red-500" },
 };
 
-export default async function ExpensesPage() {
-  const [expenses, categories] = await Promise.all([
-    getExpenses(),
-    getExpenseCategories(),
-  ]);
+export default function ExpensesPage() {
+  const { data: sExpenses, isLoading: expensesLoading } = useExpenses();
+  const { data: categories = [], isLoading: catLoading } = useQuery({
+    queryKey: ["expense-categories"],
+    queryFn: async () => serialize(await getExpenseCategories()),
+  });
 
-  const sExpenses = serialize(expenses);
+  if (expensesLoading || catLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-  const totalPending = sExpenses
+  const totalPending = (sExpenses ?? [])
     .filter((e) => e.status === "PENDING")
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const totalApproved = sExpenses
+  const totalApproved = (sExpenses ?? [])
     .filter((e) => e.status === "APPROVED")
     .reduce((sum, e) => sum + e.amount, 0);
+
+  const totalExpenses = (sExpenses ?? []).reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -46,7 +56,7 @@ export default async function ExpensesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(sExpenses.reduce((sum, e) => sum + e.amount, 0))}
+              {formatCurrency(totalExpenses)}
             </div>
           </CardContent>
         </Card>
@@ -61,7 +71,7 @@ export default async function ExpensesPage() {
               {formatCurrency(totalPending)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {sExpenses.filter((e) => e.status === "PENDING").length} khoản
+              {(sExpenses ?? []).filter((e) => e.status === "PENDING").length} khoản
             </p>
           </CardContent>
         </Card>
@@ -72,7 +82,7 @@ export default async function ExpensesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-accent">
               {formatCurrency(totalApproved)}
             </div>
           </CardContent>
@@ -110,7 +120,7 @@ export default async function ExpensesPage() {
                 </tr>
               </thead>
               <tbody>
-                {sExpenses.length === 0 ? (
+                {(sExpenses ?? []).length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
                       <div className="flex flex-col items-center gap-2">
@@ -123,7 +133,7 @@ export default async function ExpensesPage() {
                     </td>
                   </tr>
                 ) : (
-                  sExpenses.map((expense) => {
+                  (sExpenses ?? []).map((expense) => {
                     const status = STATUS_SEMANTIC[expense.status];
                     return (
                       <tr

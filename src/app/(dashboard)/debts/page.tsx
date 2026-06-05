@@ -76,7 +76,7 @@ export default async function DebtsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               {formatCurrency(totalPayable)}
             </div>
           </CardContent>
@@ -88,7 +88,7 @@ export default async function DebtsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-accent">
               {formatCurrency(totalReceivable)}
             </div>
           </CardContent>
@@ -170,12 +170,12 @@ export default async function DebtsPage() {
                         <TableCell className="text-right font-mono">
                           {formatCurrency(debt.amount)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-green-600">
+                        <TableCell className="text-right font-mono text-accent">
                           {formatCurrency(debt.paidAmount)}
                         </TableCell>
                         <TableCell className={cn(
                           "text-right font-mono",
-                          remaining > 0 ? "text-red-600" : "text-muted-foreground"
+                          remaining > 0 ? "text-destructive" : "text-muted-foreground"
                         )}>
                           {formatCurrency(remaining)}
                         </TableCell>
@@ -237,7 +237,7 @@ export default async function DebtsPage() {
                         <TableCell className="font-medium">
                           {debtName} ({typeLabel})
                         </TableCell>
-                        <TableCell className="text-right font-mono text-green-600">
+                        <TableCell className="text-right font-mono text-accent">
                           {formatCurrency(payment.amount)}
                         </TableCell>
                         <TableCell>{methodLabels[payment.method] || payment.method}</TableCell>

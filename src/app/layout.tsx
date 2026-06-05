@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, Open_Sans } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 
 const poppins = Poppins({
   subsets: ["latin", "latin-ext"],
@@ -27,7 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${poppins.variable} ${openSans.variable} font-body antialiased`}>{children}</body>
+      <body className={`${poppins.variable} ${openSans.variable} font-body antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <Providers>{children}</Providers>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

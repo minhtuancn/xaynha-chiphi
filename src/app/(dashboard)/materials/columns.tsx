@@ -45,7 +45,7 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
       const min = Number(row.original.minStock);
       const isLow = current < min;
       return (
-        <span className={isLow ? "text-red-600 font-semibold" : ""}>
+        <span className={isLow ? "text-destructive font-semibold" : ""}>
           {formatUnit(current, row.original.unit)}
         </span>
       );

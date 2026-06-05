@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { getWeatherForDate } from "@/lib/weather";
+import { serialize } from "@/lib/serialize";
 
 export async function getDashboardData() {
   const user = await requireUser();
@@ -70,7 +71,7 @@ export async function getDashboardData() {
     take: 5,
   });
 
-  return {
+  return serialize({
     project,
     stats: {
       totalStages,
@@ -86,5 +87,5 @@ export async function getDashboardData() {
     weather,
     upcomingTasks,
     recentExpenses,
-  };
+  });
 }

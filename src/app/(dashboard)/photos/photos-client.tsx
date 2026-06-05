@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, Upload, X, Calendar } from "lucide-react";
+import { Trash2, Upload, X, Calendar, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileUpload } from "@/components/forms/file-upload";
@@ -73,11 +73,11 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Thư viện ảnh</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Thư viện ảnh</h1>
       </div>
 
       {error && (
-        <Card className="border-destructive">
+        <Card className="border-destructive shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-destructive">
               <X className="h-4 w-4" />
@@ -95,9 +95,9 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
         </Card>
       )}
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
             <Upload className="h-5 w-5" />
             Tải ảnh lên
           </CardTitle>
@@ -123,7 +123,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="rounded-md border bg-background px-3 py-1.5 text-sm"
+            className="rounded-md border bg-background px-3 py-1.5 text-sm shadow-sm"
           />
           {dateFilter && (
             <Button
@@ -138,22 +138,26 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
       </div>
 
       {filteredPhotos.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Chưa có ảnh nào. Hãy tải ảnh lên để bắt đầu.
+        <Card className="shadow-sm">
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+            <ImageIcon className="h-12 w-12" />
+            <p>Chưa có ảnh nào. Hãy tải ảnh lên để bắt đầu.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredPhotos.map((photo) => (
-            <Card key={photo.id} className="overflow-hidden group">
+            <Card
+              key={photo.id}
+              className="overflow-hidden group shadow-sm hover:shadow-md transition-all"
+            >
               <div className="relative aspect-square bg-muted">
                 <img
                   src={photo.thumbnail || photo.url}
                   alt={photo.caption || ""}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
                   <form
                     action={async () => {
                       await handleDelete(photo.id);
@@ -163,14 +167,15 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
                       variant="destructive"
                       size="sm"
                       type="submit"
+                      className="scale-95 transition-transform group-hover:scale-100"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </form>
                 </div>
               </div>
-              <CardContent className="p-2">
-                <p className="text-xs truncate">
+              <CardContent className="p-3">
+                <p className="truncate text-xs">
                   {photo.caption || "Không có chú thích"}
                 </p>
                 <p className="text-xs text-muted-foreground">

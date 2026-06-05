@@ -147,7 +147,7 @@ export default function AttendancePage() {
               <p className="text-2xl font-bold mt-1">{statusCounts.PRESENT}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 text-lg font-bold">{statusCounts.PRESENT}</span>
+              <span className="text-accent text-lg font-bold">{statusCounts.PRESENT}</span>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function AttendancePage() {
               <p className="text-2xl font-bold mt-1">{statusCounts.ABSENT}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-              <span className="text-red-600 text-lg font-bold">{statusCounts.ABSENT}</span>
+              <span className="text-destructive text-lg font-bold">{statusCounts.ABSENT}</span>
             </div>
           </div>
         </div>

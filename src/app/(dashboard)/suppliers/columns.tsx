@@ -45,7 +45,7 @@ export const columns: ColumnDef<SupplierRow>[] = [
       const balance = Number(row.original.debtBalance);
       const isDebt = balance > 0;
       return (
-        <span className={isDebt ? "text-red-600 font-semibold" : ""}>
+        <span className={isDebt ? "text-destructive font-semibold" : ""}>
           {formatCurrency(balance)}
         </span>
       );

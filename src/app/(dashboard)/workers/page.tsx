@@ -1,14 +1,16 @@
+"use client"
+
 import Link from "next/link";
-import { Plus } from "lucide-react";
-import { getWorkers } from "@/actions/workers";
+import { Plus, Loader2 } from "lucide-react";
+import { useWorkers } from "@/hooks/use-workers";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { serialize } from "@/lib/serialize";
+import { Card } from "@/components/ui/card";
 import { columns } from "./columns";
 import type { WorkerRow } from "./columns";
 
-export default async function WorkersPage() {
-  const workers = serialize(await getWorkers()) as unknown as WorkerRow[];
+export default function WorkersPage() {
+  const { data: workers, isLoading } = useWorkers();
 
   return (
     <div className="space-y-6">
@@ -21,12 +23,21 @@ export default async function WorkersPage() {
           </Button>
         </Link>
       </div>
-      <DataTable
-        columns={columns}
-        data={workers}
-        searchColumn="name"
-        searchPlaceholder="Tìm kiếm công nhân..."
-      />
+
+      <Card className="shadow-sm p-6">
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={(workers || []) as unknown as WorkerRow[]}
+            searchColumn="name"
+            searchPlaceholder="Tìm kiếm công nhân..."
+          />
+        )}
+      </Card>
     </div>
   );
 }

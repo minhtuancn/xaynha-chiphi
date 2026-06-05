@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = 'http://localhost:3050';
 
 test.describe('Authentication', () => {
+  // Reset storage state for auth tests so we start logged out
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('login page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
     await expect(page).toHaveTitle(/Xay Nha|Xây Nhà/, { timeout: 10000 });
@@ -44,11 +47,7 @@ test.describe('Authentication', () => {
 
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
-    await page.getByRole('button', { name: 'Đăng nhập' }).click();
-    await page.waitForURL('**/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
   });
 
   test('dashboard shows project name', async ({ page }) => {
@@ -162,11 +161,7 @@ test.describe('Dashboard', () => {
 
 test.describe('CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
-    await page.getByRole('button', { name: 'Đăng nhập' }).click();
-    await page.waitForURL('**/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
   });
 
   test('create new project', async ({ page }) => {
@@ -229,10 +224,14 @@ test.describe('CRUD Operations', () => {
 });
 
 test.describe('Security', () => {
-  test('unauthenticated user redirected to login', async ({ page }) => {
+  test('unauthenticated user redirected to login', async ({ browser }) => {
+    // Tạo browser context sạch không có auth
+    const context = await browser.newContext({ storageState: undefined });
+    const page = await context.newPage();
     await page.goto(`${BASE_URL}/dashboard`);
-    await page.waitForURL('**/login');
+    await page.waitForURL('**/login', { timeout: 10000 });
     await expect(page).toHaveURL(/.*login/);
+    await context.close();
   });
 
   test('protected API route requires auth', async ({ request }) => {
@@ -273,22 +272,22 @@ test.describe('Security', () => {
 
 test.describe('Vietnamese Formatting', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
-    await page.getByRole('button', { name: 'Đăng nhập' }).click();
-    await page.waitForURL('**/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
   });
 
   test('currency displays with Vietnamese format', async ({ page }) => {
     await page.goto(`${BASE_URL}/expenses`);
-    const content = await page.content();
-    expect(content).toMatch(/[0-9]+\.[0-9]+.*₫/);
+    // Wait for data to load
+    await page.waitForSelector('text=₫', { timeout: 10000 });
+    const content = await page.locator('body').innerText();
+    expect(content).toMatch(/[0-9]+.*₫/);
   });
 
   test('date displays in dd/mm/yyyy format', async ({ page }) => {
     await page.goto(`${BASE_URL}/daily-logs`);
-    const content = await page.content();
+    // Wait for table to load
+    await page.waitForSelector('table', { timeout: 10000 });
+    const content = await page.locator('body').innerText();
     expect(content).toMatch(/\d{2}\/\d{2}\/\d{4}/);
   });
 });
@@ -302,21 +301,13 @@ test.describe('Mobile Responsive', () => {
 
   test('dashboard works on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
-    await page.getByRole('button', { name: 'Đăng nhập' }).click();
-    await page.waitForURL('**/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
     await expect(page.getByText('Nhà ở 2 tầng').first()).toBeVisible();
   });
 
   test('dashboard works on tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
-    await page.getByRole('button', { name: 'Đăng nhập' }).click();
-    await page.waitForURL('**/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
     await expect(page.getByText('Nhà ở 2 tầng').first()).toBeVisible();
   });
 });

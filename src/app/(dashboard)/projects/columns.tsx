@@ -20,11 +20,22 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteProject } from "@/actions/projects";
 import { formatCurrency, formatDate, PROJECT_STATUS_LABELS } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Project } from "@prisma/client";
 
-export type ProjectRow = Project;
+export type ProjectRow = {
+  id: string;
+  name: string;
+  address: string;
+  budget: number;
+  progress: number;
+  status: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+};
 
-function ActionsCell({ project }: { project: Project }) {
+function ActionsCell({ project }: { project: ProjectRow }) {
   const { toast } = useToast();
   const router = useRouter();
 
@@ -74,7 +85,7 @@ function ActionsCell({ project }: { project: Project }) {
   );
 }
 
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<ProjectRow>[] = [
   {
     accessorKey: "name",
     header: "Tên dự án",
@@ -94,7 +105,7 @@ export const columns: ColumnDef<Project>[] = [
   {
     accessorKey: "budget",
     header: "Ngân sách",
-    cell: ({ row }) => formatCurrency(row.getValue("budget")),
+    cell: ({ row }) => formatCurrency(Number(row.getValue("budget"))),
   },
   {
     accessorKey: "progress",

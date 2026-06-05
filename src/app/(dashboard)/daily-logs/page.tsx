@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind } from "lucide-react";
-import { getDailyLogs, deleteDailyLog } from "@/actions/daily-logs";
+import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind, Loader2 } from "lucide-react";
+import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { deleteDailyLog } from "@/actions/daily-logs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,8 +24,8 @@ const weatherIcons: Record<string, typeof Sun> = {
   windy: Wind,
 };
 
-export default async function DailyLogsPage() {
-  const logs = await getDailyLogs();
+export default function DailyLogsPage() {
+  const { data: logs, isLoading } = useDailyLogs();
 
   return (
     <div className="space-y-6">
@@ -36,7 +39,13 @@ export default async function DailyLogsPage() {
         </Link>
       </div>
 
-      {logs.length === 0 ? (
+      {isLoading ? (
+        <Card className="shadow-sm">
+          <CardContent className="py-12 flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      ) : !logs || logs.length === 0 ? (
         <Card className="shadow-sm">
           <CardContent className="py-12 text-center text-muted-foreground">
             Chưa có nhật ký nào. Hãy thêm nhật ký thi công đầu tiên.
@@ -61,7 +70,7 @@ export default async function DailyLogsPage() {
                 </TableHeader>
                 <TableBody>
                   {logs.map((log) => {
-                    const weather = log.weather ? JSON.parse(log.weather) : null;
+                    const weather = log.weather ? JSON.parse(log.weather as string) : null;
                     const Icon = weather
                       ? weatherIcons[weather.condition] || Cloud
                       : null;
@@ -106,10 +115,7 @@ export default async function DailyLogsPage() {
                               </Button>
                             </Link>
                             <form
-                              action={async () => {
-                                "use server";
-                                await deleteDailyLog(log.id);
-                              }}
+                              action={() => deleteDailyLog(log.id)}
                             >
                               <Button
                                 variant="ghost"

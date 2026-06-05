@@ -218,75 +218,91 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
               )}
 
               {projectStages.length === 0 ? (
-                <Card>
+                <Card className="shadow-sm">
                   <CardContent className="py-12 text-center text-muted-foreground">
                     Chưa có giai đoạn nào cho dự án này.
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {projectStages.map((stage) => (
-                    <Card key={stage.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg">
-                            <Link
-                              href={`/stages/${stage.id}`}
-                              className="hover:underline"
-                            >
-                              {stage.name}
-                            </Link>
-                          </CardTitle>
-                          <StatusBadge
-                            status={stage.status}
-                            labels={STAGE_STATUS_LABELS}
-                          />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Tiến độ</span>
-                            <span className="font-medium">{stage.progress}%</span>
-                          </div>
-                          <Progress value={stage.progress} className="h-2" />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Số task</p>
-                            <p className="font-medium">{stage._count.tasks}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Ngân sách ước tính</p>
-                            <p className="font-medium">
-                              {formatCurrency(stage.estimatedBudget)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {(stage.startDate || stage.endDate) && (
-                          <div className="flex justify-between text-sm text-muted-foreground">
-                            {stage.startDate && (
-                              <span>
-                                {typeof stage.startDate === "string"
-                                  ? new Date(stage.startDate).toLocaleDateString("vi-VN")
-                                  : stage.startDate.toLocaleDateString("vi-VN")}
-                              </span>
-                            )}
-                            {stage.endDate && (
-                              <span>
-                                {typeof stage.endDate === "string"
-                                  ? new Date(stage.endDate).toLocaleDateString("vi-VN")
-                                  : stage.endDate.toLocaleDateString("vi-VN")}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <Card className="shadow-sm">
+                  <CardContent className="p-0">
+                    <div className="rounded-md border overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-muted/50">
+                            <th className="px-4 py-3 text-left text-sm font-medium">Tên giai đoạn</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium">Tiến độ</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium">Số task</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium">Ngân sách</th>
+                            <th className="px-4 py-3 text-center text-sm font-medium">Thời gian</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {projectStages.map((stage) => {
+                            const fmtDate = (d: string | Date | null) =>
+                              d
+                                ? typeof d === "string"
+                                  ? new Date(d).toLocaleDateString("vi-VN")
+                                  : d.toLocaleDateString("vi-VN")
+                                : null;
+                            const start = fmtDate(stage.startDate);
+                            const end = fmtDate(stage.endDate);
+                            const dateLabel = start && end
+                              ? `${start} - ${end}`
+                              : start || end || "-";
+                            return (
+                              <tr
+                                key={stage.id}
+                                className="border-b last:border-0 hover:bg-muted/40 transition-colors group"
+                              >
+                                <td className="px-4 py-3">
+                                  <Link
+                                    href={`/stages/${stage.id}`}
+                                    className="font-medium hover:underline"
+                                  >
+                                    {stage.name}
+                                  </Link>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <StatusBadge
+                                    status={stage.status}
+                                    labels={STAGE_STATUS_LABELS}
+                                  />
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2 max-w-[140px]">
+                                    <Progress value={stage.progress} className="h-2 flex-1" />
+                                    <span className="text-sm font-medium tabular-nums whitespace-nowrap">
+                                      {stage.progress}%
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right text-sm tabular-nums">
+                                  {stage._count.tasks}
+                                </td>
+                                <td className="px-4 py-3 text-right text-sm font-mono tabular-nums">
+                                  {formatCurrency(stage.estimatedBudget)}
+                                </td>
+                                <td className="px-4 py-3 text-center text-sm text-muted-foreground whitespace-nowrap">
+                                  {dateLabel}
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Link href={`/stages/${stage.id}`}>
+                                      <Button variant="outline" size="sm">Chi tiết</Button>
+                                    </Link>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </TabsContent>

@@ -61,7 +61,7 @@ export const columns: ColumnDef<SupplierRow>[] = [
     header: "",
     cell: ({ row }) => (
       <Link href={`/suppliers/${row.original.id}/edit?tab=edit`}>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
           Sửa
         </Button>
       </Link>

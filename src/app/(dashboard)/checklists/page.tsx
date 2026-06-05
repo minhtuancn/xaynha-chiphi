@@ -128,54 +128,72 @@ export default function ChecklistsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {checklists.map((cl) => {
             const done = completedCount(cl.items);
             const total = cl.items.length;
             const pct = total > 0 ? Math.round((done / total) * 100) : 0;
             return (
-              <Card key={cl.id} className="hover:shadow-sm transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+              <Card key={cl.id} className="transition-all hover:shadow-md">
+                <CardContent className="p-5">
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
                         <Link
                           href={`/checklists/${cl.id}`}
-                          className="font-medium hover:underline truncate"
+                          className="font-semibold hover:underline truncate block"
                         >
                           {cl.name}
                         </Link>
-                        <span className="text-xs text-muted-foreground shrink-0">
-                          {cl.stage.name}
+                        <span className="text-xs text-muted-foreground block mt-1">
+                          {cl.stage.name} &middot; {cl.stage.project.name}
                         </span>
                       </div>
-                      {total > 0 && (
-                        <div className="flex items-center gap-3 mt-2">
-                          <Progress value={pct} className="h-1.5 flex-1 max-w-xs" />
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {done}/{total}
-                          </span>
-                        </div>
-                      )}
-                      {total === 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Chưa có mục nào
-                        </p>
-                      )}
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-4">
-                      <Link href={`/checklists/${cl.id}`}>
-                        <Button variant="ghost" size="icon">
-                          <ChevronRight className="h-4 w-4" />
+
+                    {total > 0 ? (
+                      <div className="space-y-2 flex-grow">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Tiến độ</span>
+                          <span>{done}/{total}</span>
+                        </div>
+                        <div className="relative">
+                          <Progress value={pct} className="h-2 w-full [&>div]:bg-gradient-to-r [&>div]:from-emerald-400 [&>div]:to-emerald-600" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-grow" />
+                    )}
+
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <div className="flex items-center gap-1">
+                        {done === total && total > 0 ? (
+                          <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Hoàn thành
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Circle className="h-3.5 w-3.5" />
+                            {total === 0 ? "Chưa có mục" : "Đang thực hiện"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Link href={`/checklists/${cl.id}`}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(cl.id)}
+                          className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(cl.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

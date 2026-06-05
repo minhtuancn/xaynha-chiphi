@@ -128,50 +128,52 @@ export default function NotificationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((n) => (
             <Card
               key={n.id}
               className={cn(
-                "transition-colors",
-                !n.read && "border-l-4 border-l-primary bg-muted/30"
+                "transition-all hover:shadow-md",
+                !n.read && "border-l-4 border-l-primary bg-background shadow-sm"
               )}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={TYPE_VARIANTS[n.type] || "secondary"}>
-                        {TYPE_LABELS[n.type] || n.type}
-                      </Badge>
-                      {!n.read && (
-                        <span className="h-2 w-2 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <p className="text-sm">{n.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDate(n.createdAt)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
+              <CardContent className="p-5">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge variant={TYPE_VARIANTS[n.type] || "secondary"} className="text-xs">
+                      {TYPE_LABELS[n.type] || n.type}
+                    </Badge>
                     {!n.read && (
+                      <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    )}
+                  </div>
+                  <p className="text-sm text-foreground flex-grow mb-4">{n.message}</p>
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(n.createdAt)}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {!n.read && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMarkRead(n.id)}
+                          title="Đánh dấu đã đọc"
+                          className="h-8 w-8 p-0 hover:bg-primary/10"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
-                        size="icon"
-                        onClick={() => handleMarkRead(n.id)}
-                        title="Đánh dấu đã đọc"
+                        size="sm"
+                        onClick={() => handleDelete(n.id)}
+                        title="Xóa"
+                        className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive"
                       >
-                        <Check className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(n.id)}
-                      title="Xóa"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

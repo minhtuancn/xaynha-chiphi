@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useUserSettings } from "@/hooks/use-user-settings";
+import { PROJECT_STATUS_LABELS } from "@/lib/utils";
 
 type ProjectDetailProps = {
   project: {
@@ -22,7 +23,6 @@ type ProjectDetailProps = {
 
 export function ProjectDetail({ project }: ProjectDetailProps) {
   const { formatCurrency, formatDate } = useUserSettings();
-  const statusLabels: Record<string, string> = { PLANNING: "Lập kế hoạch", ACTIVE: "Đang thi công", PAUSED: "Tạm dừng", COMPLETED: "Hoàn thành" };
 
   return (
     <div className="space-y-6">
@@ -38,7 +38,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div><span className="text-muted-foreground">Địa chỉ:</span> <span className="font-medium">{project.address || "-"}</span></div>
             <div><span className="text-muted-foreground">Ngân sách:</span> <span className="font-medium">{formatCurrency(project.budget)}</span></div>
-            <div><span className="text-muted-foreground">Trạng thái:</span> <Badge>{statusLabels[project.status] || project.status}</Badge></div>
+            <div><span className="text-muted-foreground">Trạng thái:</span> <Badge>{PROJECT_STATUS_LABELS[project.status] || project.status}</Badge></div>
             <div><span className="text-muted-foreground">Số giai đoạn:</span> <span className="font-medium">{project._count.stages}</span></div>
             <div><span className="text-muted-foreground">Bắt đầu:</span> <span className="font-medium">{formatDate(project.startDate)}</span></div>
             <div><span className="text-muted-foreground">Kết thúc:</span> <span className="font-medium">{formatDate(project.endDate)}</span></div>

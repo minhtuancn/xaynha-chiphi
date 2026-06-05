@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatCurrency, formatDate, PO_STATUS_LABELS } from "@/lib/utils";
+import { formatCurrency, formatDate, PO_STATUS_LABELS, PO_STATUS_VARIANTS } from "@/lib/utils";
 import { updatePurchaseOrderStatus, deletePurchaseOrder, updatePurchaseOrder } from "@/actions/purchase-orders";
 import type { PurchaseOrder } from "@prisma/client";
 import { DetailViewTabs } from "@/components/detail-view-tabs";
@@ -36,13 +36,6 @@ type PurchaseOrderDetail = Omit<PurchaseOrder, "totalAmount"> & {
     unitPrice: number;
     total: number;
   }[];
-};
-
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
-  DRAFT: "secondary",
-  SENT: "default",
-  RECEIVED: "default",
-  CANCELLED: "destructive",
 };
 
 const nextStatuses: Record<string, string[]> = {
@@ -87,7 +80,7 @@ export default function PurchaseOrderDetailPage({
             </Button>
           </Link>
           <h1 className="text-2xl font-bold">Chi tiết đơn hàng</h1>
-          <Badge variant={STATUS_VARIANTS[order.status] || "secondary"}>
+          <Badge variant={PO_STATUS_VARIANTS[order.status] || "secondary"}>
             {PO_STATUS_LABELS[order.status] || order.status}
           </Badge>
         </div>

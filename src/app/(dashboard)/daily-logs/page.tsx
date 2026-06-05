@@ -37,13 +37,13 @@ export default async function DailyLogsPage() {
       </div>
 
       {logs.length === 0 ? (
-        <Card>
+        <Card className="shadow-sm">
           <CardContent className="py-12 text-center text-muted-foreground">
             Chưa có nhật ký nào. Hãy thêm nhật ký thi công đầu tiên.
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Danh sách nhật ký</CardTitle>
           </CardHeader>

@@ -110,8 +110,6 @@ export async function deleteExpense(id: string) {
 // ============================================
 
 export async function getAccountDetail(id: string) {
-  const { requirePermission } = await import("@/lib/auth");
-  const { prisma } = await import("@/lib/prisma");
   await requirePermission("accounts", "view");
   return prisma.account.findUnique({
     where: { id },

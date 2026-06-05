@@ -5,7 +5,7 @@ import { AccountDetail } from "@/components/detail-views/account-detail";
 import { serialize } from "@/lib/serialize";
 import { Card, CardContent } from "@/components/ui/card";
 import { TransactionForm } from "@/components/forms/transaction-form";
-import { getAccounts, createTransaction } from "@/actions/financial";
+import { createTransaction } from "@/actions/financial";
 
 export default async function AccountPage({
   params,
@@ -16,8 +16,6 @@ export default async function AccountPage({
   const account = await getAccountDetail(id);
   if (!account) notFound();
 
-  const accounts = await getAccounts();
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{account.name}</h1>
@@ -27,7 +25,7 @@ export default async function AccountPage({
           <Card>
             <CardContent className="pt-6">
               <TransactionForm
-                accounts={accounts.map((a: { id: string; name: string; type: string }) => ({ id: a.id, name: a.name, type: a.type }))}
+                accounts={[{ id: account.id, name: account.name, type: account.type }]}
                 onSubmit={createTransaction}
               />
             </CardContent>

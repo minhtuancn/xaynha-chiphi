@@ -118,8 +118,7 @@ export async function deleteProject(id: string) {
     expenseCount > 0 ||
     purchaseOrderCount > 0 ||
     photoCount > 0 ||
-    documentCount > 0 ||
-    budget !== null;
+    documentCount > 0;
 
   if (hasDependencies) {
     const parts: string[] = [];

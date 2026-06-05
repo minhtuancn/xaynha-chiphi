@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatDate, PO_STATUS_LABELS } from "@/lib/utils";
+import { formatCurrency, formatDate, PO_STATUS_LABELS, PO_STATUS_VARIANTS } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 
 type PurchaseOrderItem = {
@@ -24,13 +24,6 @@ export type PurchaseOrderRow = {
   supplier: { id: string; name: string };
   project: { id: string; name: string };
   items: PurchaseOrderItem[];
-};
-
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
-  DRAFT: "secondary",
-  SENT: "default",
-  RECEIVED: "default",
-  CANCELLED: "destructive",
 };
 
 export const columns: ColumnDef<PurchaseOrderRow>[] = [
@@ -66,7 +59,7 @@ export const columns: ColumnDef<PurchaseOrderRow>[] = [
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => (
-      <Badge variant={STATUS_VARIANTS[row.original.status] || "secondary"}>
+      <Badge variant={PO_STATUS_VARIANTS[row.original.status] || "secondary"}>
         {PO_STATUS_LABELS[row.original.status] || row.original.status}
       </Badge>
     ),

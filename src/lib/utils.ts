@@ -128,6 +128,13 @@ export const PO_STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Đã hủy",
 };
 
+export const PO_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
+  DRAFT: "secondary",
+  SENT: "default",
+  RECEIVED: "default",
+  CANCELLED: "destructive",
+};
+
 export const WEATHER_LABELS: Record<string, string> = {
   sunny: "Nắng đẹp",
   cloudy: "Nhiều mây",

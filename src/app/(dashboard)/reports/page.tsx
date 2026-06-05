@@ -20,7 +20,7 @@ type MaterialReport = Awaited<ReturnType<typeof import("@/actions/reports").getM
 type SupplierReport = Awaited<ReturnType<typeof import("@/actions/reports").getSupplierReport>>;
 type WorkerReport = Awaited<ReturnType<typeof import("@/actions/reports").getWorkerReport>>;
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+const COLORS = ["#475569", "#64748b", "#94a3b8", "#cbd5e1", "#10b981", "#34d399", "#059669", "#047857"];
 
 export default function ReportsPage() {
   const [progress, setProgress] = useState<ProgressReport | null>(null);
@@ -161,7 +161,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng giai đoạn</CardTitle>
           </CardHeader>
@@ -169,7 +169,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
             <div className="text-2xl font-bold">{data.stages.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Task hoàn thành</CardTitle>
           </CardHeader>
@@ -178,7 +178,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
             <p className="text-xs text-muted-foreground mt-1">{formatPercent(data.taskCompletionRate)}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tiến độ trung bình</CardTitle>
           </CardHeader>
@@ -190,7 +190,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Tiến độ theo giai đoạn</CardTitle>
         </CardHeader>
@@ -203,13 +203,13 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
                 if (name === "progress") return `${value}%`;
                 return value;
               }} />
-              <Bar dataKey="progress" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="progress" fill="#475569" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Chi tiết giai đoạn</CardTitle>
         </CardHeader>
@@ -276,7 +276,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Ngân sách</CardTitle>
           </CardHeader>
@@ -284,7 +284,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <div className="text-2xl font-bold">{formatCurrency(data.budgetVsActual.budget)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Đã chi</CardTitle>
           </CardHeader>
@@ -292,7 +292,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <div className="text-2xl font-bold text-red-600">{formatCurrency(data.budgetVsActual.spent)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Còn lại</CardTitle>
           </CardHeader>
@@ -305,7 +305,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
       </div>
 
       {data.budgetVsActual.budget > 0 && (
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader>
             <CardTitle className="text-lg">Ngân sách vs Thực tế</CardTitle>
           </CardHeader>
@@ -331,7 +331,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader>
             <CardTitle className="text-lg">Chi phí theo danh mục</CardTitle>
           </CardHeader>
@@ -358,7 +358,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader>
             <CardTitle className="text-lg">Chi phí theo tháng</CardTitle>
           </CardHeader>
@@ -412,7 +412,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
         </Button>
       </div>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Mức tồn kho</CardTitle>
         </CardHeader>
@@ -423,15 +423,15 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="current" name="Tồn kho" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="min" name="Tối thiểu" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="current" name="Tồn kho" fill="#475569" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="min" name="Tối thiểu" fill="#94a3b8" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {data.lowStock.length > 0 && (
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader>
             <CardTitle className="text-lg text-red-600">Cảnh báo tồn kho thấp ({data.lowStock.length})</CardTitle>
           </CardHeader>
@@ -462,7 +462,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
         </Card>
       )}
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Tất cả vật liệu</CardTitle>
         </CardHeader>
@@ -531,7 +531,7 @@ function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
         </Button>
       </div>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Nhà cung cấp</CardTitle>
         </CardHeader>
@@ -615,7 +615,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng công nhân</CardTitle>
           </CardHeader>
@@ -623,7 +623,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
             <div className="text-2xl font-bold">{data.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng lương</CardTitle>
           </CardHeader>
@@ -631,7 +631,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
             <div className="text-2xl font-bold">{formatCurrency(totalWages)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Chuyên cần TB</CardTitle>
           </CardHeader>
@@ -641,7 +641,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Tỷ lệ chuyên cần</CardTitle>
         </CardHeader>
@@ -651,13 +651,13 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
               <Tooltip formatter={(value: number) => `${formatPercent(value)}`} />
-              <Bar dataKey="rate" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="rate" fill="#64748b" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="text-lg">Chi tiết nhân công</CardTitle>
         </CardHeader>

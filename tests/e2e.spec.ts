@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 test.describe('Authentication', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -8,7 +8,7 @@ test.describe('Authentication', () => {
   test('login page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
     await expect(page).toHaveTitle(/Xay Nha|Xây Nhà/, { timeout: 10000 });
-    await expect(page.getByText('Đăng nhập')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
   });
 
   test('login with valid admin credentials', async ({ page }) => {
@@ -258,7 +258,7 @@ test.describe('Mobile Responsive', () => {
   test('login page works on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(`${BASE_URL}/login`);
-    await expect(page.getByText('Đăng nhập')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
   });
 
   test('dashboard works on mobile', async ({ page }) => {

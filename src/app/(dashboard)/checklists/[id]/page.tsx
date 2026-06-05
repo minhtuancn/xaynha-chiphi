@@ -25,6 +25,8 @@ import {
   toggleChecklistItem,
   deleteChecklistItem,
 } from "@/actions/checklists";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface ChecklistItemInfo {
   id: string;
@@ -48,6 +50,8 @@ export default function ChecklistDetailPage() {
   const [newItem, setNewItem] = useState("");
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const load = async () => {
     const data = await getChecklist(params.id as string);
@@ -93,8 +97,15 @@ export default function ChecklistDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Xóa checklist này?")) return;
+    const ok = await confirm({
+      title: "Xóa checklist này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     await deleteChecklist(checklist.id);
+    toast({ title: "Đã xóa checklist" });
     router.push("/checklists");
   };
 
@@ -206,6 +217,7 @@ export default function ChecklistDetailPage() {
           </form>
         </CardContent>
       </Card>
+      {confirmDialog}
     </div>
   );
 }

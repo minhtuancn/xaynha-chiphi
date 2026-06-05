@@ -28,6 +28,8 @@ import {
 import { getMaterials } from "@/actions/materials";
 import { getDailyLogs } from "@/actions/daily-logs";
 import { getProjects } from "@/actions/projects";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface MaterialInfo {
   id: string;
@@ -85,6 +87,8 @@ export default function MaterialUsagePage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const [filterMaterial, setFilterMaterial] = useState("ALL");
   const [filterDate, setFilterDate] = useState("");
@@ -175,9 +179,16 @@ export default function MaterialUsagePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Xóa bản ghi này?")) return;
+    const ok = await confirm({
+      title: "Xóa bản ghi này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     try {
       await deleteMaterialUsage(id);
+      toast({ title: "Đã xóa bản ghi" });
       await load();
     } catch {
       setError("Xóa thất bại");
@@ -430,6 +441,7 @@ export default function MaterialUsagePage() {
           )}
         </CardContent>
       </Card>
+      {confirmDialog}
     </div>
   );
 }

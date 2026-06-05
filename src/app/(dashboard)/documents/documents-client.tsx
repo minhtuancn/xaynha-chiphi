@@ -16,6 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatDate, formatFileSize } from "@/lib/utils";
 import { deleteDocument } from "@/actions/documents";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   CONTRACT: "Hợp đồng",
@@ -56,6 +58,8 @@ export default function DocumentsClient({ documents, projects }: DocumentsClient
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [projectFilter, setProjectFilter] = useState("ALL");
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const filtered = docList.filter((doc) => {
     if (typeFilter !== "ALL" && doc.type !== typeFilter) return false;
@@ -65,12 +69,19 @@ export default function DocumentsClient({ documents, projects }: DocumentsClient
   });
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa tài liệu này?")) return;
+    const ok = await confirm({
+      title: "Xóa tài liệu này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     try {
       await deleteDocument(id);
+      toast({ title: "Đã xóa tài liệu" });
       setDocList((prev) => prev.filter((d) => d.id !== id));
     } catch {
-      alert("Xóa tài liệu thất bại");
+      toast({ title: "Xóa tài liệu thất bại", variant: "destructive" });
     }
   };
 
@@ -198,6 +209,7 @@ export default function DocumentsClient({ documents, projects }: DocumentsClient
           </table>
         </div>
       )}
+      {confirmDialog}
     </div>
   );
 }

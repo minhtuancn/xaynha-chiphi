@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +46,8 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   function resetForm() {
     setName("");
@@ -92,20 +96,28 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
     });
   }
 
-  function handleDelete(id: string, catName: string) {
-    if (!confirm(`Xóa danh mục "${catName}"?`)) return;
+  async function handleDelete(id: string, catName: string) {
+    const ok = await confirm({
+      title: `Xóa danh mục "${catName}"?`,
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     startTransition(async () => {
       try {
         await deleteMaterialCategory(id);
+        toast({ title: "Đã xóa danh mục" });
         router.refresh();
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Có lỗi xảy ra");
+        toast({ title: err instanceof Error ? err.message : "Có lỗi xảy ra", variant: "destructive" });
       }
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+    <>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" onClick={openAdd}>
           <Plus className="mr-2 h-4 w-4" />
@@ -204,5 +216,7 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
         )}
       </DialogContent>
     </Dialog>
+      {confirmDialog}
+    </>
   );
 }

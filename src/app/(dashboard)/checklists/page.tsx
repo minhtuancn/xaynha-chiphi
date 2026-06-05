@@ -18,6 +18,8 @@ import { Progress } from "@/components/ui/progress";
 import { getChecklists, createChecklist, deleteChecklist } from "@/actions/checklists";
 import { getStages } from "@/actions/stages";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 import { ClipboardList } from "lucide-react";
 
 interface ChecklistItemInfo {
@@ -47,6 +49,8 @@ export default function ChecklistsPage() {
   const [stageId, setStageId] = useState("");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const load = async () => {
     const [c, s] = await Promise.all([getChecklists(), getStages()]);
@@ -70,8 +74,15 @@ export default function ChecklistsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Xóa checklist này?")) return;
+    const ok = await confirm({
+      title: "Xóa checklist này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     await deleteChecklist(id);
+    toast({ title: "Đã xóa checklist" });
     await load();
   };
 
@@ -204,6 +215,7 @@ export default function ChecklistsPage() {
           })}
         </div>
       )}
+      {confirmDialog}
     </div>
   );
 }

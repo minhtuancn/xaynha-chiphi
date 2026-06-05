@@ -32,6 +32,8 @@ import { taskSchema, type TaskFormData, stageSchema, type StageFormData } from "
 import { createTask, updateTask, deleteTask, updateStage } from "@/actions/stages";
 import { formatCurrency, formatDate, STAGE_STATUS_LABELS, TASK_STATUS_LABELS } from "@/lib/utils";
 import type { ConstructionStage, ConstructionTask } from "@prisma/client";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface StageDetailProps {
   stage: ConstructionStage & {
@@ -320,6 +322,9 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
+
   async function handleAddTask(data: TaskFormData) {
     setIsSubmitting(true);
     try {
@@ -331,9 +336,16 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
     }
   }
 
-  async function handleDeleteTask(id: string) {
-    if (!confirm("Bạn có chắc muốn xóa task này?")) return;
-    await deleteTask(id);
+  async function handleDeleteTask(taskId: string) {
+    const ok = await confirm({
+      title: "Xóa task này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    await deleteTask(taskId);
+    toast({ title: "Đã xóa task" });
     router.refresh();
   }
 
@@ -510,6 +522,7 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
           </Card>
         }
       />
+      {confirmDialog}
     </div>
   );
 }

@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency, STAGE_STATUS_LABELS } from "@/lib/utils";
 import { WeatherWidget } from "@/components/weather-widget";
 import { createStage } from "@/actions/stages";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface Project {
   id: string;
@@ -48,6 +50,8 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
   const [showForm, setShowForm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const isSubmitting = useRef(false);
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const router = useRouter();
 
   const [formName, setFormName] = useState("");
@@ -88,7 +92,7 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
         router.refresh();
       });
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Có lỗi xảy ra khi tạo giai đoạn");
+      toast({ title: error instanceof Error ? error.message : "Có lỗi xảy ra khi tạo giai đoạn", variant: "destructive" });
     } finally {
       isSubmitting.current = false;
     }

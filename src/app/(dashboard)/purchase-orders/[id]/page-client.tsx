@@ -21,6 +21,8 @@ import {
 import { formatCurrency, formatDate, PO_STATUS_LABELS, PO_STATUS_VARIANTS } from "@/lib/utils";
 import { updatePurchaseOrderStatus, deletePurchaseOrder, updatePurchaseOrder } from "@/actions/purchase-orders";
 import type { PurchaseOrder } from "@prisma/client";
+import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/hooks/use-confirm";
 import { DetailViewTabs } from "@/components/detail-view-tabs";
 import { PurchaseOrderForm } from "@/components/forms/purchase-order-form";
 
@@ -57,6 +59,8 @@ export default function PurchaseOrderDetailPage({
   materials: { id: string; name: string; unit: string }[];
 }) {
   const router = useRouter();
+  const { toast } = useToast();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   async function handleUpdateStatus(status: string) {
     await updatePurchaseOrderStatus(order.id, status as "DRAFT" | "SENT" | "RECEIVED" | "CANCELLED");
@@ -64,8 +68,15 @@ export default function PurchaseOrderDetailPage({
   }
 
   async function handleDelete() {
-    if (!confirm("Bạn có chắc muốn xóa đơn hàng này?")) return;
+    const ok = await confirm({
+      title: "Xóa đơn hàng này?",
+      description: "Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      variant: "destructive",
+    });
+    if (!ok) return;
     await deletePurchaseOrder(order.id);
+    toast({ title: "Đã xóa đơn hàng" });
     router.push("/purchase-orders");
   }
 
@@ -245,6 +256,7 @@ export default function PurchaseOrderDetailPage({
         <h1 className="text-3xl font-bold tracking-tight">Đơn hàng</h1>
       </div>
       <DetailViewTabs viewTab={detailView} editTab={editView} />
+      {confirmDialog}
     </div>
   );
 }

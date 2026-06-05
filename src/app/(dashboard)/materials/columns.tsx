@@ -71,11 +71,13 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Link href={`/materials/${row.original.id}/edit?tab=edit`}>
-        <Button variant="outline" size="sm">
-          Sửa
-        </Button>
-      </Link>
+      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <Link href={`/materials/${row.original.id}/edit?tab=edit`}>
+          <Button variant="outline" size="sm">
+            Sửa
+          </Button>
+        </Link>
+      </div>
     ),
   },
 ];

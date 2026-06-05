@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { getMaterials, getMaterialCategories } from "@/actions/materials";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { CategoryManager } from "@/components/category-manager";
 import { serialize } from "@/lib/serialize";
 import { columns, type MaterialWithRelations } from "./columns";
@@ -30,18 +31,20 @@ export default async function MaterialsPage() {
           </Link>
         </div>
       </div>
-      <DataTable
-        columns={columns}
-        data={serializedMaterials}
-        searchColumn="name"
-        searchPlaceholder="Tìm kiếm vật liệu..."
-        filters={[
-          {
-            column: "categoryName",
-            placeholder: "Lọc theo danh mục...",
-          },
-        ]}
-      />
+      <Card className="shadow-sm">
+        <DataTable
+          columns={columns}
+          data={serializedMaterials}
+          searchColumn="name"
+          searchPlaceholder="Tìm kiếm vật liệu..."
+          filters={[
+            {
+              column: "categoryName",
+              placeholder: "Lọc theo danh mục...",
+            },
+          ]}
+        />
+      </Card>
     </div>
   );
 }

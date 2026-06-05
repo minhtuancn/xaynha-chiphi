@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -114,7 +115,7 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="group hover:bg-muted/50 transition-colors">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -124,8 +125,12 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Không có dữ liệu
+                <TableCell colSpan={columns.length} className="h-24 p-0">
+                  <Card className="m-4 border-dashed shadow-sm">
+                    <div className="flex flex-col items-center justify-center p-8 text-center">
+                      <p className="text-sm text-muted-foreground">Không có dữ liệu</p>
+                    </div>
+                  </Card>
                 </TableCell>
               </TableRow>
             )}

@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsDropdown } from "./notifications-dropdown";
+import { ProjectSelector } from "./project-selector";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -33,6 +34,7 @@ export function Header({ userName, userEmail, userRole }: HeaderProps) {
       >
         <Menu className="h-5 w-5" />
       </button>
+      <ProjectSelector />
       <div className="flex-1" />
       <NotificationsDropdown />
       <ThemeToggle />

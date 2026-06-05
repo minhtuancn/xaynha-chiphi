@@ -6,17 +6,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DetailViewTabsProps {
   viewTab: ReactNode;
-  editTab: ReactNode;
+  editTab?: ReactNode;
+  logsTab?: ReactNode;
+  expensesTab?: ReactNode;
+  photosTab?: ReactNode;
   viewLabel?: string;
   editLabel?: string;
-  defaultTab?: "view" | "edit";
+  logsLabel?: string;
+  expensesLabel?: string;
+  photosLabel?: string;
+  defaultTab?: "view" | "edit" | "logs" | "expenses" | "photos";
 }
 
 function DetailViewTabsInner({
   viewTab,
   editTab,
+  logsTab,
+  expensesTab,
+  photosTab,
   viewLabel = "Chi tiết",
   editLabel = "Chỉnh sửa",
+  logsLabel = "Nhật ký",
+  expensesLabel = "Chi phí",
+  photosLabel = "Hình ảnh",
   defaultTab = "view",
 }: DetailViewTabsProps) {
   const searchParams = useSearchParams();
@@ -38,10 +50,16 @@ function DetailViewTabsInner({
     <Tabs value={currentTab} onValueChange={onTabChange}>
       <TabsList>
         <TabsTrigger value="view">{viewLabel}</TabsTrigger>
-        <TabsTrigger value="edit">{editLabel}</TabsTrigger>
+        {logsTab && <TabsTrigger value="logs">{logsLabel}</TabsTrigger>}
+        {expensesTab && <TabsTrigger value="expenses">{expensesLabel}</TabsTrigger>}
+        {photosTab && <TabsTrigger value="photos">{photosLabel}</TabsTrigger>}
+        {editTab && <TabsTrigger value="edit">{editLabel}</TabsTrigger>}
       </TabsList>
       <TabsContent value="view" className="mt-6">{viewTab}</TabsContent>
-      <TabsContent value="edit" className="mt-6">{editTab}</TabsContent>
+      {logsTab && <TabsContent value="logs" className="mt-6">{logsTab}</TabsContent>}
+      {expensesTab && <TabsContent value="expenses" className="mt-6">{expensesTab}</TabsContent>}
+      {photosTab && <TabsContent value="photos" className="mt-6">{photosTab}</TabsContent>}
+      {editTab && <TabsContent value="edit" className="mt-6">{editTab}</TabsContent>}
     </Tabs>
   );
 }

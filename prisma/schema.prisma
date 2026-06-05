@@ -129,17 +129,18 @@ model Setting {
 }
 
 model UserSetting {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  language     String   @default("vi")
-  theme        String   @default("light")
-  dateFormat   String   @default("dd/MM/yyyy")
-  timezone     String   @default("Asia/Ho_Chi_Minh")
-  currency     String   @default("VND")
-  currencyDec  Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language          String   @default("vi")
+  theme             String   @default("light")
+  dateFormat        String   @default("dd/MM/yyyy")
+  timezone          String   @default("Asia/Ho_Chi_Minh")
+  currency          String   @default("VND")
+  currencyDec       Int      @default(0)
+  selectedProjectId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([userId])
 }

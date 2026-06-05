@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS: UserSettingData = {
   timezone: "Asia/Ho_Chi_Minh",
   currency: "VND",
   currencyDec: 0,
+  selectedProjectId: null,
 };
 
 type FormatCurrencyFn = (amount: number | string) => string;
@@ -22,6 +23,8 @@ interface UserSettingsContextValue {
   formatDate: FormatDateFn;
   formatNumber: FormatNumberFn;
   updateSettings: (data: UserSettingData) => Promise<void>;
+  selectedProjectId: string | null;
+  setSelectedProject: (projectId: string | null) => Promise<void>;
 }
 
 const UserSettingsContext = createContext<UserSettingsContextValue | null>(null);
@@ -79,7 +82,6 @@ export function UserSettingsProvider({
     const { upsertUserSetting } = await import("@/actions/user-settings");
     await upsertUserSetting(data);
     setSettings(data);
-    // Apply theme to DOM
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     if (data.theme === "system") {
@@ -90,7 +92,12 @@ export function UserSettingsProvider({
     }
   }, []);
 
-  // Apply theme on mount
+  const setSelectedProject = useCallback(async (projectId: string | null) => {
+    const { setSelectedProject: setSP } = await import("@/actions/user-settings");
+    await setSP(projectId);
+    setSettings(prev => ({ ...prev, selectedProjectId: projectId }));
+  }, []);
+
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
@@ -108,6 +115,8 @@ export function UserSettingsProvider({
     formatDate: buildFormatDate(settings),
     formatNumber: buildFormatNumber(settings),
     updateSettings,
+    selectedProjectId: settings.selectedProjectId ?? null,
+    setSelectedProject,
   };
 
   return (

@@ -11,6 +11,7 @@ export type UserSettingData = {
   timezone: string;
   currency: string;
   currencyDec: number;
+  selectedProjectId?: string | null;
 };
 
 export async function getUserSetting(): Promise<UserSettingData | null> {
@@ -26,6 +27,7 @@ export async function getUserSetting(): Promise<UserSettingData | null> {
     timezone: setting.timezone,
     currency: setting.currency,
     currencyDec: setting.currencyDec,
+    selectedProjectId: setting.selectedProjectId,
   };
 }
 
@@ -40,7 +42,16 @@ export async function upsertUserSetting(data: UserSettingData) {
   revalidatePath("/");
 }
 
+export async function setSelectedProject(projectId: string | null) {
+  const user = await requireUser();
+  await prisma.userSetting.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, selectedProjectId: projectId },
+    update: { selectedProjectId: projectId },
+  });
+  revalidatePath("/");
+}
+
 export async function applyUserTheme(theme: string) {
   await requireUser();
-  // Persisted via upsertUserSetting; theme is also applied client-side
 }

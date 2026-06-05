@@ -25,17 +25,17 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="md:ml-64">
-          <Header
-            userName={user.name}
-            userEmail={user.email}
-            userRole={user.role}
-          />
-          <DashboardLayoutClient initialSettings={userSettings}>
+        <DashboardLayoutClient initialSettings={userSettings}>
+          <Sidebar />
+          <div className="md:ml-64">
+            <Header
+              userName={user.name}
+              userEmail={user.email}
+              userRole={user.role}
+            />
             <main className="p-4 md:p-6">{children}</main>
-          </DashboardLayoutClient>
-        </div>
+          </div>
+        </DashboardLayoutClient>
       </div>
     </SidebarProvider>
   );

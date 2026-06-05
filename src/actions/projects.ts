@@ -142,18 +142,38 @@ export async function deleteProject(id: string) {
     await prisma.budget.delete({ where: { projectId: id } });
   }
 
-  await prisma.project.update({
-    where: { id },
-    data: {
-      deletedAt: new Date(),
-      stages: { updateMany: { data: { deletedAt: new Date() } } },
-      dailyLogs: { updateMany: { data: { deletedAt: new Date() } } },
-      expenses: { updateMany: { data: { deletedAt: new Date() } } },
-      purchaseOrders: { updateMany: { data: { deletedAt: new Date() } } },
-      photos: { updateMany: { data: { deletedAt: new Date() } } },
-      documents: { updateMany: { data: { deletedAt: new Date() } } },
-    },
-  });
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.constructionStage.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.dailyLog.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.expense.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.purchaseOrder.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.photo.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.document.updateMany({
+      where: { projectId: id, deletedAt: null },
+      data: { deletedAt: now },
+    }),
+    prisma.project.update({
+      where: { id },
+      data: { deletedAt: now },
+    }),
+  ]);
 
   revalidatePath("/projects");
   return { success: true };

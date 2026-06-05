@@ -360,7 +360,7 @@ export default function MaterialUsagePage() {
                   </thead>
                   <tbody>
                     {filteredRecords.map((r) => (
-                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
+                      <tr key={r.id} className="group border-b last:border-0 hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 text-sm">
                           {formatDate(r.date)}
                         </td>
@@ -379,11 +379,11 @@ export default function MaterialUsagePage() {
                                     <img
                                       src={p.url}
                                       alt=""
-                                      className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 border"
+                                      className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 border shadow-sm transition-opacity"
                                     />
                                   </DialogTrigger>
                                   <DialogContent className="max-w-lg">
-                                    <img src={p.url} alt="" className="w-full rounded" />
+                                    <img src={p.url} alt="" className="w-full rounded shadow-sm" />
                                   </DialogContent>
                                 </Dialog>
                               ))}
@@ -404,6 +404,7 @@ export default function MaterialUsagePage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => handleDelete(r.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />

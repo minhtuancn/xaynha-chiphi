@@ -9,6 +9,7 @@ import { loginSchema, type LoginFormData } from "@/schemas/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
@@ -19,10 +20,15 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { rememberMe: false },
   });
+
+  const rememberMe = watch("rememberMe");
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -31,6 +37,7 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
+      rememberMe: data.rememberMe,
       redirect: false,
     });
 
@@ -74,6 +81,16 @@ export default function LoginPage() {
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(v) => setValue("rememberMe", v === true, { shouldValidate: false })}
+            />
+            <Label htmlFor="rememberMe" className="text-sm cursor-pointer">
+              Ghi nhớ đăng nhập
+            </Label>
           </div>
           {error && (
             <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">

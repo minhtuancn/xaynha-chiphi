@@ -9,6 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: {},
         password: {},
+        rememberMe: {},
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -41,13 +42,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role,
-        };
+          rememberMe: (credentials.rememberMe as string) === "true",
+        } as any;
       },
     }),
   ],
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60,
   },
   pages: {
     signIn: "/login",
@@ -56,6 +58,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as { role: string }).role;
+        const rememberMe = (user as any).rememberMe;
+        if (!rememberMe) {
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        }
       }
       return token;
     },

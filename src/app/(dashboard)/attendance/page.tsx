@@ -139,19 +139,43 @@ export default function AttendancePage() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        <Badge variant="default">
-          Có mặt: {statusCounts.PRESENT}
-        </Badge>
-        <Badge variant="destructive">
-          Vắng mặt: {statusCounts.ABSENT}
-        </Badge>
-        <Badge variant="secondary">
-          Đi trễ: {statusCounts.LATE}
-        </Badge>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Có mặt</p>
+              <p className="text-2xl font-bold mt-1">{statusCounts.PRESENT}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-lg font-bold">{statusCounts.PRESENT}</span>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Vắng mặt</p>
+              <p className="text-2xl font-bold mt-1">{statusCounts.ABSENT}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+              <span className="text-red-600 text-lg font-bold">{statusCounts.ABSENT}</span>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Đi trễ</p>
+              <p className="text-2xl font-bold mt-1">{statusCounts.LATE}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+              <span className="text-yellow-600 text-lg font-bold">{statusCounts.LATE}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-xl border bg-card shadow-sm overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
@@ -170,7 +194,7 @@ export default function AttendancePage() {
               if (!record) return null;
 
               return (
-                <tr key={worker.id} className="border-b">
+                <tr key={worker.id} className="border-b transition-colors hover:bg-muted/50">
                   <td className="px-4 py-3 font-medium">{worker.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {worker.skill ?? "-"}

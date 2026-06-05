@@ -204,7 +204,7 @@ export default function MaterialUsagePage() {
         </Card>
       )}
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Ghi nhận sử dụng vật tư</CardTitle>
         </CardHeader>
@@ -312,7 +312,7 @@ export default function MaterialUsagePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Lịch sử sử dụng</CardTitle>

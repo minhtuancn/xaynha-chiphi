@@ -1,19 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ExpenseForm } from "@/components/forms/expense-form";
 import {
   getExpenses,
   getExpenseCategories,
   createExpense,
-  updateExpenseStatus,
-  deleteExpense,
 } from "@/actions/financial";
-import { formatCurrency, formatDate, EXPENSE_STATUS_LABELS } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { serialize } from "@/lib/serialize";
-import { CheckIcon, XIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { ApproveExpenseButton, RejectExpenseButton } from "@/components/forms/expense-actions";
+import { PlusIcon } from "lucide-react";
+import { ApproveExpenseButton, RejectExpenseButton, DeleteExpenseButton } from "@/components/forms/expense-actions";
 
 const STATUS_SEMANTIC: Record<string, { label: string; dot: string }> = {
   PENDING: { label: "Chờ duyệt", dot: "bg-orange-400" },
@@ -83,7 +79,7 @@ export default async function ExpensesPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Thêm chi phí</CardTitle>
         </CardHeader>
@@ -95,7 +91,7 @@ export default async function ExpensesPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Danh sách chi phí</CardTitle>
         </CardHeader>
@@ -110,40 +106,65 @@ export default async function ExpensesPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Mô tả</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Người tạo</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium">Hành động</th>
                 </tr>
               </thead>
               <tbody>
                 {sExpenses.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      Chưa có chi phí nào
+                    <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="rounded-full bg-muted p-3">
+                          <PlusIcon className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="font-medium">Chưa có chi phí nào</p>
+                        <p className="text-sm">Thêm chi phí đầu tiên bằng biểu mẫu phía trên</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  sExpenses.map((expense) => (
-                    <tr key={expense.id} className="border-b last:border-0">
-                      <td className="px-4 py-3 text-sm">
-                        {formatDate(expense.date)}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium">
-                        {expense.category.name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-mono">
-                        {formatCurrency(expense.amount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={EXPENSE_STATUS_VARIANTS[expense.status]}>
-                          {EXPENSE_STATUS_LABELS[expense.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
-                        {expense.description || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">
-                        {expense.creator?.name || "-"}
-                      </td>
-                    </tr>
-                  ))
+                  sExpenses.map((expense) => {
+                    const status = STATUS_SEMANTIC[expense.status];
+                    return (
+                      <tr
+                        key={expense.id}
+                        className="border-b last:border-0 hover:bg-muted/40 transition-colors group"
+                      >
+                        <td className="px-4 py-3 text-sm">
+                          {formatDate(expense.date)}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium">
+                          {expense.category.name}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right font-mono">
+                          {formatCurrency(expense.amount)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className={cn("h-2 w-2 rounded-full", status.dot)} />
+                            <span className="text-sm">{status.label}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
+                          {expense.description || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">
+                          {expense.creator?.name || "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {expense.status === "PENDING" && (
+                              <>
+                                <ApproveExpenseButton id={expense.id} />
+                                <RejectExpenseButton id={expense.id} />
+                              </>
+                            )}
+                            <DeleteExpenseButton id={expense.id} />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

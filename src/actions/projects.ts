@@ -144,7 +144,15 @@ export async function deleteProject(id: string) {
 
   await prisma.project.update({
     where: { id },
-    data: { deletedAt: new Date() },
+    data: {
+      deletedAt: new Date(),
+      stages: { updateMany: { data: { deletedAt: new Date() } } },
+      dailyLogs: { updateMany: { data: { deletedAt: new Date() } } },
+      expenses: { updateMany: { data: { deletedAt: new Date() } } },
+      purchaseOrders: { updateMany: { data: { deletedAt: new Date() } } },
+      photos: { updateMany: { data: { deletedAt: new Date() } } },
+      documents: { updateMany: { data: { deletedAt: new Date() } } },
+    },
   });
 
   revalidatePath("/projects");

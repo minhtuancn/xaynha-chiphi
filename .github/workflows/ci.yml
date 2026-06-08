@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test -- --coverage
+      - run: npm run build
+
+  # Optional: upload coverage report
+  # coverage:
+  #   needs: build-test-lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/download-artifact
+  #       with:
+  #         name: coverage-report
+  #     - uses: codecov/codecov-action@v4

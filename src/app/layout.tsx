@@ -1,38 +1,31 @@
 import type { Metadata } from "next";
-import { Poppins, Open_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
-const poppins = Poppins({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-heading",
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin", "latin-ext"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-body",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Xay Nha - Quan ly xay dung",
-  description: "He thong quan ly xay dung nha o ca nhan",
-  icons: { icon: "/favicon.svg" },
+  title: "Xây Nhà Chi Phí",
+  description: "Quản lý chi phí xây dựng",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${poppins.variable} ${openSans.variable} font-body antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <Providers>{children}</Providers>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>

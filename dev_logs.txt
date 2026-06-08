@@ -1,0 +1,19 @@
+
+> xaynha-chiphi@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://10.20.10.135:3001
+- Environments: .env
+✓ Ready in 7.8s
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          4755
+- Dir:          /home/dev/xaynha-chiphi
+- Log:          .next/dev/logs/next-development.log
+
+Run kill 4755 to stop it.
+[?25h

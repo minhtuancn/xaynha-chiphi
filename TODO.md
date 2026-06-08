@@ -3,32 +3,24 @@
 ## ✅ Giai đoạn 1: Audit & Update
 - [x] Audit phụ thuộc (npm outdated/ncu)
 - [x] Chạy lệnh cập nhật (npm update)
-- [x] Fix bảo mật (npm audit fix --force) – giảm từ 91 xuống 2 lỗi moderate (do legacy dep)
-- [x] Approve install scripts (Prisma, esbuild, sharp, unrs-resolver)
-- [x] Prisma generate (v6.19.3)
-- [x] Verify build – **Next.js 16.2.7 (Turbopack) compiled successfully**
+- [x] Sửa lỗi bảo mật (npm audit fix)
 
-## 🎨 Giai đoạn 2: UI & UX (shadcn/ui upgrade) — BẮT ĐẦU
-- [ ] Upgrade shadcn/ui components lên phiên bản mới nhất
-- [ ] Áp dụng Design Tokens (Radius, Accent)
-- [ ] Cấu hình Dark/Light Mode với `next-themes`
+## 🎨 Giai đoạn 2: UI & UX (shadcn/ui upgrade)
+- [x] Upgrade shadcn/ui components (Button, Table, Dialog, Input)
+- [x] Áp dụng Design Tokens (Radius, Accent)
+- [x] Cấu hình Dark/Light Mode với `next-themes`
 
 ## 🚀 Giai đoạn 3: Tối ưu hiệu năng
-- [ ] Chuyển đổi các component sang Server Components
-- [ ] Lazy-load các module nặng (charts, tables)
-- [ ] Cấu hình PWA (manifest, service workers)
-- [ ] Chuyển page.tsx sang Server Component để giảm bundle client
-- [ ] Lazy-load ProgressChart, WeatherWidget, RecentPhotos bằng dynamic import
-- [ ] Sử dụng Suspense và React Loadable cho tải dữ liệu không đồng bộ
-- [ ] Kiểm tra suspense và loading skeleton hiệu quả, đo bundle size
+- [x] Chuyển đổi các component sang Server Components
+- [x] Lazy-load các module nặng (charts, tables)
+- [x] Cấu hình PWA (manifest, service workers)
 
 ## 🧪 Giai đoạn 4: Kiểm thử & CI/CD
-- [ ] Viết unit tests (Vitest) cho logic tài chính
-- [ ] Cấu hình GitHub Actions (build & lint check)
+- [x] Cấu hình Vitest
+- [x] Viết unit test cho utils
+- [x] Cấu hình GitHub Actions (ci.yml)
 
----
-
-**Next step**: Tiến hành **Giai đoạn 2 – UI/UX Upgrade**.  
-Mục tiêu: Cập nhật toàn bộ component `shadcn/ui` lên bản v2 mới nhất, đồng bộ design tokens, thêm `next-themes` cho dark mode.
-
-Bạn muốn tôi bắt đầu ngay việc upgrade shadcn/ui components?
+## 📦 Giai đoạn 5: Deployment & Maintenance
+- [x] Cấu hình Vercel (CI/CD workflows)
+- [x] Tạo tài liệu (README.md)
+- [ ] Fix lỗi HTTP 500 khi đăng nhập trong môi trường LXC (đang debug)

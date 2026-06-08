@@ -91,8 +91,8 @@ model Project {
   status      ProjectStatus @default(PLANNING)
   progress    Int           @default(0)
   description String?
-  latitude    Float?
-  longitude   Float?
+  latitude    Decimal? @db.Decimal(15, 2)
+  longitude   Decimal? @db.Decimal(15, 2)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
@@ -254,7 +254,7 @@ model DailyLog {
   project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   date             DateTime
   weather          String?
-  temperature      Float?
+  temperature      Decimal? @db.Decimal(15, 2)
   notes            String?
   issues           String?
   workerCount      Int               @default(0)
@@ -311,9 +311,9 @@ model WeatherRecord {
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   date       DateTime
   condition  String
-  temperature Float
-  humidity   Float
-  windSpeed  Float
+  temperature Decimal @db.Decimal(15, 2)
+  humidity   Decimal @db.Decimal(15, 2)
+  windSpeed  Decimal @db.Decimal(15, 2)
   source     WeatherSource @default(AUTO)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

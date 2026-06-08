@@ -11,3 +11,4 @@ uploads/
 .superpowers/
 .DS_Store
 *.log
+.vercel

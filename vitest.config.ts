@@ -10,7 +10,6 @@ export default defineConfig({
     css: true,
     coverage: {
       reporter: ['text', 'html'],
-      all: true,
     },
     alias: {
       '@': resolve(__dirname, 'src'),

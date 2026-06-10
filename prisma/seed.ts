@@ -82,7 +82,8 @@ async function main() {
       endDate: new Date("2026-08-30"),
       status: "ACTIVE",
       progress: 35,
-      description: "Nhà ở riêng lẻ 2 tầng, mỗi tầng 100m², tổng diện tích sàn 200m². Dự toán tổng chi phí 1,5 tỷ đồng.",
+      description:
+        "Nhà ở riêng lẻ 2 tầng, mỗi tầng 100m², tổng diện tích sàn 200m². Dự toán tổng chi phí 1,5 tỷ đồng.",
     },
   });
 
@@ -101,16 +102,76 @@ async function main() {
 
   // Tạo giai đoạn thi công
   const stagesData = [
-    { name: "Chuẩn bị mặt bằng", order: 1, progress: 100, estimatedBudget: 30000000, status: "COMPLETED" },
-    { name: "Móng và nền", order: 2, progress: 100, estimatedBudget: 200000000, status: "COMPLETED" },
-    { name: "Tầng 1 - Khung và tường", order: 3, progress: 80, estimatedBudget: 350000000, status: "IN_PROGRESS" },
-    { name: "Tầng 2 - Khung và tường", order: 4, progress: 15, estimatedBudget: 380000000, status: "IN_PROGRESS" },
-    { name: "Mái nhà", order: 5, progress: 0, estimatedBudget: 120000000, status: "NOT_STARTED" },
-    { name: "Hệ thống điện", order: 6, progress: 0, estimatedBudget: 80000000, status: "NOT_STARTED" },
-    { name: "Hệ thống nước", order: 7, progress: 0, estimatedBudget: 70000000, status: "NOT_STARTED" },
-    { name: "Hoàn thiện nội thất", order: 8, progress: 0, estimatedBudget: 200000000, status: "NOT_STARTED" },
-    { name: "Sơn và trang trí", order: 9, progress: 0, estimatedBudget: 50000000, status: "NOT_STARTED" },
-    { name: "Kiểm tra và bàn giao", order: 10, progress: 0, estimatedBudget: 20000000, status: "NOT_STARTED" },
+    {
+      name: "Chuẩn bị mặt bằng",
+      order: 1,
+      progress: 100,
+      estimatedBudget: 30000000,
+      status: "COMPLETED",
+    },
+    {
+      name: "Móng và nền",
+      order: 2,
+      progress: 100,
+      estimatedBudget: 200000000,
+      status: "COMPLETED",
+    },
+    {
+      name: "Tầng 1 - Khung và tường",
+      order: 3,
+      progress: 80,
+      estimatedBudget: 350000000,
+      status: "IN_PROGRESS",
+    },
+    {
+      name: "Tầng 2 - Khung và tường",
+      order: 4,
+      progress: 15,
+      estimatedBudget: 380000000,
+      status: "IN_PROGRESS",
+    },
+    {
+      name: "Mái nhà",
+      order: 5,
+      progress: 0,
+      estimatedBudget: 120000000,
+      status: "NOT_STARTED",
+    },
+    {
+      name: "Hệ thống điện",
+      order: 6,
+      progress: 0,
+      estimatedBudget: 80000000,
+      status: "NOT_STARTED",
+    },
+    {
+      name: "Hệ thống nước",
+      order: 7,
+      progress: 0,
+      estimatedBudget: 70000000,
+      status: "NOT_STARTED",
+    },
+    {
+      name: "Hoàn thiện nội thất",
+      order: 8,
+      progress: 0,
+      estimatedBudget: 200000000,
+      status: "NOT_STARTED",
+    },
+    {
+      name: "Sơn và trang trí",
+      order: 9,
+      progress: 0,
+      estimatedBudget: 50000000,
+      status: "NOT_STARTED",
+    },
+    {
+      name: "Kiểm tra và bàn giao",
+      order: 10,
+      progress: 0,
+      estimatedBudget: 20000000,
+      status: "NOT_STARTED",
+    },
   ];
 
   const stages = [];
@@ -200,7 +261,6 @@ async function main() {
 
   // Tạo vật liệu mẫu đầy đủ
   const materials = [
-    // Xi măng và bê tông
     { categoryId: createdCategories[0].id, name: "Xi măng PCB40", unit: "bao 50kg", currentStock: 200, minStock: 50, unitCost: 85000 },
     { categoryId: createdCategories[0].id, name: "Xi măng PCBS30", unit: "bao 50kg", currentStock: 100, minStock: 30, unitCost: 72000 },
     { categoryId: createdCategories[0].id, name: "Cát xây dựng", unit: "m3", currentStock: 30, minStock: 10, unitCost: 280000 },
@@ -208,7 +268,6 @@ async function main() {
     { categoryId: createdCategories[0].id, name: "Đá 1x2", unit: "m3", currentStock: 20, minStock: 8, unitCost: 380000 },
     { categoryId: createdCategories[0].id, name: "Đá 2x4", unit: "m3", currentStock: 15, minStock: 5, unitCost: 420000 },
     { categoryId: createdCategories[0].id, name: "Bê tông tươi C25", unit: "m3", currentStock: 0, minStock: 0, unitCost: 1200000 },
-    // Sắt thép
     { categoryId: createdCategories[1].id, name: "Sắt Φ10", unit: "cây 12m", currentStock: 300, minStock: 100, unitCost: 115000 },
     { categoryId: createdCategories[1].id, name: "Sắt Φ12", unit: "cây 12m", currentStock: 250, minStock: 80, unitCost: 165000 },
     { categoryId: createdCategories[1].id, name: "Sắt Φ14", unit: "cây 12m", currentStock: 200, minStock: 60, unitCost: 225000 },
@@ -216,17 +275,14 @@ async function main() {
     { categoryId: createdCategories[1].id, name: "Sắt Φ18", unit: "cây 12m", currentStock: 100, minStock: 30, unitCost: 375000 },
     { categoryId: createdCategories[1].id, name: "Sắt Φ20", unit: "cây 12m", currentStock: 80, minStock: 20, unitCost: 465000 },
     { categoryId: createdCategories[1].id, name: "Sắt D6", unit: "cây 12m", currentStock: 50, minStock: 20, unitCost: 28000 },
-    // Gạch và ceramic
     { categoryId: createdCategories[2].id, name: "Gạch ống 4 holes", unit: "viên", currentStock: 8000, minStock: 3000, unitCost: 1200 },
     { categoryId: createdCategories[2].id, name: "Gạch đặc", unit: "viên", currentStock: 5000, minStock: 2000, unitCost: 1500 },
     { categoryId: createdCategories[2].id, name: "Gạch ốp tường 20x25", unit: "viên", currentStock: 2000, minStock: 500, unitCost: 35000 },
     { categoryId: createdCategories[2].id, name: "Gạch lát nền 60x60", unit: "viên", currentStock: 1500, minStock: 500, unitCost: 85000 },
     { categoryId: createdCategories[2].id, name: "Gạch lát sân 40x40", unit: "viên", currentStock: 800, minStock: 300, unitCost: 45000 },
-    // Cửa và khung
     { categoryId: createdCategories[3].id, name: "Cửa gỗ công nghiệp", unit: "bộ", currentStock: 8, minStock: 0, unitCost: 1800000 },
     { categoryId: createdCategories[3].id, name: "Cửa nhôm Xingfa", unit: "m2", currentStock: 25, minStock: 0, unitCost: 1200000 },
     { categoryId: createdCategories[3].id, name: "Khung cửa thép", unit: "bộ", currentStock: 12, minStock: 0, unitCost: 450000 },
-    // Hệ thống điện
     { categoryId: createdCategories[4].id, name: "Dây điện 2.5mm²", unit: "cuộn 100m", currentStock: 15, minStock: 5, unitCost: 850000 },
     { categoryId: createdCategories[4].id, name: "Dây điện 4mm²", unit: "cuộn 100m", currentStock: 10, minStock: 3, unitCost: 1200000 },
     { categoryId: createdCategories[4].id, name: "Dây điện 6mm²", unit: "cuộn 100m", currentStock: 5, minStock: 2, unitCost: 1650000 },
@@ -235,7 +291,6 @@ async function main() {
     { categoryId: createdCategories[4].id, name: "CB 2 pha 32A", unit: "cái", currentStock: 10, minStock: 5, unitCost: 180000 },
     { categoryId: createdCategories[4].id, name: "CB 1 pha 20A", unit: "cái", currentStock: 20, minStock: 8, unitCost: 85000 },
     { categoryId: createdCategories[4].id, name: "Đèn LED downlight", unit: "cái", currentStock: 20, minStock: 10, unitCost: 120000 },
-    // Hệ thống nước
     { categoryId: createdCategories[5].id, name: "Ống PVC Φ21", unit: "cây 4m", currentStock: 50, minStock: 20, unitCost: 32000 },
     { categoryId: createdCategories[5].id, name: "Ống PVC Φ27", unit: "cây 4m", currentStock: 40, minStock: 15, unitCost: 42000 },
     { categoryId: createdCategories[5].id, name: "Ống PVC Φ34", unit: "cây 4m", currentStock: 30, minStock: 10, unitCost: 58000 },
@@ -245,14 +300,12 @@ async function main() {
     { categoryId: createdCategories[5].id, name: "Van nước Φ21", unit: "cái", currentStock: 15, minStock: 5, unitCost: 65000 },
     { categoryId: createdCategories[5].id, name: "Bồn cầu Inax", unit: "cái", currentStock: 3, minStock: 0, unitCost: 2500000 },
     { categoryId: createdCategories[5].id, name: "Chậu rửa Inax", unit: "cái", currentStock: 3, minStock: 0, unitCost: 1200000 },
-    // Sơn và hoàn thiện
     { categoryId: createdCategories[6].id, name: "Sơn Dulux nội thất 5L", unit: "thùng", currentStock: 15, minStock: 5, unitCost: 850000 },
     { categoryId: createdCategories[6].id, name: "Sơn Dulux ngoại thất 5L", unit: "thùng", currentStock: 10, minStock: 3, unitCost: 950000 },
     { categoryId: createdCategories[6].id, name: "Sơn lót chống kiềm 5L", unit: "thùng", currentStock: 8, minStock: 3, unitCost: 450000 },
     { categoryId: createdCategories[6].id, name: "Bột trét tường", unit: "bao 20kg", currentStock: 30, minStock: 10, unitCost: 85000 },
     { categoryId: createdCategories[6].id, name: "Keo chà ron", unit: "kg", currentStock: 20, minStock: 5, unitCost: 120000 },
     { categoryId: createdCategories[6].id, name: "Phụ gia chống thấm", unit: "thùng 5kg", currentStock: 5, minStock: 2, unitCost: 350000 },
-    // Mái che
     { categoryId: createdCategories[7].id, name: "Tôn Bluescope 4 lớp", unit: "tấm 3.6m", currentStock: 30, minStock: 10, unitCost: 450000 },
     { categoryId: createdCategories[7].id, name: "Xà gồ C75", unit: "cây 6m", currentStock: 40, minStock: 15, unitCost: 180000 },
     { categoryId: createdCategories[7].id, name: "Ngói ?", unit: "viên", currentStock: 0, minStock: 0, unitCost: 15000 },
@@ -264,7 +317,6 @@ async function main() {
 
   console.log("✅ Vật liệu đã tạo");
 
-  // Tạo nhà cung cấp
   const suppliers = [
     { name: "Vật Liệu Xây Dựng Minh Tuấn", contact: "Nguyễn Minh Tuấn", phone: "0901234567", email: "tuan.vlxd@gmail.com", address: "123 Lý Thường Kiệt, Quận 10, TP.HCM", debtBalance: 25000000 },
     { name: "Sắt Thép Hòa Phát", contact: "Trần Văn Hùng", phone: "0912345678", email: "hung.hoaphat@gmail.com", address: "456 Cộng Hòa, Quận Tân Bình, TP.HCM", debtBalance: 0 },
@@ -279,7 +331,6 @@ async function main() {
 
   console.log("✅ Nhà cung cấp đã tạo");
 
-  // Tạo công nhân
   const workers = [
     { name: "Nguyễn Văn An", phone: "0901111111", skill: "Thợ hồ chính", dailyWage: 400000 },
     { name: "Trần Văn Bình", phone: "0902222222", skill: "Thợ hồ chính", dailyWage: 400000 },
@@ -297,14 +348,18 @@ async function main() {
 
   console.log("✅ Công nhân đã tạo");
 
-  // Tạo tài khoản ngân quỹ
-  await prisma.account.create({ data: { name: "Tiền mặt dự án", type: "CASH", balance: 350000000 } });
-  await prisma.account.create({ data: { name: "Vietcombank - Chủ đầu tư", type: "BANK", balance: 800000000 } });
-  await prisma.account.create({ data: { name: "Techcombank - Dự phòng", type: "BANK", balance: 350000000 } });
+  await prisma.account.create({
+    data: { name: "Tiền mặt dự án", type: "CASH", balance: 350000000 },
+  });
+  await prisma.account.create({
+    data: { name: "Vietcombank - Chủ đầu tư", type: "BANK", balance: 800000000 },
+  });
+  await prisma.account.create({
+    data: { name: "Techcombank - Dự phòng", type: "BANK", balance: 350000000 },
+  });
 
   console.log("✅ Tài khoản đã tạo");
 
-  // Tạo danh mục chi phí
   const expenseCats = [
     { name: "Vật liệu xây dựng", budget: 800000000 },
     { name: "Nhân công", budget: 350000000 },
@@ -319,7 +374,6 @@ async function main() {
 
   console.log("✅ Danh mục chi phí đã tạo");
 
-  // Tạo nhật ký hàng ngày (7 ngày gần đây)
   const today = new Date();
   const weatherConditions = ["nắng", "nắng nhiều", "có mây", "mưa nhỏ", "nắng", "nhiều mây", "nắng"];
   for (let i = 6; i >= 0; i--) {
@@ -329,9 +383,18 @@ async function main() {
       data: {
         projectId: project.id,
         date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-        weather: JSON.stringify({ condition: weatherConditions[6 - i], temperature: 29 + (i % 5), humidity: 68 + (i % 12), windSpeed: 8 + (i % 6) }),
+        weather: JSON.stringify({
+          condition: weatherConditions[6 - i],
+          temperature: 29 + (i % 5),
+          humidity: 68 + (i % 12),
+          windSpeed: 8 + (i % 6),
+        }),
         temperature: 29 + (i % 5),
-        notes: `Ngày thi công thứ ${7 - i}. ${i % 2 === 0 ? "Đang thi công tầng 1, tiến độ đúng kế hoạch." : "Thi công tầng 2, hoàn thành phần khung."}`,
+        notes: `Ngày thi công thứ ${7 - i}. ${
+          i % 2 === 0
+            ? "Đang thi công tầng 1, tiến độ đúng kế hoạch."
+            : "Thi công tầng 2, hoàn thành phần khung."
+        }`,
         issues: i === 3 ? "Mưa lớn不得不 tạm nghỉ trưa" : null,
         workerCount: 6 + (i % 3),
       },
@@ -340,9 +403,11 @@ async function main() {
 
   console.log("✅ Nhật ký đã tạo");
 
-  // Tạo chi phí mẫu
   const expenseCatList = await prisma.expenseCategory.findMany();
-  const expCatMap = expenseCatList.reduce((map, c) => { map[c.name] = c.id; return map; }, {} as Record<string, string>);
+  const expCatMap = expenseCatList.reduce((map, c) => {
+    map[c.name] = c.id;
+    return map;
+  }, {} as Record<string, string>);
 
   const expenses = [
     { catName: "Vật liệu xây dựng", amount: 17000000, description: "Mua 200 bao xi măng PCB40", date: -2 },
@@ -354,7 +419,6 @@ async function main() {
     { catName: "Thiết bị và công cụ", amount: 5500000, description: "Mua dụng cụ thi công", date: -8 },
   ];
 
-  const account = await prisma.account.findFirst();
   for (const exp of expenses) {
     const d = new Date(today);
     d.setDate(d.getDate() + exp.date);
@@ -373,7 +437,6 @@ async function main() {
 
   console.log("✅ Chi phí đã tạo");
 
-  // Tạo đơn đặt hàng mẫu
   const supplierList = await prisma.supplier.findMany();
   const materialList = await prisma.material.findMany();
 
@@ -388,7 +451,7 @@ async function main() {
       },
     });
 
-    const ironMaterials = materialList.filter(m => m.name.includes("Sắt"));
+    const ironMaterials = materialList.filter((m) => m.name.includes("Sắt"));
     let po1Total = 0;
     for (const mat of ironMaterials.slice(0, 3)) {
       const itemTotal = Number(mat.unitCost) * 100;
@@ -418,7 +481,7 @@ async function main() {
       },
     });
 
-    const brickMaterials = materialList.filter(m => m.name.includes("Gạch"));
+    const brickMaterials = materialList.filter((m) => m.name.includes("Gạch"));
     let po2Total = 0;
     for (const mat of brickMaterials.slice(0, 2)) {
       const itemTotal = Number(mat.unitCost) * 500;
@@ -441,7 +504,6 @@ async function main() {
 
   console.log("✅ Đơn đặt hàng đã tạo");
 
-  // Tạo công nợ mẫu
   if (supplierList.length > 0) {
     await prisma.debt.create({
       data: {
@@ -470,13 +532,17 @@ async function main() {
 
   console.log("✅ Công nợ đã tạo");
 
-  // Tạo checklist mẫu
-  const stageForChecklist = stages[2]; // Tầng 1
+  const stageForChecklist = stages[2];
   if (stageForChecklist) {
     const cl1 = await prisma.checklist.create({
       data: { stageId: stageForChecklist.id, name: "Kiểm tra kết cấu tầng 1", order: 0 },
     });
-    const cl1Items = ["Kiểm tra móng cột", "Đo kích thước dầm", "Kiểm tra mác bê tông", "Kiểm tra chiều cao tầng"];
+    const cl1Items = [
+      "Kiểm tra móng cột",
+      "Đo kích thước dầm",
+      "Kiểm tra mác bê tông",
+      "Kiểm tra chiều cao tầng",
+    ];
     for (let i = 0; i < cl1Items.length; i++) {
       await prisma.checklistItem.create({
         data: { checklistId: cl1.id, name: cl1Items[i], completed: i < 2, order: i },
@@ -496,7 +562,6 @@ async function main() {
 
   console.log("✅ Checklist đã tạo");
 
-  // Tạo cài đặt
   await prisma.setting.create({ data: { key: "project.defaultLat", value: "10.7769" } });
   await prisma.setting.create({ data: { key: "project.defaultLon", value: "106.7009" } });
 

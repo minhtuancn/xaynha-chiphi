@@ -1,9 +1,9 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authConfig = {
   providers: [
     Credentials({
       credentials: {
@@ -20,10 +20,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials.password as string;
 
         const user = await prisma.user.findUnique({
-          where: { email, deletedAt: null },
+          where: { email },
         });
 
-        if (!user || !user.isActive) {
+        if (!user || user.deletedAt || !user.isActive) {
           return null;
         }
 
@@ -74,4 +74,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   trustHost: true,
-});
+} satisfies NextAuthConfig;
+
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth(authConfig);

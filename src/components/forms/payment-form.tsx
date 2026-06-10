@@ -25,6 +25,7 @@ import { formatDateInput } from "@/lib/utils";
 
 interface PaymentFormProps {
   debts: { id: string; amount: number; paidAmount: number; type: string; supplierName?: string; workerName?: string }[];
+  accounts: { id: string; name: string; type: string; balance: number }[];
   onSubmit: (data: PaymentFormData) => void;
   isSubmitting?: boolean;
 }
@@ -35,11 +36,12 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "TRANSFER", label: "Chuyển khoản" },
 ];
 
-export function PaymentForm({ debts, onSubmit, isSubmitting = false }: PaymentFormProps) {
+export function PaymentForm({ debts, accounts, onSubmit, isSubmitting = false }: PaymentFormProps) {
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       debtId: "",
+      accountId: "",
       amount: 0,
       date: new Date(),
       method: "CASH",
@@ -51,6 +53,30 @@ export function PaymentForm({ debts, onSubmit, isSubmitting = false }: PaymentFo
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="accountId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tài khoản chi</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn tài khoản" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name} - {account.balance.toLocaleString("vi-VN")} ₫
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="debtId"

@@ -6,6 +6,25 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { purchaseOrderSchema, type PurchaseOrderFormData } from "@/schemas/purchase-order";
 
+async function getDefaultPurchaseOrderExpenseCategory() {
+  const preferredCategory = await prisma.expenseCategory.findFirst({
+    where: { name: "Vật liệu xây dựng", deletedAt: null },
+  });
+
+  if (preferredCategory) return preferredCategory;
+
+  const fallbackCategory = await prisma.expenseCategory.findFirst({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" },
+  });
+
+  if (!fallbackCategory) {
+    throw new Error("Không có danh mục chi phí phù hợp để tạo chi phí tự động");
+  }
+
+  return fallbackCategory;
+}
+
 export async function getPurchaseOrders() {
   await requirePermission("purchaseOrders", "view");
 
@@ -83,16 +102,37 @@ export async function updatePurchaseOrderStatus(
 
   const currentOrder = await prisma.purchaseOrder.findUnique({
     where: { id },
-    select: { status: true },
+    select: { status: true, deletedAt: true },
   });
 
   if (status === "RECEIVED" && currentOrder?.status !== "RECEIVED") {
     const orderWithItems = await prisma.purchaseOrder.findUnique({
       where: { id },
-      include: { items: true },
+      include: {
+        items: true,
+        expense: true,
+        supplier: { select: { name: true } },
+      },
     });
 
-    if (orderWithItems) {
+    if (orderWithItems && !orderWithItems.deletedAt && !orderWithItems.expense) {
+      const category = await getDefaultPurchaseOrderExpenseCategory();
+
+      await prisma.expense.create({
+        data: {
+          projectId: orderWithItems.projectId,
+          categoryId: category.id,
+          amount: orderWithItems.totalAmount,
+          date: orderWithItems.orderDate,
+          description: `Chi phí tự động từ đơn hàng ${id}`,
+          status: "APPROVED",
+          origin: "PURCHASE_ORDER",
+          purchaseOrderId: id,
+          supplierId: orderWithItems.supplierId,
+          payeeName: orderWithItems.supplier?.name ?? null,
+        },
+      });
+
       await prisma.materialPrice.createMany({
         data: orderWithItems.items.map((item) => ({
           materialId: item.materialId,
@@ -110,6 +150,7 @@ export async function updatePurchaseOrderStatus(
   });
 
   revalidatePath("/purchase-orders");
+  revalidatePath("/expenses");
   revalidatePath(`/purchase-orders/${id}`);
 }
 
@@ -157,10 +198,23 @@ export async function updatePurchaseOrder(
 export async function deletePurchaseOrder(id: string) {
   await requirePermission("purchaseOrders", "delete");
 
+  const currentOrder = await prisma.purchaseOrder.findUnique({
+    where: { id },
+    include: { expense: true },
+  });
+
   await prisma.purchaseOrder.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
 
+  if (currentOrder?.expense) {
+    await prisma.expense.update({
+      where: { id: currentOrder.expense.id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
   revalidatePath("/purchase-orders");
+  revalidatePath("/expenses");
 }

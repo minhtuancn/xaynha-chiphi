@@ -449,6 +449,10 @@ model Supplier {
   email       String?
   address     String?
   taxCode     String?
+  bankName    String?
+  bankAccountNumber String?
+  bankAccountHolder String?
+  bankBranch  String?
   debtBalance Decimal   @default(0)
   notes       String?
   createdAt   DateTime  @default(now())
@@ -487,6 +491,7 @@ model PurchaseOrder {
   items                 PurchaseOrderItem[]
   materialPrices        MaterialPrice[]
   inventoryTransactions InventoryTransaction[]
+  expense               Expense?
 
   @@index([supplierId])
   @@index([projectId])
@@ -525,6 +530,11 @@ model Worker {
   phone     String?
   idCard    String?
   skill     String?
+  taxCode   String?
+  bankName  String?
+  bankAccountNumber String?
+  bankAccountHolder String?
+  bankBranch String?
   dailyWage Decimal      @default(0)
   status    WorkerStatus @default(ACTIVE)
   notes     String?
@@ -618,12 +628,30 @@ enum ExpenseStatus {
   REJECTED
 }
 
+enum ExpenseOrigin {
+  MANUAL
+  PURCHASE_ORDER
+  PAYROLL
+  DEBT_PAYMENT
+  ADJUSTMENT
+}
+
 model Expense {
   id          String          @id @default(uuid())
   projectId   String
   project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   categoryId  String
   category    ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  origin      ExpenseOrigin   @default(MANUAL)
+  accountId   String?
+  account     Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  purchaseOrderId String?     @unique
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  supplierId  String?
+  supplier    Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  workerId    String?
+  worker      Worker?         @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  payeeName   String?
   amount      Decimal
   date        DateTime
   description String?
@@ -637,6 +665,11 @@ model Expense {
 
   @@index([projectId])
   @@index([categoryId])
+  @@index([accountId])
+  @@index([purchaseOrderId])
+  @@index([supplierId])
+  @@index([workerId])
+  @@index([origin])
   @@index([date])
   @@index([deletedAt])
 }
@@ -726,6 +759,8 @@ model Payment {
   id        String        @id @default(uuid())
   debtId    String
   debt      Debt          @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  accountId String?
+  account   Account?      @relation(fields: [accountId], references: [id], onDelete: SetNull)
   amount    Decimal
   date      DateTime
   method    PaymentMethod @default(CASH)
@@ -734,6 +769,7 @@ model Payment {
   updatedAt DateTime      @updatedAt
 
   @@index([debtId])
+  @@index([accountId])
   @@index([date])
 }
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PaymentForm } from "@/components/forms/payment-form";
 import {
+  getAccounts,
   getDebts,
   getPayments,
   addPayment,
@@ -39,13 +40,15 @@ const DEBT_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructiv
 };
 
 export default async function DebtsPage() {
-  const [debts, payments] = await Promise.all([
+  const [debts, payments, accounts] = await Promise.all([
     getDebts(),
     getPayments(),
+    getAccounts(),
   ]);
 
   const sDebts = serialize(debts);
   const sPayments = serialize(payments);
+  const sAccounts = serialize(accounts);
   const totalPayable = sDebts
     .filter((d) => d.type === "PAYABLE")
     .reduce((sum, d) => sum + (d.amount - d.paidAmount), 0);
@@ -121,6 +124,7 @@ export default async function DebtsPage() {
               supplierName: d.supplier?.name,
               workerName: d.worker?.name,
             }))}
+            accounts={sAccounts}
             onSubmit={addPayment}
           />
         </CardContent>

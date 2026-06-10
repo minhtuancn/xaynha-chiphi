@@ -293,6 +293,7 @@ export async function getPayments() {
 
   return prisma.payment.findMany({
     include: {
+      account: { select: { id: true, name: true, type: true } },
       debt: {
         select: {
           id: true,
@@ -312,6 +313,12 @@ export async function addPayment(data: PaymentFormData) {
 
   const validated = paymentSchema.parse(data);
 
+  const account = await prisma.account.findUnique({
+    where: { id: validated.accountId, deletedAt: null },
+  });
+
+  if (!account) throw new Error("Tài khoản không tồn tại");
+
   const debt = await prisma.debt.findUnique({
     where: { id: validated.debtId, deletedAt: null },
   });
@@ -320,6 +327,7 @@ export async function addPayment(data: PaymentFormData) {
 
   const amount = new Decimal(validated.amount);
   const newPaidAmount = debt.paidAmount.add(amount);
+  const newBalance = account.balance.sub(amount);
 
   let newStatus: "UNPAID" | "PARTIAL" | "PAID";
   if (newPaidAmount.gte(debt.amount)) {
@@ -334,6 +342,7 @@ export async function addPayment(data: PaymentFormData) {
     prisma.payment.create({
       data: {
         debtId: validated.debtId,
+        accountId: validated.accountId,
         amount,
         date: validated.date,
         method: validated.method,
@@ -346,6 +355,10 @@ export async function addPayment(data: PaymentFormData) {
         paidAmount: newPaidAmount,
         status: newStatus,
       },
+    }),
+    prisma.account.update({
+      where: { id: validated.accountId },
+      data: { balance: newBalance },
     }),
   ]);
 

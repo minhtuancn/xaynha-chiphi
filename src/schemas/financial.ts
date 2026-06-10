@@ -28,6 +28,7 @@ export const debtSchema = z.object({
 
 export const paymentSchema = z.object({
   debtId: z.string().min(1, "Chọn khoản nợ"),
+  accountId: z.string().min(1, "Chọn tài khoản"),
   amount: z.coerce.number().min(0.01, "Số tiền phải lớn hơn 0"),
   date: z.coerce.date(),
   method: z.enum(["CASH", "BANK", "TRANSFER"]),

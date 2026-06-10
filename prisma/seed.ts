@@ -245,7 +245,7 @@ async function main() {
     { name: "Sắt thép", description: "Các loại sắt thép xây dựng" },
     { name: "Gạch và ceramic", description: "Gạch xây, gạch ốp lát, ceramic" },
     { name: "Cửa và khung", description: "Cửa gỗ, cửa nhôm, khung cửa" },
-    { name: "Hệ thống điện", description: "Dây điện, ổ capse, CB, đèn" },
+    { name: "Hệ thống điện", description: "Dây điện, ổ cắm, CB, đèn" },
     { name: "Hệ thống nước", description: "Ống nước, van, vòi, thiết bị vệ sinh" },
     { name: "Sơn và hoàn thiện", description: "Sơn nước, sơn dầu, vật liệu hoàn thiện" },
     { name: "Mái che", description: "Tôn mái, ngói, xà gồ" },
@@ -262,7 +262,7 @@ async function main() {
   // Tạo vật liệu mẫu đầy đủ
   const materials = [
     { categoryId: createdCategories[0].id, name: "Xi măng PCB40", unit: "bao 50kg", currentStock: 200, minStock: 50, unitCost: 85000 },
-    { categoryId: createdCategories[0].id, name: "Xi măng PCBS30", unit: "bao 50kg", currentStock: 100, minStock: 30, unitCost: 72000 },
+    { categoryId: createdCategories[0].id, name: "Xi măng PCB30", unit: "bao 50kg", currentStock: 100, minStock: 30, unitCost: 72000 },
     { categoryId: createdCategories[0].id, name: "Cát xây dựng", unit: "m3", currentStock: 30, minStock: 10, unitCost: 280000 },
     { categoryId: createdCategories[0].id, name: "Cát san lấp", unit: "m3", currentStock: 50, minStock: 20, unitCost: 180000 },
     { categoryId: createdCategories[0].id, name: "Đá 1x2", unit: "m3", currentStock: 20, minStock: 8, unitCost: 380000 },
@@ -286,8 +286,8 @@ async function main() {
     { categoryId: createdCategories[4].id, name: "Dây điện 2.5mm²", unit: "cuộn 100m", currentStock: 15, minStock: 5, unitCost: 850000 },
     { categoryId: createdCategories[4].id, name: "Dây điện 4mm²", unit: "cuộn 100m", currentStock: 10, minStock: 3, unitCost: 1200000 },
     { categoryId: createdCategories[4].id, name: "Dây điện 6mm²", unit: "cuộn 100m", currentStock: 5, minStock: 2, unitCost: 1650000 },
-    { categoryId: createdCategories[4].id, name: "Ổ capse đơn", unit: "cái", currentStock: 50, minStock: 20, unitCost: 35000 },
-    { categoryId: createdCategories[4].id, name: "Ổ capse đôi", unit: "cái", currentStock: 30, minStock: 10, unitCost: 55000 },
+    { categoryId: createdCategories[4].id, name: "Ổ cắm đơn", unit: "cái", currentStock: 50, minStock: 20, unitCost: 35000 },
+    { categoryId: createdCategories[4].id, name: "Ổ cắm đôi", unit: "cái", currentStock: 30, minStock: 10, unitCost: 55000 },
     { categoryId: createdCategories[4].id, name: "CB 2 pha 32A", unit: "cái", currentStock: 10, minStock: 5, unitCost: 180000 },
     { categoryId: createdCategories[4].id, name: "CB 1 pha 20A", unit: "cái", currentStock: 20, minStock: 8, unitCost: 85000 },
     { categoryId: createdCategories[4].id, name: "Đèn LED downlight", unit: "cái", currentStock: 20, minStock: 10, unitCost: 120000 },
@@ -308,7 +308,7 @@ async function main() {
     { categoryId: createdCategories[6].id, name: "Phụ gia chống thấm", unit: "thùng 5kg", currentStock: 5, minStock: 2, unitCost: 350000 },
     { categoryId: createdCategories[7].id, name: "Tôn Bluescope 4 lớp", unit: "tấm 3.6m", currentStock: 30, minStock: 10, unitCost: 450000 },
     { categoryId: createdCategories[7].id, name: "Xà gồ C75", unit: "cây 6m", currentStock: 40, minStock: 15, unitCost: 180000 },
-    { categoryId: createdCategories[7].id, name: "Ngói ?", unit: "viên", currentStock: 0, minStock: 0, unitCost: 15000 },
+    { categoryId: createdCategories[7].id, name: "Ngói lợp", unit: "viên", currentStock: 0, minStock: 0, unitCost: 15000 },
   ];
 
   for (const mat of materials) {
@@ -375,7 +375,7 @@ async function main() {
   console.log("✅ Danh mục chi phí đã tạo");
 
   const today = new Date();
-  const weatherConditions = ["nắng", "nắng nhiều", "có mây", "mưa nhỏ", "nắng", "nhiều mây", "nắng"];
+  const weatherConditions = ["sunny", "cloudy", "rainy", "cloudy", "sunny", "windy", "stormy"];
   for (let i = 6; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
@@ -395,7 +395,7 @@ async function main() {
             ? "Đang thi công tầng 1, tiến độ đúng kế hoạch."
             : "Thi công tầng 2, hoàn thành phần khung."
         }`,
-        issues: i === 3 ? "Mưa lớn不得不 tạm nghỉ trưa" : null,
+        issues: i === 3 ? "Mưa lớn nên tạm nghỉ trưa" : null,
         workerCount: 6 + (i % 3),
       },
     });
@@ -552,7 +552,7 @@ async function main() {
     const cl2 = await prisma.checklist.create({
       data: { stageId: stageForChecklist.id, name: "Kiểm tra hệ thống điện tầng 1", order: 1 },
     });
-    const cl2Items = ["Đo dây điện", "Kiểm tra ổ capse", "Kiểm tra CB", "Test hệ thống đèn"];
+    const cl2Items = ["Đo dây điện", "Kiểm tra ổ cắm", "Kiểm tra CB", "Test hệ thống đèn"];
     for (let i = 0; i < cl2Items.length; i++) {
       await prisma.checklistItem.create({
         data: { checklistId: cl2.id, name: cl2Items[i], completed: i === 0, order: i },

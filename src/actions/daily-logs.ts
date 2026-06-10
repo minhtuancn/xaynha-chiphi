@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
+import { serialize } from "@/lib/serialize";
 import { dailyLogSchema, type DailyLogFormData } from "@/schemas/daily-log";
 import { getWeatherForDate } from "@/lib/weather";
 import { saveUploadedPhoto } from "@/lib/upload";
@@ -13,8 +14,7 @@ export async function getDailyLogs() {
   await requirePermission("dailyLogs", "view");
 
   const projectScope = await getProjectScope();
-
-  return prisma.dailyLog.findMany({
+  const logs = await prisma.dailyLog.findMany({
     where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     orderBy: { date: "desc" },
     include: {
@@ -23,12 +23,14 @@ export async function getDailyLogs() {
       },
     },
   });
+
+  return serialize(logs);
 }
 
 export async function getDailyLog(id: string) {
   await requirePermission("dailyLogs", "view");
 
-  return prisma.dailyLog.findUnique({
+  const log = await prisma.dailyLog.findUnique({
     where: { id, deletedAt: null },
     include: {
       dailyLogPhotos: {
@@ -39,6 +41,8 @@ export async function getDailyLog(id: string) {
       },
     },
   });
+
+  return serialize(log);
 }
 
 export async function createDailyLog(

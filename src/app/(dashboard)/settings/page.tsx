@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const [dateFmt, setDateFmt] = useState(settings.dateFormat);
   const [tz, setTz] = useState(settings.timezone);
   const [currency, setCurrency] = useState(settings.currency);
-  const [curDec, setCurDec] = useState(settings.currencyDec);
+  const [curDec, setCurDec] = useState(settings.currencyDec ?? 0);
 
   async function handleSavePersonalization() {
     setSaving(true);
@@ -247,7 +247,6 @@ export default function SettingsPage() {
             <Input
               id="currencyDec"
               type="number"
-              defaultValue={0}
               value={curDec}
               onChange={(e) => setCurDec(Number(e.target.value))}
             />

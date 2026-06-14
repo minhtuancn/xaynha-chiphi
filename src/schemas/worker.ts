@@ -5,6 +5,11 @@ export const workerSchema = z.object({
   phone: z.string().optional(),
   idCard: z.string().optional(),
   skill: z.string().optional(),
+  taxCode: z.string().optional(),
+  bankName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+  bankBranch: z.string().optional(),
   dailyWage: z.coerce.number().min(0).default(0),
   notes: z.string().optional(),
 });

@@ -15,6 +15,16 @@ import {
 } from "@/schemas/financial";
 import { Decimal } from "@prisma/client/runtime/library";
 import { getProjectScope } from "./project-scope";
+import { createNotificationForCurrentUser } from "./notifications";
+import { logAudit } from "@/lib/audit";
+
+async function notifyCurrentUser(type: string, message: string) {
+  try {
+    await createNotificationForCurrentUser({ type, message });
+  } catch {
+    // Notifications should not block the primary financial mutation.
+  }
+}
 
 // ============================================
 // EXPENSES
@@ -45,7 +55,7 @@ export async function getExpenseCategories() {
 }
 
 export async function createExpense(data: ExpenseFormData) {
-  await requirePermission("expenses", "create");
+  const user = await requirePermission("expenses", "create");
 
   const validated = expenseSchema.parse(data);
 
@@ -58,7 +68,7 @@ export async function createExpense(data: ExpenseFormData) {
 
   if (!category) throw new Error("Danh mục chi phí không tồn tại");
 
-  await prisma.expense.create({
+  const expense = await prisma.expense.create({
     data: {
       projectId: projectScope,
       categoryId: validated.categoryId,
@@ -69,11 +79,20 @@ export async function createExpense(data: ExpenseFormData) {
     },
   });
 
+  await logAudit(user.id, "CREATE", "Expense", expense.id, {
+    newValues: {
+      projectId: projectScope,
+      categoryId: validated.categoryId,
+      amount: validated.amount,
+      status: validated.status,
+    },
+  });
+  await notifyCurrentUser("SUCCESS", "Da tao chi phi moi");
   revalidatePath("/expenses");
 }
 
 export async function updateExpenseStatus(id: string, status: "APPROVED" | "REJECTED") {
-  await requirePermission("expenses", "edit");
+  const user = await requirePermission("expenses", "edit");
 
   const expense = await prisma.expense.findUnique({ where: { id } });
   if (!expense) throw new Error("Chi phí không tồn tại");
@@ -83,17 +102,24 @@ export async function updateExpenseStatus(id: string, status: "APPROVED" | "REJE
     data: { status },
   });
 
+  await logAudit(user.id, "UPDATE", "Expense", id, {
+    oldValues: { status: expense.status },
+    newValues: { status },
+  });
+  await notifyCurrentUser("INFO", `Da cap nhat trang thai chi phi sang ${status}`);
   revalidatePath("/expenses");
 }
 
 export async function deleteExpense(id: string) {
-  await requirePermission("expenses", "delete");
+  const user = await requirePermission("expenses", "delete");
 
   await prisma.expense.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
 
+  await logAudit(user.id, "DELETE", "Expense", id, {});
+  await notifyCurrentUser("WARNING", "Da xoa chi phi");
   revalidatePath("/expenses");
 }
 
@@ -106,7 +132,13 @@ export async function getAccountDetail(id: string) {
   return prisma.account.findUnique({
     where: { id },
     include: {
-      transactions: { orderBy: { date: "desc" }, take: 20 },
+      transactions: {
+        orderBy: { date: "desc" },
+        take: 50,
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
     },
   });
 }
@@ -175,7 +207,7 @@ export async function getTransactions() {
 }
 
 export async function createTransaction(data: TransactionFormData) {
-  await requirePermission("accounts", "create");
+  const user = await requirePermission("accounts", "create");
 
   const validated = transactionSchema.parse(data);
 
@@ -194,7 +226,7 @@ export async function createTransaction(data: TransactionFormData) {
     newBalance = account.balance.sub(amount);
   }
 
-  await prisma.$transaction([
+  const [transaction] = await prisma.$transaction([
     prisma.transaction.create({
       data: {
         accountId: validated.accountId,
@@ -211,6 +243,17 @@ export async function createTransaction(data: TransactionFormData) {
     }),
   ]);
 
+  await logAudit(user.id, "CREATE", "Transaction", transaction.id, {
+    newValues: {
+      accountId: validated.accountId,
+      type: validated.type,
+      amount,
+    },
+  });
+  await notifyCurrentUser(
+    validated.type === "INCOME" ? "SUCCESS" : "INFO",
+    `Da tao giao dich ${validated.type === "INCOME" ? "thu" : "chi"} tien`
+  );
   revalidatePath("/accounts");
 }
 
@@ -233,7 +276,7 @@ export async function getDebts() {
 }
 
 export async function createDebt(data: DebtFormData) {
-  await requirePermission("debts", "create");
+  const user = await requirePermission("debts", "create");
 
   const validated = debtSchema.parse(data);
 
@@ -257,7 +300,7 @@ export async function createDebt(data: DebtFormData) {
 
   const amount = new Decimal(validated.amount);
 
-  await prisma.debt.create({
+  const debt = await prisma.debt.create({
     data: {
       supplierId: validated.supplierId || null,
       workerId: validated.workerId || null,
@@ -270,17 +313,28 @@ export async function createDebt(data: DebtFormData) {
     },
   });
 
+  await logAudit(user.id, "CREATE", "Debt", debt.id, {
+    newValues: {
+      supplierId: validated.supplierId || null,
+      workerId: validated.workerId || null,
+      type: validated.type,
+      amount: validated.amount,
+    },
+  });
+  await notifyCurrentUser("INFO", "Da tao khoan cong no moi");
   revalidatePath("/debts");
 }
 
 export async function deleteDebt(id: string) {
-  await requirePermission("debts", "delete");
+  const user = await requirePermission("debts", "delete");
 
   await prisma.debt.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
 
+  await logAudit(user.id, "DELETE", "Debt", id, {});
+  await notifyCurrentUser("WARNING", "Da xoa khoan cong no");
   revalidatePath("/debts");
 }
 
@@ -309,7 +363,7 @@ export async function getPayments() {
 }
 
 export async function addPayment(data: PaymentFormData) {
-  await requirePermission("debts", "create");
+  const user = await requirePermission("debts", "create");
 
   const validated = paymentSchema.parse(data);
 
@@ -338,7 +392,7 @@ export async function addPayment(data: PaymentFormData) {
     newStatus = "UNPAID";
   }
 
-  await prisma.$transaction([
+  const [payment] = await prisma.$transaction([
     prisma.payment.create({
       data: {
         debtId: validated.debtId,
@@ -362,5 +416,14 @@ export async function addPayment(data: PaymentFormData) {
     }),
   ]);
 
+  await logAudit(user.id, "UPDATE", "Payment", payment.id, {
+    newValues: {
+      debtId: validated.debtId,
+      accountId: validated.accountId,
+      amount,
+      status: newStatus,
+    },
+  });
+  await notifyCurrentUser("SUCCESS", "Da ghi nhan thanh toan cong no");
   revalidatePath("/debts");
 }

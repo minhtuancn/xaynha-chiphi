@@ -1,21 +1,12 @@
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "9000",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "minio",
-        port: "9000",
-        pathname: "/**",
-      },
-    ],
+  allowedDevOrigins: ['10.20.10.135', 'xaynha.go7s.net'],
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['10.20.10.135', 'xaynha.go7s.net'],
+    },
   },
 };
 

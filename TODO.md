@@ -19,8 +19,23 @@
 - [x] Cấu hình Vitest
 - [x] Viết unit test cho utils
 - [x] Cấu hình GitHub Actions (ci.yml)
+- [x] Cấu hình Playwright E2E tests
 
 ## 📦 Giai đoạn 5: Deployment & Maintenance
 - [x] Cấu hình Vercel (CI/CD workflows)
 - [x] Tạo tài liệu (README.md)
-- [ ] Fix lỗi HTTP 500 khi đăng nhập trong môi trường LXC (đang debug)
+- [x] Fix lỗi HTTP 500 khi đăng nhập trong môi trường LXC
+
+## 🌦️ Tính năng Nâng cao: Hệ thống Thời tiết AI
+- [x] Thêm schema WeatherHistory và WeatherAlert
+- [x] Tạo WeatherService với pattern Primary/Fallback API
+- [x] Triển khai logic AI an toàn (ngưỡng nhiệt độ, mưa, gió)
+- [x] Tạo endpoint polling mỗi 15 phút
+- [x] Thêm widget WeatherShiftCard cho Dashboard
+- [x] Cấu hình Hermes Cronjob (mỗi 15 phút)
+
+## 📊 Tính năng Nâng cao: Báo cáo Tài chính & AI Insights
+- [x] Thêm hàm xuất PDF sử dụng @react-pdf/renderer
+- [x] Tích hợp AI Insights để phân tích tài chính
+- [x] Thêm biểu đồ tròn Donut Chart để so sánh chi phí
+- [x] Cập nhật trang báo cáo để hiển thị AI Insights và biểu đồ

@@ -15,6 +15,15 @@ export async function getNotifications() {
   });
 }
 
+export async function getNotificationDetail(id: string) {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  return prisma.notification.findFirst({
+    where: { id, userId: user.id },
+  });
+}
+
 export async function getUnreadCount() {
   const user = await getCurrentUser();
   if (!user) return 0;
@@ -31,6 +40,18 @@ export async function markAsRead(id: string) {
   await prisma.notification.updateMany({
     where: { id, userId: user.id },
     data: { read: true },
+  });
+
+  revalidatePath("/notifications");
+}
+
+export async function markAsUnread(id: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  await prisma.notification.updateMany({
+    where: { id, userId: user.id },
+    data: { read: false },
   });
 
   revalidatePath("/notifications");
@@ -69,6 +90,22 @@ export async function createNotification(data: {
   await prisma.notification.create({
     data: {
       userId: data.userId,
+      type: data.type,
+      message: data.message,
+    },
+  });
+}
+
+export async function createNotificationForCurrentUser(data: {
+  type: string;
+  message: string;
+}) {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  return prisma.notification.create({
+    data: {
+      userId: user.id,
       type: data.type,
       message: data.message,
     },

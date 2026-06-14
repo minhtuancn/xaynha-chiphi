@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   markAllAsRead,
   deleteNotification,
 } from "@/actions/notifications";
+import { toast } from "@/hooks/use-toast";
 
 interface NotificationItem {
   id: string;
@@ -47,6 +49,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function NotificationsDropdown() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -64,18 +67,41 @@ export function NotificationsDropdown() {
   }, []);
 
   const handleMarkAllRead = async () => {
-    await markAllAsRead();
-    await loadData();
+    try {
+      await markAllAsRead();
+      toast({ title: "Đã đánh dấu tất cả là đã đọc" });
+      await loadData();
+    } catch {
+      toast({ title: "Không thể cập nhật thông báo", variant: "destructive" });
+    }
   };
 
   const handleMarkRead = async (id: string) => {
-    await markAsRead(id);
-    await loadData();
+    try {
+      await markAsRead(id);
+      await loadData();
+    } catch {
+      toast({ title: "Không thể cập nhật thông báo", variant: "destructive" });
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await deleteNotification(id);
-    await loadData();
+    try {
+      await deleteNotification(id);
+      toast({ title: "Đã xóa thông báo" });
+      await loadData();
+    } catch {
+      toast({ title: "Không thể xóa thông báo", variant: "destructive" });
+    }
+  };
+
+  const handleOpenDetail = async (id: string) => {
+    const notification = notifications.find((item) => item.id === id);
+    if (notification && !notification.read) {
+      await handleMarkRead(id);
+    }
+    setOpen(false);
+    router.push(`/notifications?selected=${id}`);
   };
 
   return (
@@ -119,7 +145,11 @@ export function NotificationsDropdown() {
                   !n.read && "bg-muted/30"
                 )}
               >
-                <div className="flex-1 min-w-0">
+                <button
+                  type="button"
+                  className="flex-1 min-w-0 text-left"
+                  onClick={() => void handleOpenDetail(n.id)}
+                >
                   <p className="text-sm">{n.message}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-muted-foreground">
@@ -130,14 +160,14 @@ export function NotificationsDropdown() {
                       {timeAgo(n.createdAt)}
                     </span>
                   </div>
-                </div>
+                </button>
                 <div className="flex items-center gap-1 shrink-0">
                   {!n.read && (
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
-                      onClick={() => handleMarkRead(n.id)}
+                      onClick={() => void handleMarkRead(n.id)}
                       title="Đánh dấu đã đọc"
                     >
                       <Check className="h-3 w-3" />
@@ -147,7 +177,7 @@ export function NotificationsDropdown() {
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
-                    onClick={() => handleDelete(n.id)}
+                    onClick={() => void handleDelete(n.id)}
                     title="Xóa"
                   >
                     <Trash2 className="h-3 w-3" />

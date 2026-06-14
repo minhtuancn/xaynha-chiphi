@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import {
-  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-} from "recharts";
-import { Download, TrendingUp, Wallet, Package, Users, HardHat } from "lucide-react";
+import { FinancialDonutChart } from "@/components/reports/financial-donut-chart";
 import { PageSkeleton } from "@/components/ui/loading-skeleton";
-import { exportToCSV } from "@/lib/csv";
-import { formatCurrency, formatNumber, formatPercent, STAGE_STATUS_LABELS, WORKER_STATUS_LABELS } from "@/lib/utils";
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+  STAGE_STATUS_LABELS,
+  WORKER_STATUS_LABELS,
+} from "@/lib/utils";
+import { HardHat, Package, TrendingUp, Users, Wallet } from "lucide-react";
 
 type ProgressReport = Awaited<ReturnType<typeof import("@/actions/reports").getProgressReport>>;
 type FinancialReport = Awaited<ReturnType<typeof import("@/actions/reports").getFinancialReport>>;
@@ -29,18 +31,23 @@ export default function ReportsPage() {
   const [materials, setMaterials] = useState<MaterialReport | null>(null);
   const [suppliers, setSuppliers] = useState<SupplierReport | null>(null);
   const [workers, setWorkers] = useState<WorkerReport | null>(null);
+  const [insights, setInsights] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     async function fetchData() {
       try {
-        const { getProgressReport } = await import("@/actions/reports");
-        const { getFinancialReport } = await import("@/actions/reports");
-        const { getMaterialUsageReport } = await import("@/actions/reports");
-        const { getSupplierReport } = await import("@/actions/reports");
-        const { getWorkerReport } = await import("@/actions/reports");
+        const {
+          getProgressReport,
+          getFinancialReport,
+          getMaterialUsageReport,
+          getSupplierReport,
+          getWorkerReport,
+        } = await import("@/actions/reports");
 
-        const [p, f, m, s, w] = await Promise.all([
+        const [progressData, financialData, materialsData, suppliersData, workersData] = await Promise.all([
           getProgressReport(),
           getFinancialReport(),
           getMaterialUsageReport(),
@@ -48,18 +55,41 @@ export default function ReportsPage() {
           getWorkerReport(),
         ]);
 
-        setProgress(p);
-        setFinancial(f);
-        setMaterials(m);
-        setSuppliers(s);
-        setWorkers(w);
-      } catch (e) {
-        console.error(e);
+        if (!active) return;
+
+        setProgress(progressData);
+        setFinancial(financialData);
+        setMaterials(materialsData);
+        setSuppliers(suppliersData);
+        setWorkers(workersData);
+
+        const spent = financialData.budgetVsActual.spent;
+        const budget = financialData.budgetVsActual.budget;
+        const usageRate = budget > 0 ? (spent / budget) * 100 : 0;
+        const topCategory = financialData.categories[0];
+        const note = [
+          budget > 0
+            ? `Đã sử dụng ${formatPercent(usageRate)} ngân sách.`
+            : "Chưa có ngân sách để đối chiếu.",
+          topCategory ? `Danh mục chi nhiều nhất: ${topCategory.name}.` : "Chưa có dữ liệu danh mục chi phí.",
+          financialData.monthlySpending.length > 0
+            ? `Có ${financialData.monthlySpending.length} mốc chi tiêu theo tháng.`
+            : "Chưa có dữ liệu chi tiêu theo tháng.",
+        ].join("\n");
+
+        setInsights(note);
+      } catch (error) {
+        console.error(error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
+
     fetchData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (loading) {
@@ -76,25 +106,25 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="progress" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex flex-wrap justify-start gap-2">
           <TabsTrigger value="progress">
-            <TrendingUp className="w-4 h-4 mr-2" />
+            <TrendingUp className="mr-2 h-4 w-4" />
             Tiến độ
           </TabsTrigger>
           <TabsTrigger value="financial">
-            <Wallet className="w-4 h-4 mr-2" />
+            <Wallet className="mr-2 h-4 w-4" />
             Tài chính
           </TabsTrigger>
           <TabsTrigger value="materials">
-            <Package className="w-4 h-4 mr-2" />
+            <Package className="mr-2 h-4 w-4" />
             Vật tư
           </TabsTrigger>
           <TabsTrigger value="suppliers">
-            <Users className="w-4 h-4 mr-2" />
+            <Users className="mr-2 h-4 w-4" />
             Nhà cung cấp
           </TabsTrigger>
           <TabsTrigger value="workers">
-            <HardHat className="w-4 h-4 mr-2" />
+            <HardHat className="mr-2 h-4 w-4" />
             Nhân công
           </TabsTrigger>
         </TabsList>
@@ -104,7 +134,7 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="financial" className="space-y-4">
-          <FinancialReportTab data={financial} />
+          <FinancialReportTab data={financial} insights={insights} />
         </TabsContent>
 
         <TabsContent value="materials" className="space-y-4">
@@ -124,371 +154,204 @@ export default function ReportsPage() {
 }
 
 function ProgressReportTab({ data }: { data: ProgressReport | null }) {
-  if (!data || data.stages.length === 0) {
-    return <p className="text-muted-foreground">Không có dữ liệu tiến độ.</p>;
+  if (!data) {
+    return <EmptyState title="Không có dữ liệu tiến độ." />;
   }
 
-  const chartData = data.stages.map((s) => ({
-    name: s.name,
-    progress: s.progress,
-    tasks: `${s.completedTasks}/${s.totalTasks}`,
-  }));
-
-  const handleExport = () => {
-    const headers = ["Giai đoạn", "Tiến độ (%)", "Trạng thái", "Task hoàn thành", "Tổng task", "Ngân sách ước tính", "Chi phí thực tế"];
-    const rows = data.stages.map((s) => [
-      s.name,
-      s.progress,
-      STAGE_STATUS_LABELS[s.status] || s.status,
-      s.completedTasks,
-      s.totalTasks,
-      s.estimatedBudget,
-      s.actualCost,
-    ]);
-    exportToCSV(headers, rows, "bao-cao-tien-do");
-  };
+  if (data.stages.length === 0) {
+    return <EmptyState title="Chưa có giai đoạn nào để báo cáo." />;
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV
-        </Button>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tổng giai đoạn</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.stages.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Task hoàn thành</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.completedTasks}/{data.totalTasks}</div>
-            <p className="text-xs text-muted-foreground mt-1">{formatPercent(data.taskCompletionRate)}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tiến độ trung bình</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatPercent(data.stages.reduce((sum, s) => sum + s.progress, 0) / data.stages.length)}
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard label="Tổng giai đoạn" value={formatNumber(data.stages.length, 0)} helper="Các giai đoạn đang theo dõi" />
+        <StatCard label="Tổng công việc" value={formatNumber(data.totalTasks, 0)} helper="Công việc trong toàn bộ dự án" />
+        <StatCard label="Tỷ lệ hoàn thành" value={formatPercent(data.taskCompletionRate)} helper="So với tổng công việc" />
       </div>
 
-      <Card className="shadow-sm hover:shadow-md transition-all">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Tiến độ theo giai đoạn</CardTitle>
+          <CardTitle>Chi tiết giai đoạn</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
-              <Tooltip formatter={(value: number, name: string) => {
-                if (name === "progress") return `${value}%`;
-                return value;
-              }} />
-              <Bar dataKey="progress" fill="#475569" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm hover:shadow-md transition-all">
-        <CardHeader>
-          <CardTitle className="text-lg">Chi tiết giai đoạn</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {data.stages.map((stage) => (
-              <div key={stage.id} className="p-3 rounded-lg border space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{stage.name}</span>
-                  <Badge variant={stage.status === "COMPLETED" ? "default" : "secondary"}>
-                    {STAGE_STATUS_LABELS[stage.status] || stage.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{stage.progress}%</span>
-                  <span>Tasks: {stage.completedTasks}/{stage.totalTasks}</span>
-                  <span>Dự toán: {formatCurrency(stage.estimatedBudget)}</span>
-                  <span>Thực tế: {formatCurrency(stage.actualCost)}</span>
-                </div>
-                <Progress value={stage.progress} className="h-2" />
-              </div>
-            ))}
-          </div>
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tên</TableHead>
+                <TableHead>Tiến độ</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Công việc</TableHead>
+                <TableHead>Ngân sách</TableHead>
+                <TableHead>Thực tế</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.stages.map((stage) => (
+                <TableRow key={stage.id}>
+                  <TableCell className="font-medium">{stage.name}</TableCell>
+                  <TableCell className="min-w-40">
+                    <div className="space-y-2">
+                      <Progress value={stage.progress} />
+                      <p className="text-xs text-muted-foreground">{formatPercent(stage.progress)}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={stage.status === "COMPLETED" ? "default" : stage.status === "ON_HOLD" ? "destructive" : "secondary"}>
+                      {STAGE_STATUS_LABELS[stage.status] ?? stage.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {stage.completedTasks}/{stage.totalTasks}
+                  </TableCell>
+                  <TableCell>{formatCurrency(stage.estimatedBudget)}</TableCell>
+                  <TableCell>{formatCurrency(stage.actualCost)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function FinancialReportTab({ data }: { data: FinancialReport | null }) {
-  if (!data || data.categories.length === 0) {
-    return <p className="text-muted-foreground">Không có dữ liệu tài chính.</p>;
+function FinancialReportTab({ data, insights }: { data: FinancialReport | null; insights: string }) {
+  if (!data) {
+    return <EmptyState title="Không có dữ liệu tài chính." />;
   }
 
-  const pieData = data.categories.map((c, i) => ({
-    name: c.name,
-    value: c.total,
-    fill: COLORS[i % COLORS.length],
+  if (data.categories.length === 0 && data.monthlySpending.length === 0) {
+    return <EmptyState title="Chưa có dữ liệu tài chính để hiển thị." />;
+  }
+
+  const pieData = data.categories.map((category, index) => ({
+    name: category.name,
+    value: category.total,
+    fill: COLORS[index % COLORS.length],
   }));
-
-  const handleExportCategory = () => {
-    const headers = ["Danh mục", "Tổng chi phí", "Số lượng"];
-    const rows = data.categories.map((c) => [c.name, c.total, c.count]);
-    exportToCSV(headers, rows, "bao-cao-tai-chinh-danh-muc");
-  };
-
-  const handleExportMonthly = () => {
-    const headers = ["Tháng", "Tổng chi phí"];
-    const rows = data.monthlySpending.map((m) => [m.month, m.total]);
-    exportToCSV(headers, rows, "bao-cao-tai-chinh-thang");
-  };
+  const usageRate = data.budgetVsActual.budget > 0 ? (data.budgetVsActual.spent / data.budgetVsActual.budget) * 100 : 0;
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
-        <Button onClick={handleExportCategory} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV danh mục
-        </Button>
-        <Button onClick={handleExportMonthly} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV tháng
-        </Button>
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatCard label="Ngân sách" value={formatCurrency(data.budgetVsActual.budget)} helper="Tổng ngân sách dự án" />
+        <StatCard label="Đã chi" value={formatCurrency(data.budgetVsActual.spent)} helper="Tổng chi phí đã ghi nhận" />
+        <StatCard label="Còn lại" value={formatCurrency(data.budgetVsActual.remaining)} helper="Ngân sách chưa dùng" />
+        <StatCard label="Tỷ lệ chi" value={formatPercent(usageRate)} helper="So với ngân sách" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Ngân sách</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(data.budgetVsActual.budget)}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Đã chi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(data.budgetVsActual.spent)}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Còn lại</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${data.budgetVsActual.remaining >= 0 ? "text-accent" : "text-destructive"}`}>
-              {formatCurrency(data.budgetVsActual.remaining)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Nhận xét nhanh</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="whitespace-pre-line text-sm text-muted-foreground">{insights}</p>
+        </CardContent>
+      </Card>
 
-      {data.budgetVsActual.budget > 0 && (
-        <Card className="shadow-sm hover:shadow-md transition-all">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Ngân sách vs Thực tế</CardTitle>
+            <CardTitle>Phân bổ chi phí</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Tiến độ chi tiêu</span>
-                <span className="font-medium">
-                  {formatPercent((data.budgetVsActual.spent / data.budgetVsActual.budget) * 100)}
-                </span>
-              </div>
-              <Progress
-                value={(data.budgetVsActual.spent / data.budgetVsActual.budget) * 100}
-                className="h-3"
-              />
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{formatCurrency(data.budgetVsActual.spent)}</span>
-                <span>{formatCurrency(data.budgetVsActual.budget)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader>
-            <CardTitle className="text-lg">Chi phí theo danh mục</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }: { name: string; percent: number }) => `${name} ${formatPercent(percent * 100)}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
+            <FinancialDonutChart data={pieData} />
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm hover:shadow-md transition-all">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Chi phí theo tháng</CardTitle>
+            <CardTitle>Chi tiêu theo tháng</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.monthlySpending}>
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}tr`} />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="total" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="space-y-3">
+            {data.monthlySpending.length > 0 ? (
+              data.monthlySpending.map((item) => (
+                <div key={item.month} className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{item.month}</p>
+                    <p className="text-xs text-muted-foreground">Chi tiêu tháng</p>
+                  </div>
+                  <p className="font-medium">{formatCurrency(item.total)}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">Chưa có dữ liệu theo tháng.</p>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Chi phí theo danh mục</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Danh mục</TableHead>
+                <TableHead>Số lần</TableHead>
+                <TableHead>Tổng tiền</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.categories.map((category) => (
+                <TableRow key={category.name}>
+                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell>{formatNumber(category.count, 0)}</TableCell>
+                  <TableCell>{formatCurrency(category.total)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
-  if (!data || data.materials.length === 0) {
-    return <p className="text-muted-foreground">Không có dữ liệu vật tư.</p>;
+  if (!data) {
+    return <EmptyState title="Không có dữ liệu vật tư." />;
   }
-
-  const stockChartData = data.materials.slice(0, 15).map((m) => ({
-    name: m.name,
-    current: m.currentStock,
-    min: m.minStock,
-  }));
-
-  const handleExport = () => {
-    const headers = ["Vật liệu", "Danh mục", "Tồn kho", "Tối thiểu", "Đơn vị", "Đơn giá", "Cảnh báo"];
-    const rows = data.materials.map((m) => [
-      m.name,
-      m.category,
-      formatNumber(m.currentStock, 0),
-      formatNumber(m.minStock, 0),
-      m.unit,
-      formatCurrency(m.unitCost),
-      m.isLowStock ? "Thấp" : "Đủ",
-    ]);
-    exportToCSV(headers, rows, "bao-cao-vat-tu");
-  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV
-        </Button>
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Tổng vật tư" value={formatNumber(data.materials.length, 0)} helper="Các vật tư đang quản lý" />
+        <StatCard label="Nhóm vật tư" value={formatNumber(data.categories.length, 0)} helper="Theo danh mục" />
+        <StatCard label="Cảnh báo tồn thấp" value={formatNumber(data.lowStock.length, 0)} helper="Dưới mức tối thiểu" />
       </div>
 
-      <Card className="shadow-sm hover:shadow-md transition-all">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Mức tồn kho</CardTitle>
+          <CardTitle>Vật tư tồn thấp</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stockChartData}>
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="current" name="Tồn kho" fill="#475569" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="min" name="Tối thiểu" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {data.lowStock.length > 0 && (
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader>
-            <CardTitle className="text-lg text-destructive">Cảnh báo tồn kho thấp ({data.lowStock.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vật liệu</TableHead>
-                  <TableHead>Danh mục</TableHead>
-                  <TableHead>Tồn kho</TableHead>
-                  <TableHead>Tối thiểu</TableHead>
-                  <TableHead>Đơn vị</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.lowStock.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell className="text-destructive font-medium">{formatNumber(item.currentStock, 0)}</TableCell>
-                    <TableCell>{formatNumber(item.minStock, 0)}</TableCell>
-                    <TableCell>{item.unit}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="shadow-sm hover:shadow-md transition-all">
-        <CardHeader>
-          <CardTitle className="text-lg">Tất cả vật liệu</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Vật liệu</TableHead>
+                <TableHead>Tên</TableHead>
                 <TableHead>Danh mục</TableHead>
-                <TableHead>Tồn kho</TableHead>
+                <TableHead>Tồn hiện tại</TableHead>
                 <TableHead>Tối thiểu</TableHead>
-                <TableHead>Đơn giá</TableHead>
+                <TableHead>Đơn vị</TableHead>
                 <TableHead>Trạng thái</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.materials.map((m) => (
-                <TableRow key={m.id}>
-                  <TableCell className="font-medium">{m.name}</TableCell>
-                  <TableCell>{m.category}</TableCell>
-                  <TableCell>{formatNumber(m.currentStock, 0)}</TableCell>
-                  <TableCell>{formatNumber(m.minStock, 0)}</TableCell>
-                  <TableCell>{formatCurrency(m.unitCost)}</TableCell>
+              {data.materials.map((material) => (
+                <TableRow key={material.id}>
+                  <TableCell className="font-medium">{material.name}</TableCell>
+                  <TableCell>{material.category}</TableCell>
+                  <TableCell>{formatNumber(material.currentStock, 0)}</TableCell>
+                  <TableCell>{formatNumber(material.minStock, 0)}</TableCell>
+                  <TableCell>{material.unit}</TableCell>
                   <TableCell>
-                    {m.isLowStock ? (
-                      <Badge variant="destructive">Thấp</Badge>
-                    ) : (
-                      <Badge variant="default">Đủ</Badge>
-                    )}
+                    <Badge variant={material.isLowStock ? "destructive" : "secondary"}>
+                      {material.isLowStock ? "Tồn thấp" : "Bình thường"}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))}
@@ -501,70 +364,46 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
 }
 
 function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
-  if (!data || data.length === 0) {
-    return <p className="text-muted-foreground">Không có dữ liệu nhà cung cấp.</p>;
+  if (!data) {
+    return <EmptyState title="Không có dữ liệu nhà cung cấp." />;
   }
-
-  const handleExport = () => {
-    const headers = ["Nhà cung cấp", "Liên hệ", "SĐT", "Email", "Số đơn hàng", "Tổng giá trị", "Nợ phải trả"];
-    const rows = data.map((s) => [
-      s.name,
-      s.contact || "-",
-      s.phone || "-",
-      s.email || "-",
-      s.totalOrders,
-      s.totalOrderValue,
-      s.outstandingDebt,
-    ]);
-    exportToCSV(headers, rows, "bao-cao-nha-cung-cap");
-  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV
-        </Button>
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Nhà cung cấp" value={formatNumber(data.length, 0)} helper="Danh sách đang theo dõi" />
+        <StatCard label="Đơn mua" value={formatNumber(data.reduce((sum, supplier) => sum + supplier.totalOrders, 0), 0)} helper="Tổng số đơn hàng" />
+        <StatCard label="Công nợ" value={formatCurrency(data.reduce((sum, supplier) => sum + supplier.outstandingDebt, 0))} helper="Tổng công nợ hiện tại" />
       </div>
 
-      <Card className="shadow-sm hover:shadow-md transition-all">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Nhà cung cấp</CardTitle>
+          <CardTitle>Danh sách nhà cung cấp</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nhà cung cấp</TableHead>
+                <TableHead>Tên</TableHead>
                 <TableHead>Liên hệ</TableHead>
-                <TableHead>Số đơn hàng</TableHead>
+                <TableHead>Đơn hàng</TableHead>
                 <TableHead>Tổng giá trị</TableHead>
-                <TableHead>Nợ phải trả</TableHead>
+                <TableHead>Dư nợ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((s) => (
-                <TableRow key={s.id}>
+              {data.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>
-                    <div>
-                      <p className="font-medium">{s.name}</p>
-                      {s.email && <p className="text-xs text-muted-foreground">{s.email}</p>}
+                    <div className="space-y-1">
+                      <p>{supplier.contact || "-"}</p>
+                      <p className="text-xs text-muted-foreground">{supplier.phone || supplier.email || "-"}</p>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    {s.contact && <p className="text-sm">{s.contact}</p>}
-                    {s.phone && <p className="text-sm text-muted-foreground">{s.phone}</p>}
-                  </TableCell>
-                  <TableCell>{s.totalOrders}</TableCell>
-                  <TableCell>{formatCurrency(s.totalOrderValue)}</TableCell>
-                  <TableCell>
-                    {s.outstandingDebt > 0 ? (
-                      <span className="text-destructive font-medium">{formatCurrency(s.outstandingDebt)}</span>
-                    ) : (
-                      <span className="text-accent">0 ₫</span>
-                    )}
-                  </TableCell>
+                  <TableCell>{formatNumber(supplier.totalOrders, 0)}</TableCell>
+                  <TableCell>{formatCurrency(supplier.totalOrderValue)}</TableCell>
+                  <TableCell>{formatCurrency(supplier.outstandingDebt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -576,125 +415,47 @@ function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
 }
 
 function WorkersReportTab({ data }: { data: WorkerReport | null }) {
-  if (!data || data.length === 0) {
-    return <p className="text-muted-foreground">Không có dữ liệu nhân công.</p>;
+  if (!data) {
+    return <EmptyState title="Không có dữ liệu nhân công." />;
   }
-
-  const totalWages = data.reduce((sum, w) => sum + w.totalWages, 0);
-  const avgAttendance = data.reduce((sum, w) => sum + w.attendanceRate, 0) / data.length;
-
-  const attendanceChartData = data.slice(0, 15).map((w) => ({
-    name: w.name,
-    rate: w.attendanceRate,
-  }));
-
-  const handleExport = () => {
-    const headers = ["Công nhân", "SĐT", "Kỹ năng", "Lương/ngày", "Số ngày công", "Tỷ lệ chuyên cần (%)", "Tổng lương"];
-    const rows = data.map((w) => [
-      w.name,
-      w.phone || "-",
-      w.skill || "-",
-      w.dailyWage,
-      w.presentCount,
-      Math.round(w.attendanceRate),
-      w.totalWages,
-    ]);
-    exportToCSV(headers, rows, "bao-cao-nhan-cong");
-  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Xuất CSV
-        </Button>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tổng công nhân</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tổng lương</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalWages)}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Chuyên cần TB</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatPercent(avgAttendance)}</div>
-          </CardContent>
-        </Card>
+        <StatCard label="Nhân công" value={formatNumber(data.length, 0)} helper="Danh sách đang theo dõi" />
+        <StatCard label="Công ngày" value={formatNumber(data.reduce((sum, worker) => sum + worker.totalAttendance, 0), 0)} helper="Số lần chấm công" />
+        <StatCard label="Tiền lương" value={formatCurrency(data.reduce((sum, worker) => sum + worker.totalWages, 0))} helper="Tổng lương ước tính" />
       </div>
 
-      <Card className="shadow-sm hover:shadow-md transition-all">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Tỷ lệ chuyên cần</CardTitle>
+          <CardTitle>Danh sách nhân công</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={attendanceChartData}>
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip formatter={(value: number) => `${formatPercent(value)}`} />
-              <Bar dataKey="rate" fill="#64748b" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm hover:shadow-md transition-all">
-        <CardHeader>
-          <CardTitle className="text-lg">Chi tiết nhân công</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Công nhân</TableHead>
+                <TableHead>Tên</TableHead>
                 <TableHead>Kỹ năng</TableHead>
-                <TableHead>Lương/ngày</TableHead>
-                <TableHead>Ngày công</TableHead>
-                <TableHead>Chuyên cần</TableHead>
-                <TableHead>Tổng lương</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                <TableHead>Tỷ lệ đi làm</TableHead>
+                <TableHead>Đơn giá</TableHead>
+                <TableHead>Tổng lương</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((w) => (
-                <TableRow key={w.id}>
+              {data.map((worker) => (
+                <TableRow key={worker.id}>
+                  <TableCell className="font-medium">{worker.name}</TableCell>
+                  <TableCell>{worker.skill || "-"}</TableCell>
                   <TableCell>
-                    <div>
-                      <p className="font-medium">{w.name}</p>
-                      {w.phone && <p className="text-xs text-muted-foreground">{w.phone}</p>}
-                    </div>
-                  </TableCell>
-                  <TableCell>{w.skill || "-"}</TableCell>
-                  <TableCell>{formatCurrency(w.dailyWage)}</TableCell>
-                  <TableCell>{w.presentCount}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Progress value={w.attendanceRate} className="h-2 w-16" />
-                      <span className="text-sm">{formatPercent(w.attendanceRate)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{formatCurrency(w.totalWages)}</TableCell>
-                  <TableCell>
-                    <Badge variant={w.status === "ACTIVE" ? "default" : "secondary"}>
-                      {WORKER_STATUS_LABELS[w.status] || w.status}
+                    <Badge variant={worker.status === "ACTIVE" ? "default" : "secondary"}>
+                      {WORKER_STATUS_LABELS[worker.status] ?? worker.status}
                     </Badge>
                   </TableCell>
+                  <TableCell>{formatPercent(worker.attendanceRate)}</TableCell>
+                  <TableCell>{formatCurrency(worker.dailyWage)}</TableCell>
+                  <TableCell>{formatCurrency(worker.totalWages)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -702,5 +463,27 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function StatCard({ label, value, helper }: { label: string; value: string; helper: string }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{helper}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyState({ title }: { title: string }) {
+  return (
+    <Card>
+      <CardContent className="py-10 text-center text-sm text-muted-foreground">{title}</CardContent>
+    </Card>
   );
 }

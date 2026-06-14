@@ -59,9 +59,9 @@ export async function getWeatherForDate(
   if (cached) {
     return {
       condition: cached.condition,
-      temperature: cached.temperature,
-      humidity: cached.humidity,
-      windSpeed: cached.windSpeed,
+      temperature: Number(cached.temperature),
+      humidity: Number(cached.humidity),
+      windSpeed: Number(cached.windSpeed),
     };
   }
 

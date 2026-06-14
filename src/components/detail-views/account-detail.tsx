@@ -17,7 +17,10 @@ interface AccountDetailProps {
       date: Date | string;
       type: string;
       amount: number;
+      category: string | null;
       description: string | null;
+      reference: string | null;
+      user?: { id: string; name: string } | null;
     }[];
   };
 }
@@ -124,7 +127,12 @@ export function AccountDetail({ account }: AccountDetailProps) {
                     </div>
                     <div>
                       <p className="text-sm font-medium">{tx.description || "Giao dịch"}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(tx.date)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(tx.date)}
+                        {tx.category ? ` · ${tx.category}` : ""}
+                        {tx.reference ? ` · ${tx.reference}` : ""}
+                        {tx.user?.name ? ` · ${tx.user.name}` : ""}
+                      </p>
                     </div>
                   </div>
                   <span className={cn("font-mono font-medium", tx.type === "INCOME" ? "text-green-600" : "text-destructive")}>

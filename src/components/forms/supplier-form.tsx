@@ -37,6 +37,10 @@ export function SupplierForm({
       email: defaultValues?.email ?? "",
       address: defaultValues?.address ?? "",
       taxCode: defaultValues?.taxCode ?? "",
+      bankName: defaultValues?.bankName ?? "",
+      bankAccountNumber: defaultValues?.bankAccountNumber ?? "",
+      bankAccountHolder: defaultValues?.bankAccountHolder ?? "",
+      bankBranch: defaultValues?.bankBranch ?? "",
       notes: defaultValues?.notes ?? "",
     },
   });
@@ -122,6 +126,58 @@ export function SupplierForm({
                 <FormLabel>Mã số thuế</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Nhập mã số thuế" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bankName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ngân hàng</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập ngân hàng" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bankAccountNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số tài khoản</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập số tài khoản" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bankAccountHolder"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Chủ tài khoản</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập tên chủ tài khoản" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bankBranch"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Chi nhánh ngân hàng</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập chi nhánh ngân hàng" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

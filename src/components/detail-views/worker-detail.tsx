@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useUserSettings } from "@/hooks/use-user-settings";
 import { cn } from "@/lib/utils";
-import { Briefcase, CalendarDays, MapPin, Phone, CreditCard, Activity } from "lucide-react";
+import { Briefcase, CalendarDays, Phone, CreditCard, Activity, Building2, Hash } from "lucide-react";
 
 type WorkerDetailProps = {
   worker: {
@@ -14,6 +14,11 @@ type WorkerDetailProps = {
     phone: string | null;
     idCard: string | null;
     skill: string | null;
+    taxCode: string | null;
+    bankName: string | null;
+    bankAccountNumber: string | null;
+    bankAccountHolder: string | null;
+    bankBranch: string | null;
     dailyWage: number;
     status: string;
     notes: string | null;
@@ -128,6 +133,13 @@ export function WorkerDetail({ worker }: WorkerDetailProps) {
                 <Badge variant="outline">{worker.skill}</Badge>
               </div>
             )}
+            {worker.taxCode && (
+              <div className="flex items-center gap-2">
+                <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Mã số thuế:</span>
+                <span className="font-medium">{worker.taxCode}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Activity className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground">Trạng thái:</span>
@@ -136,6 +148,40 @@ export function WorkerDetail({ worker }: WorkerDetailProps) {
               </Badge>
             </div>
           </div>
+          {(worker.bankName || worker.bankAccountNumber || worker.bankAccountHolder || worker.bankBranch) && (
+            <div className="mt-4 border-t pt-4">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                {worker.bankName && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Ngân hàng:</span>
+                    <span className="font-medium">{worker.bankName}</span>
+                  </div>
+                )}
+                {worker.bankAccountNumber && (
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Số tài khoản:</span>
+                    <span className="font-medium">{worker.bankAccountNumber}</span>
+                  </div>
+                )}
+                {worker.bankAccountHolder && (
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Chủ TK:</span>
+                    <span className="font-medium">{worker.bankAccountHolder}</span>
+                  </div>
+                )}
+                {worker.bankBranch && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">Chi nhánh:</span>
+                    <span className="font-medium">{worker.bankBranch}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {worker.notes && (
             <div className="mt-4 border-t pt-4">
               <p className="text-xs text-muted-foreground mb-1">Ghi chú</p>

@@ -104,13 +104,14 @@ export default async function AccountsPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium">Loại</th>
                   <th className="px-4 py-3 text-right text-sm font-medium">Số tiền</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Danh mục</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Tham chiếu</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Mô tả</th>
                 </tr>
               </thead>
               <tbody>
                 {serializedTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                       Chưa có giao dịch nào
                     </td>
                   </tr>
@@ -136,6 +137,9 @@ export default async function AccountsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {tx.category || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {tx.reference || "-"}
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
                         {tx.description || "-"}

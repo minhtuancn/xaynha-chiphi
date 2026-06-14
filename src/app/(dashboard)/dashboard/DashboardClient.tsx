@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Building2, Home, ListChecks, Wallet, TrendingUp } from 'lucide-react';
 import { ProgressChart } from '@/components/dashboard/progress-chart';
 import { WeatherWidget } from '@/components/dashboard/weather-widget';
+import { WeatherShiftCard } from '@/components/dashboard/weather-shift-card';
 import { RecentPhotos } from '@/components/dashboard/recent-photos';
 
 export default function DashboardClient({ project, stats, stages, weather, recentPhotos }: any) {
@@ -29,7 +30,13 @@ export default function DashboardClient({ project, stats, stages, weather, recen
         <StatCard title="Còn lại" value={formatCurrency(Number(stats?.remaining ?? 0))} subtitle="Ngân sách" icon={TrendingUp} />
       </div>
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-        <div className="md:col-span-1">{weather && <WeatherWidget weather={weather} />}</div>
+        <div className="space-y-4 md:col-span-1">
+          {weather && <WeatherWidget weather={weather} />}
+          <WeatherShiftCard 
+            morning={{ time: '06:30-10:30', temp: 28, humidity: 70, rainProb: 10, cloudCover: 20, windSpeed: 10 }}
+            afternoon={{ time: '14:00-18:00', temp: 32, humidity: 60, rainProb: 20, cloudCover: 30, windSpeed: 15 }}
+          />
+        </div>
         <div className="md:col-span-2">{stages && <ProgressChart stages={stages} />}</div>
       </div>
       {recentPhotos && recentPhotos.length > 0 && <RecentPhotos photos={recentPhotos} />}

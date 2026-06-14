@@ -21,6 +21,11 @@ export default async function EditWorkerPage({
     phone: worker.phone ?? "",
     idCard: worker.idCard ?? "",
     skill: worker.skill ?? "",
+    taxCode: worker.taxCode ?? "",
+    bankName: worker.bankName ?? "",
+    bankAccountNumber: worker.bankAccountNumber ?? "",
+    bankAccountHolder: worker.bankAccountHolder ?? "",
+    bankBranch: worker.bankBranch ?? "",
     dailyWage: worker.dailyWage,
     notes: worker.notes ?? "",
   });

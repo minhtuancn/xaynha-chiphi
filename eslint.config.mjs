@@ -1,4 +1,5 @@
-// eslint.config.mjs
+import tsParser from "@typescript-eslint/parser";
+
 export default [
   {
     ignores: [
@@ -27,8 +28,14 @@ export default [
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
+      parser: tsParser,
       ecmaVersion: 2020,
       sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
       globals: {
         // Browser globals
         window: "readonly",

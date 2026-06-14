@@ -2,9 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useUserSettings } from "@/hooks/use-user-settings";
-import { cn } from "@/lib/utils";
-import { Building2, Phone, Mail, MapPin, Receipt, CreditCard, FileText, Package } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, Receipt, CreditCard, FileText, Package, Hash } from "lucide-react";
 
 type SupplierDetailProps = {
   supplier: {
@@ -15,14 +13,16 @@ type SupplierDetailProps = {
     email: string | null;
     address: string | null;
     taxCode: string | null;
+    bankName: string | null;
+    bankAccountNumber: string | null;
+    bankAccountHolder: string | null;
+    bankBranch: string | null;
     notes: string | null;
     _count: { purchaseOrders: number };
   };
 };
 
 export function SupplierDetail({ supplier }: SupplierDetailProps) {
-  const { formatCurrency } = useUserSettings();
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Overview card */}
@@ -128,6 +128,34 @@ export function SupplierDetail({ supplier }: SupplierDetailProps) {
                 <Receipt className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground">Mã số thuế:</span>
                 <span className="font-medium">{supplier.taxCode}</span>
+              </div>
+            )}
+            {supplier.bankName && (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Ngân hàng:</span>
+                <span className="font-medium">{supplier.bankName}</span>
+              </div>
+            )}
+            {supplier.bankAccountNumber && (
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Số tài khoản:</span>
+                <span className="font-medium">{supplier.bankAccountNumber}</span>
+              </div>
+            )}
+            {supplier.bankAccountHolder && (
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Chủ TK:</span>
+                <span className="font-medium">{supplier.bankAccountHolder}</span>
+              </div>
+            )}
+            {supplier.bankBranch && (
+              <div className="flex items-center gap-2">
+                <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Chi nhánh:</span>
+                <span className="font-medium">{supplier.bankBranch}</span>
               </div>
             )}
           </div>

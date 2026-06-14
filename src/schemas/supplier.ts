@@ -7,6 +7,10 @@ export const supplierSchema = z.object({
   email: z.string().email("Email không hợp lệ").or(z.literal("")).optional(),
   address: z.string().optional(),
   taxCode: z.string().optional(),
+  bankName: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
+  bankAccountHolder: z.string().optional(),
+  bankBranch: z.string().optional(),
   notes: z.string().optional(),
 });
 

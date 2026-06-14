@@ -4,25 +4,30 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
+import { serialize } from "@/lib/serialize";
 import { projectSchema, type ProjectFormData } from "@/schemas/project";
 import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getProjects() {
   await requirePermission("projects", "view");
 
-  return prisma.project.findMany({
+  const projects = await prisma.project.findMany({
     where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
   });
+
+  return serialize(projects);
 }
 
 export async function getProject(id: string) {
   await requirePermission("projects", "view");
 
-  return prisma.project.findUnique({
+  const project = await prisma.project.findUnique({
     where: { id, deletedAt: null },
     include: { _count: { select: { stages: true } } },
   });
+
+  return serialize(project);
 }
 
 export async function createProject(data: ProjectFormData) {

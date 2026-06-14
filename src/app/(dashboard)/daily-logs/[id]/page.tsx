@@ -4,7 +4,7 @@ import { ArrowLeft, Sun, Cloud, CloudRain, CloudLightning, Wind, Image } from "l
 import { getDailyLog } from "@/actions/daily-logs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate, WEATHER_LABELS } from "@/lib/utils";
+import { formatDate, formatNumber, WEATHER_LABELS } from "@/lib/utils";
 
 const weatherIcons: Record<string, typeof Sun> = {
   sunny: Sun,
@@ -63,7 +63,7 @@ export default async function DailyLogDetailPage({
             {log.temperature != null && (
               <div>
                 <p className="text-sm text-muted-foreground">Nhiệt độ</p>
-                <p className="font-medium">{log.temperature}°C</p>
+                <p className="font-medium">{formatNumber(Number(log.temperature), 1)}°C</p>
               </div>
             )}
           </CardContent>

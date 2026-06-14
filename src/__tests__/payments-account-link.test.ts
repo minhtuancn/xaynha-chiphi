@@ -6,7 +6,11 @@ vi.mock("next/cache", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  requirePermission: vi.fn(),
+  requirePermission: vi.fn().mockResolvedValue({ id: "user-1" }),
+}));
+
+vi.mock("@/lib/audit", () => ({
+  logAudit: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -27,9 +31,11 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
 import { addPayment } from "@/actions/financial";
 
 const mockedPrisma = vi.mocked(prisma);
+const mockedLogAudit = vi.mocked(logAudit);
 
 describe("payment account linkage", () => {
   beforeEach(() => {
@@ -49,7 +55,11 @@ describe("payment account linkage", () => {
     mockedPrisma.payment.create.mockResolvedValue({ id: "payment-1" } as never);
     mockedPrisma.account.update.mockResolvedValue({ id: "account-1" } as never);
     mockedPrisma.debt.update.mockResolvedValue({ id: "debt-1" } as never);
-    mockedPrisma.$transaction.mockResolvedValue(undefined as never);
+    mockedPrisma.$transaction.mockResolvedValue([
+      { id: "payment-1" },
+      { id: "debt-1" },
+      { id: "account-1" },
+    ] as never);
 
     await addPayment({
       debtId: "debt-1",
@@ -80,5 +90,17 @@ describe("payment account linkage", () => {
         status: "PARTIAL",
       },
     });
+    expect(mockedLogAudit).toHaveBeenCalledWith(
+      "user-1",
+      "UPDATE",
+      "Payment",
+      "payment-1",
+      expect.objectContaining({
+        newValues: expect.objectContaining({
+          debtId: "debt-1",
+          accountId: "account-1",
+        }),
+      })
+    );
   });
 });

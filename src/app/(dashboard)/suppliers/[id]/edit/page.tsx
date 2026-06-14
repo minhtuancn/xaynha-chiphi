@@ -24,6 +24,10 @@ export default async function EditSupplierPage({
     email: supplier.email ?? "",
     address: supplier.address ?? "",
     taxCode: supplier.taxCode ?? "",
+    bankName: supplier.bankName ?? "",
+    bankAccountNumber: supplier.bankAccountNumber ?? "",
+    bankAccountHolder: supplier.bankAccountHolder ?? "",
+    bankBranch: supplier.bankBranch ?? "",
     notes: supplier.notes ?? "",
   };
 

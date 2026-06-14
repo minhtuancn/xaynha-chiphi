@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 test.describe('Authentication', () => {
   test.use({ storageState: { cookies: [], origins: [] } });

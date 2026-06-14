@@ -9,7 +9,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  requirePermission: vi.fn(),
+  requirePermission: vi.fn().mockResolvedValue({ id: "user-1" }),
+}));
+
+vi.mock("@/lib/audit", () => ({
+  logAudit: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -35,12 +39,14 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
 import {
   deletePurchaseOrder,
   updatePurchaseOrderStatus,
 } from "@/actions/purchase-orders";
 
 const mockedPrisma = vi.mocked(prisma);
+const mockedLogAudit = vi.mocked(logAudit);
 
 describe("purchase order to expense linkage", () => {
   beforeEach(() => {
@@ -90,6 +96,15 @@ describe("purchase order to expense linkage", () => {
       where: { id: "po-1" },
       data: { status: "RECEIVED" },
     });
+    expect(mockedLogAudit).toHaveBeenCalledWith(
+      "user-1",
+      "UPDATE",
+      "PurchaseOrder",
+      "po-1",
+      expect.objectContaining({
+        newValues: expect.objectContaining({ status: "RECEIVED" }),
+      })
+    );
   });
 
   test("soft-deletes the linked expense when the purchase order is deleted", async () => {
@@ -113,5 +128,12 @@ describe("purchase order to expense linkage", () => {
       where: { id: "expense-1" },
       data: { deletedAt: expect.any(Date) },
     });
+    expect(mockedLogAudit).toHaveBeenCalledWith(
+      "user-1",
+      "DELETE",
+      "PurchaseOrder",
+      "po-1",
+      expect.any(Object)
+    );
   });
 });

@@ -1,0 +1,19 @@
+{
+  "title": "Test and Lint Workflow",
+  "description": "Automated testing and linting workflow for the project.",
+  "steps": [
+    "Run npm run lint to check code style and catch potential issues.",
+    "Run npm run test to execute unit and integration tests.",
+    "Run npm run build to verify the build process.",
+    "Run npm run test:watch for watch-mode testing.",
+    "Run npm run test:coverage for coverage reports."
+  ],
+  "commands": [
+    "npm run lint",
+    "npm run test",
+    "npm run build",
+    "npm run test:watch",
+    "npm run test:coverage"
+  ],
+  "notes": "Run 'npm run lint' to check code style. Run 'npm run test' to execute unit tests. Use 'npm run test:watch' for watch mode. Use 'npm run test:coverage' for coverage reports. Use 'npm run lint' to enforce code style rules."
+}

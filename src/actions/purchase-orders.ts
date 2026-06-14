@@ -5,6 +5,16 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { purchaseOrderSchema, type PurchaseOrderFormData } from "@/schemas/purchase-order";
+import { createNotificationForCurrentUser } from "./notifications";
+import { logAudit } from "@/lib/audit";
+
+async function notifyCurrentUser(type: string, message: string) {
+  try {
+    await createNotificationForCurrentUser({ type, message });
+  } catch {
+    // Notifications should not block purchase order mutations.
+  }
+}
 
 async function getDefaultPurchaseOrderExpenseCategory() {
   const preferredCategory = await prisma.expenseCategory.findFirst({
@@ -62,7 +72,7 @@ export async function getPurchaseOrder(id: string) {
 }
 
 export async function createPurchaseOrder(data: PurchaseOrderFormData) {
-  await requirePermission("purchaseOrders", "create");
+  const user = await requirePermission("purchaseOrders", "create");
 
   const validated = purchaseOrderSchema.parse(data);
 
@@ -71,7 +81,7 @@ export async function createPurchaseOrder(data: PurchaseOrderFormData) {
     0
   );
 
-  await prisma.purchaseOrder.create({
+  const order = await prisma.purchaseOrder.create({
     data: {
       supplierId: validated.supplierId,
       projectId: validated.projectId,
@@ -90,6 +100,15 @@ export async function createPurchaseOrder(data: PurchaseOrderFormData) {
     },
   });
 
+  await logAudit(user.id, "CREATE", "PurchaseOrder", order.id, {
+    newValues: {
+      supplierId: validated.supplierId,
+      projectId: validated.projectId,
+      status: "DRAFT",
+      totalAmount,
+    },
+  });
+  await notifyCurrentUser("SUCCESS", "Da tao don hang moi");
   revalidatePath("/purchase-orders");
   redirect("/purchase-orders");
 }
@@ -98,7 +117,7 @@ export async function updatePurchaseOrderStatus(
   id: string,
   status: "DRAFT" | "SENT" | "RECEIVED" | "CANCELLED"
 ) {
-  await requirePermission("purchaseOrders", "edit");
+  const user = await requirePermission("purchaseOrders", "edit");
 
   const currentOrder = await prisma.purchaseOrder.findUnique({
     where: { id },
@@ -149,6 +168,11 @@ export async function updatePurchaseOrderStatus(
     data: { status },
   });
 
+  await logAudit(user.id, "UPDATE", "PurchaseOrder", id, {
+    oldValues: { status: currentOrder?.status ?? null },
+    newValues: { status },
+  });
+  await notifyCurrentUser("INFO", `Da cap nhat trang thai don hang sang ${status}`);
   revalidatePath("/purchase-orders");
   revalidatePath("/expenses");
   revalidatePath(`/purchase-orders/${id}`);
@@ -158,7 +182,7 @@ export async function updatePurchaseOrder(
   id: string,
   data: PurchaseOrderFormData
 ) {
-  await requirePermission("purchaseOrders", "edit");
+  const user = await requirePermission("purchaseOrders", "edit");
 
   const validated = purchaseOrderSchema.parse(data);
 
@@ -191,12 +215,20 @@ export async function updatePurchaseOrder(
     });
   });
 
+  await logAudit(user.id, "UPDATE", "PurchaseOrder", id, {
+    newValues: {
+      supplierId: validated.supplierId,
+      projectId: validated.projectId,
+      totalAmount,
+    },
+  });
+  await notifyCurrentUser("INFO", "Da cap nhat don hang");
   revalidatePath("/purchase-orders");
   redirect("/purchase-orders");
 }
 
 export async function deletePurchaseOrder(id: string) {
-  await requirePermission("purchaseOrders", "delete");
+  const user = await requirePermission("purchaseOrders", "delete");
 
   const currentOrder = await prisma.purchaseOrder.findUnique({
     where: { id },
@@ -215,6 +247,13 @@ export async function deletePurchaseOrder(id: string) {
     });
   }
 
+  await logAudit(user.id, "DELETE", "PurchaseOrder", id, {
+    oldValues: {
+      deletedAt: currentOrder?.deletedAt ?? null,
+      expenseId: currentOrder?.expense?.id ?? null,
+    },
+  });
+  await notifyCurrentUser("WARNING", "Da xoa don hang");
   revalidatePath("/purchase-orders");
   revalidatePath("/expenses");
 }

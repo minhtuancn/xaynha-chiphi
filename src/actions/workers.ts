@@ -5,6 +5,16 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { workerSchema, type WorkerFormData } from "@/schemas/worker";
+import { createNotificationForCurrentUser } from "./notifications";
+import { logAudit } from "@/lib/audit";
+
+async function notifyCurrentUser(type: string, message: string) {
+  try {
+    await createNotificationForCurrentUser({ type, message });
+  } catch {
+    // Notifications should not block worker mutations.
+  }
+}
 
 export async function getWorkers() {
   await requirePermission("workers", "view");
@@ -39,27 +49,40 @@ export async function getWorker(id: string) {
 }
 
 export async function createWorker(data: WorkerFormData) {
-  await requirePermission("workers", "create");
+  const user = await requirePermission("workers", "create");
 
   const validated = workerSchema.parse(data);
 
-  await prisma.worker.create({
+  const worker = await prisma.worker.create({
     data: {
       name: validated.name,
       phone: validated.phone || null,
       idCard: validated.idCard || null,
       skill: validated.skill || null,
+      taxCode: validated.taxCode || null,
+      bankName: validated.bankName || null,
+      bankAccountNumber: validated.bankAccountNumber || null,
+      bankAccountHolder: validated.bankAccountHolder || null,
+      bankBranch: validated.bankBranch || null,
       dailyWage: validated.dailyWage,
       notes: validated.notes || null,
     },
   });
 
+  await logAudit(user.id, "CREATE", "Worker", worker.id, {
+    newValues: {
+      name: validated.name,
+      phone: validated.phone || null,
+      dailyWage: validated.dailyWage,
+    },
+  });
+  await notifyCurrentUser("SUCCESS", "Da tao cong nhan moi");
   revalidatePath("/workers");
   redirect("/workers");
 }
 
 export async function updateWorker(id: string, data: WorkerFormData) {
-  await requirePermission("workers", "edit");
+  const user = await requirePermission("workers", "edit");
 
   const validated = workerSchema.parse(data);
 
@@ -70,23 +93,38 @@ export async function updateWorker(id: string, data: WorkerFormData) {
       phone: validated.phone || null,
       idCard: validated.idCard || null,
       skill: validated.skill || null,
+      taxCode: validated.taxCode || null,
+      bankName: validated.bankName || null,
+      bankAccountNumber: validated.bankAccountNumber || null,
+      bankAccountHolder: validated.bankAccountHolder || null,
+      bankBranch: validated.bankBranch || null,
       dailyWage: validated.dailyWage,
       notes: validated.notes || null,
     },
   });
 
+  await logAudit(user.id, "UPDATE", "Worker", id, {
+    newValues: {
+      name: validated.name,
+      phone: validated.phone || null,
+      dailyWage: validated.dailyWage,
+    },
+  });
+  await notifyCurrentUser("INFO", "Da cap nhat thong tin cong nhan");
   revalidatePath("/workers");
   redirect("/workers");
 }
 
 export async function deleteWorker(id: string) {
-  await requirePermission("workers", "delete");
+  const user = await requirePermission("workers", "delete");
 
   await prisma.worker.update({
     where: { id },
     data: { deletedAt: new Date() },
   });
 
+  await logAudit(user.id, "DELETE", "Worker", id, {});
+  await notifyCurrentUser("WARNING", "Da xoa cong nhan");
   revalidatePath("/workers");
 }
 

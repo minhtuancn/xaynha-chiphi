@@ -42,7 +42,7 @@ describe("account history detail", () => {
       include: {
         transactions: {
           orderBy: { date: "desc" },
-          take: 50,
+          take: 20,
           include: {
             user: { select: { id: true, name: true } },
           },

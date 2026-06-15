@@ -92,7 +92,7 @@ describe("payment account linkage", () => {
     });
     expect(mockedLogAudit).toHaveBeenCalledWith(
       "user-1",
-      "UPDATE",
+      "CREATE",
       "Payment",
       "payment-1",
       expect.objectContaining({

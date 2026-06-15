@@ -12,3 +12,15 @@ uploads/
 .DS_Store
 *.log
 .vercel
+
+# Test artifacts
+test-results/
+test-results.json
+playwright/.auth/
+
+# Backups
+backups/
+*.backup
+
+# Auto-generated
+next-env.d.ts

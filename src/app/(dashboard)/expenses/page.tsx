@@ -32,13 +32,13 @@ export default function ExpensesPage() {
 
   const totalPending = (sExpenses ?? [])
     .filter((e) => e.status === "PENDING")
-    .reduce((sum, e) => sum + e.amount, 0);
+    .reduce((sum, e) => sum + Number(e.amount), 0);
 
   const totalApproved = (sExpenses ?? [])
     .filter((e) => e.status === "APPROVED")
-    .reduce((sum, e) => sum + e.amount, 0);
+    .reduce((sum, e) => sum + Number(e.amount), 0);
 
-  const totalExpenses = (sExpenses ?? []).reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = (sExpenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
 
   return (
     <div className="space-y-6">

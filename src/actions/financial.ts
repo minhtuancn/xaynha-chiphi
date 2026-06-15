@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 import {
   expenseSchema,
   transactionSchema,
@@ -16,7 +17,6 @@ import {
 import { Decimal } from "@prisma/client/runtime/library";
 import { getProjectScope } from "./project-scope";
 import { createNotificationForCurrentUser } from "./notifications";
-import { logAudit } from "@/lib/audit";
 
 async function notifyCurrentUser(type: string, message: string) {
   try {

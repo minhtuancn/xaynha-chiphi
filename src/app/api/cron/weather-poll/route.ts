@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { WeatherService } from '@/lib/weather-service';
-import { evaluateWeatherSafety } from '@/lib/ai-safety';
 
 export async function GET() {
   try {
@@ -19,13 +18,7 @@ export async function GET() {
       const weather = await WeatherService.getForecast(lat, lon);
       if (!weather) continue;
 
-      const safety = evaluateWeatherSafety({
-        temperature: weather.temperature,
-        condition: weather.condition,
-        isStormWarning: weather.condition.includes('storm'),
-      });
-
-      await prisma.weatherHistory.create({
+      await prisma.weatherRecord.create({
         data: {
           projectId: project.id,
           date: new Date(),
@@ -35,17 +28,6 @@ export async function GET() {
           windSpeed: weather.windSpeed,
         },
       });
-
-      if (safety.isDanger) {
-        await prisma.weatherAlert.create({
-          data: {
-            projectId: project.id,
-            type: 'SAFETY',
-            message: safety.summary,
-            severity: safety.alertLevel,
-          },
-        });
-      }
     }
 
     return NextResponse.json({ success: true, processed: projects.length });

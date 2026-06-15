@@ -33,6 +33,5 @@ export async function requireAdmin() {
 }
 
 export async function requirePermission(_module: string, _action: string) {
-  await requireAdmin();
-  return true;
+  return await requireAdmin();
 }

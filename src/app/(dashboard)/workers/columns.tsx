@@ -27,7 +27,7 @@ export const columns: ColumnDef<WorkerRow>[] = [
     header: "Tên công nhân",
     cell: ({ row }) => (
       <Link
-        href={`/workers/${row.original.id}/edit?tab=view`}
+        href={`/workers/${row.original.id}`}
         className="font-medium hover:underline"
       >
         {row.getValue("name")}
@@ -67,7 +67,7 @@ export const columns: ColumnDef<WorkerRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Link href={`/workers/${row.original.id}/edit?tab=edit`}>
+      <Link href={`/workers/${row.original.id}?tab=edit`}>
         <Button variant="outline" size="sm">
           Sửa
         </Button>

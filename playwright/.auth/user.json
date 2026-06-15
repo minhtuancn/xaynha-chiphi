@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "authjs.csrf-token",
-      "value": "1c68e5ab14813e0c042c122771f003d7cea79d45808fb5890a269e8fd5c99cdf%7C1c2c73eee7a22615de04abb7c2bcf387e365dcfc8d628272c835515c01027593",
+      "value": "6d4dcf8db645a71f9973a98884d60b2b10326fd93b1480099a1f646c39fbf697%7Cc124c9ac5c7604f52c6501a220798d1a0632dcf5009fea5b19b5baed6293b22f",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -12,7 +12,7 @@
     },
     {
       "name": "authjs.callback-url",
-      "value": "http%3A%2F%2F10.20.10.135%3A3000",
+      "value": "http%3A%2F%2Flocalhost%3A3050%2Flogin",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -22,10 +22,10 @@
     },
     {
       "name": "authjs.session-token",
-      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiNnZCU2Jjc1BlR3lsVktRS0s2Xy1RaW1aZDVUY3g0SDNJU3pYWTg1VlVQVnI5bEpZR2tNYzJVbGNDUW84UjJraUNGREFGbnVuQWt3VHZLU2YybW1wQ3cifQ..u2w5by42TcUe1yAp68D3oQ.af-mzqBXkflcSPVZWjZqbmu4SBQiE6P3rdiqnUDmP9JMdDX2-Wf9jywCCWAdiE7oKuKE0Q4a_-RtBhs37ycy1oSXu1GlbyogpOwcJIsBGZ_3leN-WpXqbmJCqdAp03_kOcl6z0KPOsKIm00uxxqpPj93iw-OYbRG6WqLYkRqKSMq10P8-aJwIQKweCh0T_-Sm4sICLnxcprLgKOkJwikeggxre4gumL_Odz-zk1TWCWfh6lHIJPQYUFTNFPMuLcZ2B9ESWQjVfUWeA9D3z-3nw.SeMgA4IWsLNu2ebJpUDiqLc8MM8tnojvtMgPbF49XoY",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiYXNRSGxoTHp5VUV4b0tnQ1d0U19SN3JkLUZkeU9LQ3A3am9nMFo1RloybDhwOGVmaVpSTnR0b3haWWhwQUxvV2hsWXFOSUgwRWNWOXJJcjVLZ1V0eGcifQ..jfQWAEv8ZCwmSkqN_Ediow.rYrUnfAGLmiZg1YLAHNWTz1XL7dDNHNHOOlyPU__sFs7fEo0ATrZ6almnxAnVjzVL5ZtgcJKtbfTRzDCi81RfwURbyNj8w0C_s7e5N0AcAakGZNrvZlmTZQm6AnyPuw8Y3icuX1Xrb5I8XXc6lFyDJQjlIfXKN0UPcT1eZ55iEffLVfXvhPDB9WRqMJKsZIotFbg5b6_-QTJrWhY5aXYD37k6K4iI_t9336l13TLjmuXSrkgFPapr6NHI4yzp9lQHgRC-HDORbcGZOfUOtByUA.ttJ461Cwy5j4M1NfCbwexmssj7Bfn3f3LNlt367mEwg",
       "domain": "localhost",
       "path": "/",
-      "expires": 1784103691.546073,
+      "expires": 1783278142.529781,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"

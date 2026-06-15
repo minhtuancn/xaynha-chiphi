@@ -58,6 +58,23 @@ export async function createProject(data: ProjectFormData) {
     },
   });
 
+  // Notify admins
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN", deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+    await prisma.notification.createMany({
+      data: admins.map((u) => ({
+        userId: u.id,
+        type: "DU_AN",
+        message: `Dự án "${validated.name}" đã được tạo`,
+      })),
+    });
+  } catch (e) {
+    console.warn("Failed to create notifications:", e);
+  }
+
   revalidatePath("/projects");
   redirect("/projects");
 }

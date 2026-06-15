@@ -100,6 +100,24 @@ export async function createDailyLog(
     console.warn(`Failed to save ${photoErrors.length} photo(s):`, photoErrors);
   }
 
+  // Notify admins
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN", deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+    const dateStr = new Date(validated.date).toLocaleDateString("vi-VN");
+    await prisma.notification.createMany({
+      data: admins.map((u) => ({
+        userId: u.id,
+        type: "NHAT_KY",
+        message: `Nhật ký ngày ${dateStr} cho dự án "${project.name}" đã được tạo`,
+      })),
+    });
+  } catch (e) {
+    console.warn("Failed to create notifications:", e);
+  }
+
   revalidatePath("/daily-logs");
   redirect("/daily-logs");
 }

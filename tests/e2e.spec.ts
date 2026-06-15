@@ -50,7 +50,7 @@ test.describe('Dashboard', () => {
   });
 
   test('dashboard shows project name', async ({ page }) => {
-    await expect(page.getByText(/Nhà ở 2 tầng/).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Tuấn Mơ/).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('dashboard shows progress bar', async ({ page }) => {
@@ -218,7 +218,7 @@ test.describe('Security', () => {
   test('XSS prevention in search', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
     await page.fill('#email', 'admin@local.com');
-    await page.fill('#password', 'admin123');
+    await page.fill('#password', 'Vkn@1234561');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
     await page.waitForURL('**/dashboard');
     await page.goto(`${BASE_URL}/materials`);
@@ -264,12 +264,12 @@ test.describe('Mobile Responsive', () => {
   test('dashboard works on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(`${BASE_URL}/dashboard`);
-    await expect(page.getByText(/Nhà ở 2 tầng/).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Tuấn Mơ/).first()).toBeVisible({ timeout: 15000 });
   });
 
   test('dashboard works on tablet', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto(`${BASE_URL}/dashboard`);
-    await expect(page.getByText(/Nhà ở 2 tầng/).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Tuấn Mơ/).first()).toBeVisible({ timeout: 15000 });
   });
 });

@@ -1,43 +1,38 @@
 import { auth } from "@/app/api/auth/[...nextauth]/auth";
-import { prisma } from "@/lib/prisma";
-import {
-  hasPermission,
-  parsePermissions,
-  type ModuleName,
-  type ModulePermission,
-} from "@/lib/utils";
+import { prisma } from "./prisma";
+
+export { auth as getServerSession } from "@/app/api/auth/[...nextauth]/auth";
+
+export { signIn, signOut } from "@/app/api/auth/[...nextauth]/auth";
 
 export async function getCurrentUser() {
   const session = await auth();
   if (!session?.user?.email) return null;
-
+  
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: session.user.email as string },
   });
-
-  if (!user || user.deletedAt || !user.isActive) return null;
   return user;
 }
 
 export async function requireUser() {
-  const user = await getCurrentUser();
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+  
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email as string },
+  });
   if (!user) throw new Error("Unauthorized");
   return user;
 }
 
 export async function requireAdmin() {
   const user = await requireUser();
-  if (user.role !== "ADMIN") throw new Error("Forbidden");
+  if (user.role !== "ADMIN") throw new Error("Forbidden: Admin required");
   return user;
 }
 
-export async function requirePermission(module: ModuleName, action: ModulePermission) {
-  const user = await requireUser();
-  const permissions = parsePermissions(user.permissions);
-
-  if (!hasPermission(permissions, user.role, module, action)) {
-    throw new Error("Forbidden");
-  }
-
-  return user;
+export async function requirePermission(_module: string, _action: string) {
+  await requireAdmin();
+  return true;
 }

@@ -39,7 +39,7 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Tạo tài khoản
-  const adminHash = await bcrypt.hash("admin123", 10);
+  const adminHash = await bcrypt.hash("Vkn@1234561", 10);
   const userHash = await bcrypt.hash("user123", 10);
 
   const admin = await prisma.user.create({
@@ -568,7 +568,7 @@ async function main() {
   console.log("✅ Cài đặt đã tạo");
 
   console.log("🎉 Tạo dữ liệu mẫu hoàn tất!");
-  console.log("📋 Đăng nhập: admin@local.com / admin123");
+  console.log("📋 Đăng nhập: admin@local.com / Vkn@1234561");
   console.log("📋 Đăng nhập: user@local.com / user123");
 }
 

@@ -462,6 +462,7 @@ model Supplier {
   materials      Material[]
   purchaseOrders PurchaseOrder[]
   debts          Debt[]
+  expenses       Expense[]
 
   @@index([deletedAt])
 }
@@ -544,6 +545,7 @@ model Worker {
 
   attendances WorkerAttendance[]
   debts       Debt[]
+  expenses    Expense[]
 
   @@index([status])
   @@index([deletedAt])
@@ -591,6 +593,8 @@ model Account {
   deletedAt DateTime?
 
   transactions Transaction[]
+  payments     Payment[]
+  expenses     Expense[]
 
   @@index([type])
   @@index([deletedAt])

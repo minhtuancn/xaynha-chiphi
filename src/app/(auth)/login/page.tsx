@@ -44,8 +44,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     }
     setLoading(false);
   };
@@ -103,7 +102,7 @@ export default function LoginPage() {
         </form>
         <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted rounded-lg">
           <p className="font-medium mb-1">Tài khoản dùng thử:</p>
-          <p>Quản trị: admin@local.com / admin123</p>
+          <p>Quản trị: admin@local.com / Vkn@1234561</p>
           <p>Người dùng: user@local.com / user123</p>
         </div>
       </CardContent>

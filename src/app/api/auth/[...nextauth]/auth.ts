@@ -12,12 +12,14 @@ export const authConfig = {
         rememberMe: {},
       },
       async authorize(credentials) {
+        console.log("DEBUG authorize:", JSON.stringify(credentials));
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        const email = credentials.email as string;
-        const password = credentials.password as string;
+        const email = String(credentials.email);
+        const password = String(credentials.password);
+        console.log("DEBUG email:", email, "password length:", password.length);
 
         const user = await prisma.user.findUnique({
           where: { email },

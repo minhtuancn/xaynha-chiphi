@@ -111,3 +111,21 @@ export async function createNotificationForCurrentUser(data: {
     },
   });
 }
+
+export async function notifyAdmins(type: string, message: string) {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN", deletedAt: null, isActive: true },
+      select: { id: true },
+    });
+    await prisma.notification.createMany({
+      data: admins.map((u) => ({
+        userId: u.id,
+        type,
+        message,
+      })),
+    });
+  } catch (e) {
+    console.warn("Failed to notify admins:", e);
+  }
+}

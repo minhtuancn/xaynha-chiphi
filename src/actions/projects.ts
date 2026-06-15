@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { serialize } from "@/lib/serialize";
 import { projectSchema, type ProjectFormData } from "@/schemas/project";
+import { notifyAdmins } from "./notifications";
 import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getProjects() {
@@ -58,22 +59,7 @@ export async function createProject(data: ProjectFormData) {
     },
   });
 
-  // Notify admins
-  try {
-    const admins = await prisma.user.findMany({
-      where: { role: "ADMIN", deletedAt: null, isActive: true },
-      select: { id: true },
-    });
-    await prisma.notification.createMany({
-      data: admins.map((u) => ({
-        userId: u.id,
-        type: "DU_AN",
-        message: `Dự án "${validated.name}" đã được tạo`,
-      })),
-    });
-  } catch (e) {
-    console.warn("Failed to create notifications:", e);
-  }
+  void notifyAdmins("DU_AN", `Dự án "${validated.name}" đã được tạo`);
 
   revalidatePath("/projects");
   redirect("/projects");

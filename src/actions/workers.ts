@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { notifyAdmins } from "./notifications";
 import { requirePermission } from "@/lib/auth";
 import { workerSchema, type WorkerFormData } from "@/schemas/worker";
 import { createNotificationForCurrentUser } from "./notifications";
@@ -194,23 +195,8 @@ export async function bulkAttendance(
     )
   );
 
-  // Notify admins
-  try {
-    const admins = await prisma.user.findMany({
-      where: { role: "ADMIN", deletedAt: null, isActive: true },
-      select: { id: true },
-    });
-    const dateStr = new Date(date).toLocaleDateString("vi-VN");
-    await prisma.notification.createMany({
-      data: admins.map((u) => ({
-        userId: u.id,
-        type: "CHAM_CONG",
-        message: `Chấm công ngày ${dateStr} đã được lưu (${records.length} công nhân)`,
-      })),
-    });
-  } catch (e) {
-    console.warn("Failed to create notifications:", e);
-  }
+  const dateStr = new Date(date).toLocaleDateString("vi-VN");
+  void notifyAdmins("CHAM_CONG", `Chấm công ngày ${dateStr} đã được lưu (${records.length} công nhân)`);
 
   revalidatePath("/attendance");
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { WorkerForm } from "@/components/forms/worker-form";
 import { DetailViewTabs } from "@/components/detail-view-tabs";
@@ -16,8 +15,6 @@ export default function WorkerDetailPage({
 }: {
   worker: NonNullable<WorkerWithRelations>;
 }) {
-  const router = useRouter();
-
   const defaultValues: Partial<WorkerFormData> = {
     name: worker.name,
     phone: worker.phone ?? "",
@@ -26,14 +23,6 @@ export default function WorkerDetailPage({
     dailyWage: Number(worker.dailyWage),
     notes: worker.notes ?? "",
   };
-
-  async function handleUpdate(id: string, data: WorkerFormData) {
-    try {
-      await updateWorker(id, data);
-    } catch {
-      // redirect will happen
-    }
-  }
 
   // Serialize Decimals before passing to client components
   const serializedWorker = serialize(worker);

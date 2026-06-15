@@ -34,13 +34,17 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     async function fetchData() {
       try {
-        const { getProgressReport } = await import("@/actions/reports");
-        const { getFinancialReport } = await import("@/actions/reports");
-        const { getMaterialUsageReport } = await import("@/actions/reports");
-        const { getSupplierReport } = await import("@/actions/reports");
-        const { getWorkerReport } = await import("@/actions/reports");
+        const {
+          getProgressReport,
+          getFinancialReport,
+          getMaterialUsageReport,
+          getSupplierReport,
+          getWorkerReport,
+        } = await import("@/actions/reports");
 
         const [p, f, m, s, w] = await Promise.all([
           getProgressReport(),
@@ -50,6 +54,8 @@ export default function ReportsPage() {
           getWorkerReport(),
         ]);
 
+        if (!active) return;
+
         setProgress(p);
         setFinancial(f);
         setMaterials(m);
@@ -58,10 +64,14 @@ export default function ReportsPage() {
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     fetchData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (loading) {

@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { getWorkers, bulkAttendance, getAttendanceByDate } from "@/actions/workers";
+import { useOffline } from "@/components/offline-provider";
+import { enqueue } from "@/lib/offline-queue";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +98,9 @@ export default function AttendancePage() {
     });
   }
 
+  const { isOffline } = useOffline();
+  const { toast } = useToast();
+
   async function handleSave() {
     setSaving(true);
     setSaved(false);
@@ -107,7 +113,25 @@ export default function AttendancePage() {
       notes: r.notes || undefined,
     }));
 
-    await bulkAttendance(date, recordsArray);
+    if (isOffline) {
+      enqueue("bulkAttendance", { date: date.toISOString(), records: recordsArray });
+      toast({ title: "Đã lưu vào hàng đợi", description: "Dữ liệu điểm danh sẽ được đồng bộ khi có kết nối lại." });
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      return;
+    }
+
+    try {
+      await bulkAttendance(date, recordsArray);
+    } catch (e: any) {
+      if (e?.message?.includes("fetch") || e?.message?.includes("network") || e?.cause?.code === "ECONNREFUSED") {
+        enqueue("bulkAttendance", { date: date.toISOString(), records: recordsArray });
+        toast({ title: "Đã lưu vào hàng đợi", description: "Dữ liệu điểm danh sẽ được đồng bộ khi có kết nối lại." });
+      } else {
+        throw e;
+      }
+    }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

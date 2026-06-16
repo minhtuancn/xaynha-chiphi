@@ -10,7 +10,7 @@ async function main() {
   const tables = [
     "notification", "checklistItem", "checklist", "materialUsage",
     "purchaseOrderItem", "purchaseOrder", "inventoryTransaction",
-    "photo", "document", "expenseCategory", "expense", "debt", "payment",
+    "photo", "document", "expense", "expenseCategory", "debt", "payment",
     "transaction", "account", "workerAttendance", "worker",
     "dailyLogPhoto", "dailyLog", "material", "materialCategory",
     "supplier", "constructionTask", "stageBudget", "constructionStage",
@@ -408,6 +408,110 @@ async function main() {
     await prisma.purchaseOrder.update({ where: { id: po2.id }, data: { totalAmount: po2Total } });
   }
   console.log("✅ Đặt hàng đã tạo");
+
+  // ===================== ĐIỂM DANH CÔNG NHÂN =====================
+  const workers = await prisma.worker.findMany({ orderBy: { name: "asc" } });
+  const projectId = project.id;
+  const attDates = ["2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15"];
+  const statuses = ["PRESENT", "PRESENT", "PRESENT", "LATE", "PRESENT", "ABSENT", "PRESENT"];
+  for (const dateStr of attDates) {
+    const date = new Date(dateStr);
+    for (let i = 0; i < workers.length; i++) {
+      const wStatus = dateStr === "2026-06-14" && i >= 2 ? "ABSENT" : statuses[attDates.indexOf(dateStr)];
+      await prisma.workerAttendance.create({
+        data: {
+          workerId: workers[i].id,
+          date,
+          status: wStatus as any,
+          checkIn: new Date(`${dateStr}T07:30:00`),
+          checkOut: new Date(`${dateStr}T17:00:00`),
+        },
+      });
+    }
+  }
+  console.log("✅ Điểm danh công nhân đã tạo");
+
+  // ===================== GIAO DỊCH TÀI CHÍNH =====================
+  const accounts = await prisma.account.findMany();
+  const cashAcc = accounts.find((a) => a.type === "CASH");
+
+  // Thu tiền từ chủ đầu tư
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "INCOME", amount: 200000000, date: new Date("2026-04-08"), description: "Chuyển khoản đợt 1 - Giai đoạn chuẩn bị mặt bằng" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "INCOME", amount: 500000000, date: new Date("2026-04-25"), description: "Chuyển khoản đợt 2 - Móng và nền tầng 1" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "INCOME", amount: 300000000, date: new Date("2026-05-20"), description: "Chuyển khoản đợt 3 - Tầng 1 hoàn thành" },
+  });
+
+  // Chi tiền mua vật liệu
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "EXPENSE", amount: 58000000, date: new Date("2026-06-10"), description: "Thanh toán sắt Φ12 + Φ14 cho VLXD Minh Tuấn" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: cashAcc?.id, userId: admin.id, type: "EXPENSE", amount: 17000000, date: new Date("2026-06-13"), description: "Thanh toán xi măng PCB40 cho Xi Măng Hà Tiên" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: cashAcc?.id, userId: admin.id, type: "EXPENSE", amount: 8400000, date: new Date("2026-06-11"), description: "Mua gạch ống cho tầng 1" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "EXPENSE", amount: 28000000, date: new Date("2026-06-08"), description: "Chi lương thợ hồ tuần 1" },
+  });
+  await prisma.transaction.create({
+    data: { accountId: accounts[1].id, userId: admin.id, type: "EXPENSE", amount: 28000000, date: new Date("2026-06-15"), description: "Chi lương thợ hồ tuần 2" },
+  });
+  console.log("✅ Giao dịch tài chính đã tạo");
+
+  // ===================== GIAO DỊCH VẬT TƯ =====================
+  const materials = await prisma.material.findMany();
+  const cementMat = materials.find((m) => m.name === "Xi măng PCB40");
+  const iron12Mat = materials.find((m) => m.name === "Sắt Φ12");
+  const iron14Mat = materials.find((m) => m.name === "Sắt Φ14");
+  const brickMat = materials.find((m) => m.name === "Gạch ống 4 holes");
+
+  if (cementMat) {
+    await prisma.inventoryTransaction.create({
+      data: { projectId, materialId: cementMat.id, type: "IN", quantity: 200, date: new Date("2026-06-13"), reference: "PO-001", notes: "Nhập kho xi măng PCB40" },
+    });
+    await prisma.inventoryTransaction.create({
+      data: { projectId, materialId: cementMat.id, type: "OUT", quantity: 50, date: new Date("2026-06-14"), reference: "DL-001", notes: "Sử dụng tầng 1" },
+    });
+  }
+  if (iron12Mat) {
+    await prisma.inventoryTransaction.create({
+      data: { projectId, materialId: iron12Mat.id, type: "IN", quantity: 100, date: new Date("2026-06-10"), reference: "PO-001", notes: "Nhập kho sắt Φ12" },
+    });
+  }
+  if (iron14Mat) {
+    await prisma.inventoryTransaction.create({
+      data: { projectId, materialId: iron14Mat.id, type: "IN", quantity: 80, date: new Date("2026-06-10"), reference: "PO-001", notes: "Nhập kho sắt Φ14" },
+    });
+  }
+  if (brickMat) {
+    await prisma.inventoryTransaction.create({
+      data: { projectId, materialId: brickMat.id, type: "IN", quantity: 7000, date: new Date("2026-06-11"), reference: "PO-002", notes: "Nhập kho gạch ống" },
+    });
+  }
+  console.log("✅ Giao dịch vật tư đã tạo");
+
+  // ===================== THANH TOÁN =====================
+  const debtsForPay = await prisma.debt.findMany({ take: 1 });
+  const payAcc = accounts.find((a) => a.type === "CASH") || accounts[0];
+  if (debtsForPay.length > 0) {
+    await prisma.payment.create({
+      data: {
+        debtId: debtsForPay[0].id,
+        accountId: payAcc.id,
+        amount: 10000000,
+        date: new Date("2026-06-01"),
+        method: "CASH",
+        notes: "Thanh toán 1 phần nợ VLXD Minh Tuấn",
+      },
+    });
+    console.log("✅ Thanh toán đã tạo");
+  }
 
   // ===================== CÀI ĐẶT =====================
   await prisma.setting.create({ data: { key: "project.defaultLat", value: "10.7769" } });

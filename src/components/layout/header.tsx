@@ -14,8 +14,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Upload } from "lucide-react";
 import { useSidebar } from "./sidebar-provider";
+import { useOffline } from "@/components/offline-provider";
+
+function SyncIndicator() {
+  const { pendingCount } = useOffline();
+  if (pendingCount === 0) return null;
+  return (
+    <button className="relative p-2 hover:bg-muted rounded-full" title="Đang chờ đồng bộ">
+      <Upload className="w-5 h-5" />
+      <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+        {pendingCount}
+      </span>
+    </button>
+  );
+}
 
 interface HeaderProps {
   userName: string;
@@ -37,6 +51,7 @@ export function Header({ userName, userEmail, userRole }: HeaderProps) {
       <ProjectSelector />
       <div className="flex-1" />
       <NotificationsDropdown />
+      <SyncIndicator />
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

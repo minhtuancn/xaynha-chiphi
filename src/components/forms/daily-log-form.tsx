@@ -27,6 +27,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useOffline } from "@/components/offline-provider";
+import { enqueue } from "@/lib/offline-queue";
 
 interface Project {
   id: string;
@@ -146,8 +148,24 @@ export function DailyLogForm({
     form.setValue("weatherSource", "MANUAL");
   };
 
-  const handleSubmit = (data: DailyLogFormData) => {
-    onSubmit(data, photos);
+  const { isOffline } = useOffline();
+
+  const handleSubmit = async (data: DailyLogFormData) => {
+    if (isOffline) {
+      enqueue("createDailyLog", { ...data, _photos: photos });
+      toast({ title: "Đã lưu vào hàng đợi", description: "Dữ liệu sẽ được đồng bộ khi có kết nối lại." });
+      return;
+    }
+    try {
+      await onSubmit(data, photos);
+    } catch (e: any) {
+      if (e?.message?.includes("fetch") || e?.message?.includes("network") || e?.cause?.code === "ECONNREFUSED") {
+        enqueue("createDailyLog", { ...data, _photos: photos });
+        toast({ title: "Đã lưu vào hàng đợi", description: "Dữ liệu sẽ được đồng bộ khi có kết nối lại." });
+        return;
+      }
+      throw e;
+    }
   };
 
   return (

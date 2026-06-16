@@ -100,7 +100,7 @@ test.describe('Dashboard', () => {
     const html = page.locator('html');
     await expect(html).not.toHaveClass(/dark/);
     // Toggle button has sr-only label
-    await page.getByRole('button', { name: /Đổi giao diện|Toggle/ }).click();
+    await page.getByRole('button', { name: /Chuyển đổi|Toggle/ }).click();
     await expect(html).toHaveClass(/dark/);
   });
 

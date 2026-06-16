@@ -473,14 +473,14 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
                             <Progress value={task.progress} className="h-1.5" />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                           <Select
                             defaultValue={task.status}
                             onValueChange={(value: TaskFormData["status"]) =>
                               handleUpdateTaskStatus(task.id, value)
                             }
                           >
-                            <SelectTrigger className="w-[140px]">
+                            <SelectTrigger className="w-full sm:w-[140px]">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>

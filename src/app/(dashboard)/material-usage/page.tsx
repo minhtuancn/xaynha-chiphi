@@ -92,6 +92,8 @@ export default function MaterialUsagePage() {
 
   const [filterMaterial, setFilterMaterial] = useState("ALL");
   const [filterDate, setFilterDate] = useState("");
+  const [page, setPage] = useState(0);
+  const pageSize = 10;
 
   const load = async () => {
     const [r, m, d, p] = await Promise.all([
@@ -138,7 +140,11 @@ export default function MaterialUsagePage() {
     return true;
   });
 
-  const totalQuantity = filteredRecords.reduce((sum, r) => sum + r.quantity, 0);
+  useEffect(() => { setPage(0); }, [filterMaterial, filterDate]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+  const pagedRecords = filteredRecords.slice(page * pageSize, (page + 1) * pageSize);
+  const totalQuantity = pagedRecords.reduce((sum, r) => sum + r.quantity, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,7 +376,7 @@ export default function MaterialUsagePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRecords.map((r) => (
+                    {pagedRecords.map((r) => (
                       <tr key={r.id} className="group border-b last:border-0 hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-3 text-sm">
                           {formatDate(r.date)}
@@ -389,12 +395,12 @@ export default function MaterialUsagePage() {
                                   <DialogTrigger asChild>
                                     <img
                                       src={p.url}
-                                      alt=""
+                                      alt="Ảnh vật tư"
                                       className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 border shadow-sm transition-opacity"
                                     />
                                   </DialogTrigger>
                                   <DialogContent className="max-w-lg">
-                                    <img src={p.url} alt="" className="w-full rounded shadow-sm" />
+                                    <img src={p.url} alt="Ảnh vật tư (phóng to)" className="w-full rounded shadow-sm" />
                                   </DialogContent>
                                 </Dialog>
                               ))}
@@ -437,6 +443,20 @@ export default function MaterialUsagePage() {
                   </tfoot>
                 </table>
               </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    {filteredRecords.length} bản ghi
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      Trang {page + 1} / {totalPages}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>Trước</Button>
+                    <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>Sau</Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </CardContent>

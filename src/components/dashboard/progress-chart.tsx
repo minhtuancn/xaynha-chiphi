@@ -10,7 +10,7 @@ interface ProgressChartProps {
 const statusColors: Record<string, string> = {
   COMPLETED: "#10b981",
   IN_PROGRESS: "#3b82f6",
-  NOT_STARTED: "#e5e7eb",
+  NOT_STARTED: "#94a3b8",
   ON_HOLD: "#f59e0b",
 };
 
@@ -27,7 +27,8 @@ export function ProgressChart({ stages }: ProgressChartProps) {
         <CardTitle className="text-lg">Tiến độ theo giai đoạn</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
+        <div className="h-[200px] min-h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
             <YAxis tick={{ fontSize: 10 }} />
@@ -39,6 +40,7 @@ export function ProgressChart({ stages }: ProgressChartProps) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

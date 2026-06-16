@@ -83,10 +83,15 @@ export function DataTable<TData, TValue>({
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
 
+  const escapeCSV = (val: unknown): string => {
+    const s = String(val ?? "");
+    return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
   const exportCSV = () => {
     const headers = columns.map((c) => (c as any).accessorKey || (c as any).id).filter(Boolean);
-    const rows = data.map((row: any) => headers.map((h: string) => row[h] ?? "").join(","));
-    const csv = [headers.join(","), ...rows].join("\n");
+    const rows = data.map((row: any) => headers.map((h: string) => escapeCSV(row[h])).join(","));
+    const csv = [headers.map(escapeCSV).join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;",});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -160,7 +165,10 @@ export function DataTable<TData, TValue>({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} aria-sort={
+                      header.column.getIsSorted() === "asc" ? "ascending" :
+                      header.column.getIsSorted() === "desc" ? "descending" : undefined
+                    }>
                       {header.isPlaceholder ? null : (
                         <div
                           className={header.column.getCanSort() ? "cursor-pointer select-none flex items-center gap-1 hover:text-foreground transition-colors" : ""}

@@ -158,7 +158,7 @@ export default function AttendancePage() {
       </div>
 
       {saved && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
           Đã lưu chấm công thành công!
         </div>
       )}
@@ -170,7 +170,7 @@ export default function AttendancePage() {
               <p className="text-sm text-muted-foreground">Có mặt</p>
               <p className="text-2xl font-bold mt-1">{statusCounts.PRESENT}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
               <span className="text-accent text-lg font-bold">{statusCounts.PRESENT}</span>
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function AttendancePage() {
               <p className="text-sm text-muted-foreground">Vắng mặt</p>
               <p className="text-2xl font-bold mt-1">{statusCounts.ABSENT}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
               <span className="text-destructive text-lg font-bold">{statusCounts.ABSENT}</span>
             </div>
           </div>
@@ -192,17 +192,17 @@ export default function AttendancePage() {
               <p className="text-sm text-muted-foreground">Đi trễ</p>
               <p className="text-2xl font-bold mt-1">{statusCounts.LATE}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
-              <span className="text-yellow-600 text-lg font-bold">{statusCounts.LATE}</span>
+            <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center">
+              <span className="text-yellow-600 dark:text-yellow-400 text-lg font-bold">{statusCounts.LATE}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card shadow-sm overflow-x-auto">
-        <table className="w-full">
+      <div className="rounded-xl border bg-card shadow-sm overflow-x-auto dark:bg-slate-900 dark:border-slate-800">
+        <table className="w-full min-w-[640px]">
           <thead>
-            <tr className="border-b bg-muted/50">
+            <tr className="border-b bg-muted/50 dark:bg-slate-800/50">
               <th className="px-4 py-3 text-left text-sm font-medium">Tên công nhân</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Tay nghề</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Lương ngày</th>
@@ -218,7 +218,7 @@ export default function AttendancePage() {
               if (!record) return null;
 
               return (
-                <tr key={worker.id} className="border-b transition-colors hover:bg-muted/50">
+                <tr key={worker.id} className="border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-muted/50 dark:hover:bg-slate-800/50">
                   <td className="px-4 py-3 font-medium">{worker.name}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {worker.skill ?? "-"}
@@ -232,15 +232,16 @@ export default function AttendancePage() {
                         <button
                           key={status}
                           type="button"
+                          aria-pressed={record.status === status}
                           onClick={() => updateRecord(worker.id, { status })}
                           className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
                             record.status === status
                               ? status === "PRESENT"
-                                ? "border-green-500 bg-green-50 text-green-700"
-                                : status === "ABSENT"
-                                  ? "border-red-500 bg-red-50 text-red-700"
-                                  : "border-yellow-500 bg-yellow-50 text-yellow-700"
-                              : "border-border bg-background text-muted-foreground hover:bg-muted"
+                                ? "border-green-500 bg-green-50 text-green-700 dark:border-green-400 dark:bg-green-900/40 dark:text-green-300"
+                              : status === "ABSENT"
+                                ? "border-red-500 bg-red-50 text-red-700 dark:border-red-400 dark:bg-red-900/40 dark:text-red-300"
+                              : "border-yellow-500 bg-yellow-50 text-yellow-700 dark:border-yellow-400 dark:bg-yellow-900/40 dark:text-yellow-300"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted dark:hover:bg-muted"
                           }`}
                         >
                           {ATTENDANCE_STATUS_LABELS[status]}
@@ -253,7 +254,7 @@ export default function AttendancePage() {
                       type="time"
                       value={record.checkIn}
                       onChange={(e) => updateRecord(worker.id, { checkIn: e.target.value })}
-                      className="h-8 w-28"
+                      className="h-8 w-28 md:w-auto min-w-[80px]"
                       disabled={record.status === "ABSENT"}
                     />
                   </td>
@@ -262,7 +263,7 @@ export default function AttendancePage() {
                       type="time"
                       value={record.checkOut}
                       onChange={(e) => updateRecord(worker.id, { checkOut: e.target.value })}
-                      className="h-8 w-28"
+                      className="h-8 w-28 md:w-auto min-w-[80px]"
                       disabled={record.status === "ABSENT"}
                     />
                   </td>
@@ -270,7 +271,7 @@ export default function AttendancePage() {
                     <Input
                       value={record.notes}
                       onChange={(e) => updateRecord(worker.id, { notes: e.target.value })}
-                      className="h-8 w-32"
+                      className="h-8 w-32 md:w-auto min-w-[100px]"
                       placeholder="Ghi chú..."
                     />
                   </td>

@@ -16,6 +16,7 @@ import {
   type PaymentFormData,
 } from "@/schemas/financial";
 import { Decimal } from "@prisma/client/runtime/library";
+import { serialize } from "@/lib/serialize";
 import { getProjectScope } from "./project-scope";
 
 // ============================================
@@ -27,7 +28,7 @@ export async function getExpenses() {
 
   const projectScope = await getProjectScope();
 
-  return prisma.expense.findMany({
+  const result = await prisma.expense.findMany({
     where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     include: {
       category: { select: { id: true, name: true } },
@@ -35,15 +36,19 @@ export async function getExpenses() {
     },
     orderBy: { date: "desc" },
   });
+
+  return serialize(result);
 }
 
 export async function getExpenseCategories() {
   await requirePermission("expenses", "view");
 
-  return prisma.expenseCategory.findMany({
-    where: { deletedAt: null },
-    orderBy: { name: "asc" },
-  });
+  return serialize(
+    await prisma.expenseCategory.findMany({
+      where: { deletedAt: null },
+      orderBy: { name: "asc" },
+    })
+  );
 }
 
 export async function createExpense(data: ExpenseFormData) {
@@ -122,7 +127,7 @@ export async function deleteExpense(id: string) {
 
 export async function getAccountDetail(id: string) {
   await requirePermission("accounts", "view");
-  return prisma.account.findUnique({
+  const result = await prisma.account.findUnique({
     where: { id },
     include: {
       transactions: {
@@ -132,15 +137,17 @@ export async function getAccountDetail(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function getAccounts() {
   await requirePermission("accounts", "view");
 
-  return prisma.account.findMany({
+  const result = await prisma.account.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
   });
+  return serialize(result);
 }
 
 export async function createAccount(data: { name: string; type: "CASH" | "BANK"; balance?: number }) {
@@ -188,13 +195,14 @@ export async function deleteAccount(id: string) {
 export async function getTransactions() {
   await requirePermission("accounts", "view");
 
-  return prisma.transaction.findMany({
+  const result = await prisma.transaction.findMany({
     include: {
       account: { select: { id: true, name: true, type: true } },
       user: { select: { id: true, name: true } },
     },
     orderBy: { date: "desc" },
   });
+  return serialize(result);
 }
 
 export async function createTransaction(data: TransactionFormData) {
@@ -252,7 +260,7 @@ export async function createTransaction(data: TransactionFormData) {
 export async function getDebts() {
   await requirePermission("debts", "view");
 
-  return prisma.debt.findMany({
+  const result = await prisma.debt.findMany({
     where: { deletedAt: null },
     include: {
       supplier: { select: { id: true, name: true } },
@@ -261,6 +269,7 @@ export async function getDebts() {
     },
     orderBy: { createdAt: "desc" },
   });
+  return serialize(result);
 }
 
 export async function createDebt(data: DebtFormData) {
@@ -331,7 +340,7 @@ export async function deleteDebt(id: string) {
 export async function getPayments() {
   await requirePermission("debts", "view");
 
-  return prisma.payment.findMany({
+  const result = await prisma.payment.findMany({
     include: {
       debt: {
         select: {
@@ -345,6 +354,7 @@ export async function getPayments() {
     },
     orderBy: { date: "desc" },
   });
+  return serialize(result);
 }
 
 export async function addPayment(data: PaymentFormData) {

@@ -2,12 +2,12 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-type OfflineContext = {
+type OfflineContextType = {
   isOffline: boolean;
   pendingCount: number;
 };
 
-const OfflineContext = createContext<OfflineContext>({
+const OfflineContext = createContext<OfflineContextType>({
   isOffline: false,
   pendingCount: 0,
 });

@@ -1,8 +1,8 @@
 {
   "cookies": [
     {
-      "name": "authjs.csrf-token",
-      "value": "6d4dcf8db645a71f9973a98884d60b2b10326fd93b1480099a1f646c39fbf697%7Cc124c9ac5c7604f52c6501a220798d1a0632dcf5009fea5b19b5baed6293b22f",
+      "name": "next-auth.csrf-token",
+      "value": "ab5f799c005250576283d8aeec0255a7c03d3ccb37f1edc68a67c90ca610b0ca%7Cecdd01d98a9888b80aec297793cb5285bc2d5182706f9b3062953cd3923efedc",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -11,8 +11,8 @@
       "sameSite": "Lax"
     },
     {
-      "name": "authjs.callback-url",
-      "value": "http%3A%2F%2Flocalhost%3A3050%2Flogin",
+      "name": "next-auth.callback-url",
+      "value": "https%3A%2F%2Fxaynha.go7s.net",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -21,11 +21,11 @@
       "sameSite": "Lax"
     },
     {
-      "name": "authjs.session-token",
-      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiYXNRSGxoTHp5VUV4b0tnQ1d0U19SN3JkLUZkeU9LQ3A3am9nMFo1RloybDhwOGVmaVpSTnR0b3haWWhwQUxvV2hsWXFOSUgwRWNWOXJJcjVLZ1V0eGcifQ..jfQWAEv8ZCwmSkqN_Ediow.rYrUnfAGLmiZg1YLAHNWTz1XL7dDNHNHOOlyPU__sFs7fEo0ATrZ6almnxAnVjzVL5ZtgcJKtbfTRzDCi81RfwURbyNj8w0C_s7e5N0AcAakGZNrvZlmTZQm6AnyPuw8Y3icuX1Xrb5I8XXc6lFyDJQjlIfXKN0UPcT1eZ55iEffLVfXvhPDB9WRqMJKsZIotFbg5b6_-QTJrWhY5aXYD37k6K4iI_t9336l13TLjmuXSrkgFPapr6NHI4yzp9lQHgRC-HDORbcGZOfUOtByUA.ttJ461Cwy5j4M1NfCbwexmssj7Bfn3f3LNlt367mEwg",
+      "name": "next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoieVpoWEF3ZmtmZ2w4RW5rNkV3MXpYTW9VV3A4QXBHaEs2WTFSV3NTNWt2SGF5QXgxVzBuQm1yMXBQNFNLbWkweW1OWk5IU2duMmtaLThESm9ILWN3TGcifQ..9w0qnIys-gFoFN9bUvyY6w.oTmzXjraTVBOBnBHiIq6f-m3qbSeXACfuLNafsORonHOLj5wVVQkMUsYUi-fnzbdtme49v2bMC2EGFnsUXZUTLpxGyN8uD_G6VZVBEZ4diNW-fTf1C-zniag6qKEMOiXAQj63zoYFu0uKx2z1BJhUvyU4N2aAWHPsRv8PYb-7OEsuII4eTVsMo7ahRL6LNAZANl6V-ixWYer69sqx-LEcutvMV8JMnZEpSodhAMuYf0Cw0QXZDOHiIvipfCstISVRacvWDrl51mNAh9vtJfi5A.ReNSSeOQAKe_Do2djpwrJFJTK67qnU5cNDJXyTHejVY",
       "domain": "localhost",
       "path": "/",
-      "expires": 1783278142.529781,
+      "expires": 1784214744.854297,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"

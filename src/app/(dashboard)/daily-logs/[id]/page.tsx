@@ -41,9 +41,12 @@ export default async function DailyLogDetailPage({
             Quay lại
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold flex-1">
           Nhật ký ngày {formatDate(log.date)}
         </h1>
+        <Link href={`/daily-logs/${id}/edit`}>
+          <Button variant="outline" size="sm">Sửa</Button>
+        </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

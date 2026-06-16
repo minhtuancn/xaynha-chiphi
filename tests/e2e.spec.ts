@@ -13,7 +13,7 @@ test.describe('Authentication', () => {
 
   test('login with valid admin credentials', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
+    await page.fill('#email', 'vietkeynet@gmail.com');
     await page.fill('#password', 'Vkn@1234561');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
     await page.waitForURL('**/dashboard');
@@ -22,8 +22,8 @@ test.describe('Authentication', () => {
 
   test('login with valid user credentials', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'user@local.com');
-    await page.fill('#password', 'user123');
+    await page.fill('#email', 'vietkeynet@gmail.com');
+    await page.fill('#password', 'Vkn@1234561');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
     await page.waitForURL('**/dashboard');
     await expect(page).toHaveURL(/.*dashboard/);
@@ -217,7 +217,7 @@ test.describe('Security', () => {
 
   test('XSS prevention in search', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
-    await page.fill('#email', 'admin@local.com');
+    await page.fill('#email', 'vietkeynet@gmail.com');
     await page.fill('#password', 'Vkn@1234561');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
     await page.waitForURL('**/dashboard');

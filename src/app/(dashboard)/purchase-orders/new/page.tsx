@@ -13,7 +13,7 @@ export default async function NewPurchaseOrderPage() {
     getMaterials(),
   ]);
 
-  const serializedMaterials = serialize(materials).map((m) => ({
+  const serializedMaterials = serialize(materials.data).map((m) => ({
     id: m.id,
     name: m.name,
     unit: m.unit,

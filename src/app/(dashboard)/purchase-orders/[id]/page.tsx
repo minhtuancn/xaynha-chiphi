@@ -27,7 +27,7 @@ export default async function PurchaseOrderPage({
       order={serialize(order)} 
       suppliers={serialize(suppliers).map((s) => ({ id: s.id, name: s.name }))}
       projects={serialize(projects).map((p) => ({ id: p.id, name: p.name }))}
-      materials={serialize(materials).map((m) => ({ id: m.id, name: m.name, unit: m.unit }))}
+      materials={serialize(materials.data).map((m) => ({ id: m.id, name: m.name, unit: m.unit }))}
     />
   );
 }

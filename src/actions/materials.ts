@@ -7,17 +7,23 @@ import { requirePermission } from "@/lib/auth";
 import { materialSchema, type MaterialFormData } from "@/schemas/material";
 import { Decimal } from "@prisma/client/runtime/library";
 
-export async function getMaterials() {
+export async function getMaterials(options?: { page?: number; limit?: number }) {
   await requirePermission("materials", "view");
 
-  return prisma.material.findMany({
-    where: { deletedAt: null },
-    include: {
-      category: true,
-      supplier: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 100;
+
+  const [data, total] = await Promise.all([
+    prisma.material.findMany({
+      where: { deletedAt: null },
+      include: { category: true, supplier: true },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.material.count({ where: { deletedAt: null } }),
+  ]);
+  return { data, total };
 }
 
 export async function getMaterial(id: string) {

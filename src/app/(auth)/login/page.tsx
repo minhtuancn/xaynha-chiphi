@@ -34,17 +34,21 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      rememberMe: data.rememberMe,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      window.location.href = "/dashboard";
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch {
+      setError("Đăng nhập thất bại");
     }
     setLoading(false);
   };
@@ -56,13 +60,13 @@ export default function LoginPage() {
         <CardDescription>Quản lý xây dựng nhà ở cá nhân</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="admin@local.com"
+              placeholder="vietkeynet@gmail.com"
               {...register("email")}
             />
             {errors.email && (
@@ -100,11 +104,13 @@ export default function LoginPage() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
         </form>
-        <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted rounded-lg">
-          <p className="font-medium mb-1">Tài khoản dùng thử:</p>
-          <p>Quản trị: admin@local.com / Vkn@1234561</p>
-          <p>Người dùng: user@local.com / user123</p>
-        </div>
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted rounded-lg">
+            <p className="font-medium mb-1">Tài khoản dùng thử:</p>
+            <p>Quản trị: vietkeynet@gmail.com / Vkn@1234561</p>
+            <p>Người dùng: user@local.com / user123</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

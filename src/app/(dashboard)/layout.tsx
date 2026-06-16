@@ -33,7 +33,7 @@ export default async function DashboardLayout({
               userEmail={user.email}
               userRole={user.role}
             />
-            <main className="p-4 md:p-6">{children}</main>
+            <main id="main-content" className="p-4 md:p-6">{children}</main>
           </div>
         </DashboardLayoutClient>
       </div>

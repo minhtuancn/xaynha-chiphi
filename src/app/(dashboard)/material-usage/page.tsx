@@ -103,7 +103,8 @@ export default function MaterialUsagePage() {
       getProjects(),
     ]);
     setRecords(r as unknown as MaterialUsageInfo[]);
-    setMaterials(m as unknown as MaterialInfo[]);
+    const matResult = m as unknown as { data: MaterialInfo[]; total: number };
+    setMaterials(matResult.data as unknown as MaterialInfo[]);
     setDailyLogs(d as unknown as DailyLogInfo[]);
     setProjects(p as unknown as ProjectInfo[]);
 

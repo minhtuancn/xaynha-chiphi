@@ -4,7 +4,7 @@ const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
-  await page.fill('#email', 'admin@local.com');
+  await page.fill('#email', 'vietkeynet@gmail.com');
   await page.fill('#password', 'Vkn@1234561');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
   await page.waitForURL('**/dashboard');

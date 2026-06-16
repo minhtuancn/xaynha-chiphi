@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
   const exportCSV = () => {
     const headers = columns.map((c) => (c as any).accessorKey || (c as any).id).filter(Boolean);
     const rows = data.map((row: any) => headers.map((h: string) => escapeCSV(row[h])).join(","));
-    const csv = [headers.map(escapeCSV).join(","), ...rows].join("\n");
+    const csv = [headers.map((h) => escapeCSV(h)).join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;",});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

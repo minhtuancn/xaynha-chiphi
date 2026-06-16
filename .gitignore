@@ -5,6 +5,7 @@ out/
 *.db-journal
 .env
 .env.local
+.env.production
 .env*.local
 dist/
 build/

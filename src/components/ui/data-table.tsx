@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmptySearchState } from "./empty-state";
+import { escapeCSV } from "@/lib/csv";
 
 interface FilterConfig {
   column: string;
@@ -82,11 +83,6 @@ export function DataTable<TData, TValue>({
   const totalRows = table.getFilteredRowModel().rows.length;
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
-
-  const escapeCSV = (val: unknown): string => {
-    const s = String(val ?? "");
-    return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
 
   const exportCSV = () => {
     const headers = columns.map((c) => (c as any).accessorKey || (c as any).id).filter(Boolean);

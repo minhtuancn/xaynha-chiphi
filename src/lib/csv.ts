@@ -1,3 +1,8 @@
+export function escapeCSV(val: unknown): string {
+  const s = String(val ?? "");
+  return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 export function exportToCSV(headers: string[], rows: (string | number)[][], filename: string) {
   const csvContent = [
     headers.join(","),

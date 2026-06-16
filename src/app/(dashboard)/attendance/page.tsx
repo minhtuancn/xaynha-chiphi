@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "@/components/forms/date-picker";
 import { formatCurrency } from "@/lib/utils";
+import { formatTimeInput, parseTime } from "@/lib/time";
 import type { Worker } from "@prisma/client";
 
 type WorkerWithCount = Worker & {
@@ -72,20 +73,6 @@ export default function AttendancePage() {
     }
     loadData();
   }, [date]);
-
-  function formatTimeInput(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  }
-
-  function parseTime(timeStr: string, baseDate: Date): Date | undefined {
-    if (!timeStr) return undefined;
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    const result = new Date(baseDate);
-    result.setHours(hours, minutes, 0, 0);
-    return result;
-  }
 
   function updateRecord(workerId: string, updates: Partial<AttendanceRecord>) {
     setRecords((prev) => {

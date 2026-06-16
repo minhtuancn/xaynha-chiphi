@@ -451,10 +451,10 @@ async function main() {
     data: { accountId: accounts[1].id, userId: admin.id, type: "EXPENSE", amount: 58000000, date: new Date("2026-06-10"), description: "Thanh toán sắt Φ12 + Φ14 cho VLXD Minh Tuấn" },
   });
   await prisma.transaction.create({
-    data: { accountId: cashAcc?.id, userId: admin.id, type: "EXPENSE", amount: 17000000, date: new Date("2026-06-13"), description: "Thanh toán xi măng PCB40 cho Xi Măng Hà Tiên" },
+    data: { accountId: cashAcc!.id, userId: admin.id, type: "EXPENSE", amount: 17000000, date: new Date("2026-06-13"), description: "Thanh toán xi măng PCB40 cho Xi Măng Hà Tiên" },
   });
   await prisma.transaction.create({
-    data: { accountId: cashAcc?.id, userId: admin.id, type: "EXPENSE", amount: 8400000, date: new Date("2026-06-11"), description: "Mua gạch ống cho tầng 1" },
+    data: { accountId: cashAcc!.id, userId: admin.id, type: "EXPENSE", amount: 8400000, date: new Date("2026-06-11"), description: "Mua gạch ống cho tầng 1" },
   });
   await prisma.transaction.create({
     data: { accountId: accounts[1].id, userId: admin.id, type: "EXPENSE", amount: 28000000, date: new Date("2026-06-08"), description: "Chi lương thợ hồ tuần 1" },

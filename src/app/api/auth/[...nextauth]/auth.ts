@@ -73,7 +73,7 @@ export const authConfig = {
       return session;
     },
   },
-  trustHost: false,
+  trustHost: process.env.NODE_ENV === "production" ? false : true,
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,

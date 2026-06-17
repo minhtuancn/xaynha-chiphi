@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'http://localhost:3050';
 
 test.describe('Authentication', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -193,7 +193,6 @@ test.describe('Security', () => {
     const context = await browser.newContext({ storageState: undefined });
     const page = await context.newPage();
     await page.goto(`${BASE_URL}/dashboard`);
-    await page.waitForURL('**/login', { timeout: 10000 });
     await expect(page).toHaveURL(/.*login/);
     await context.close();
   });

@@ -10,10 +10,10 @@ const publicPrefixes = ["/_next/", "/icons/", "/uploads/"];
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
+  if (pathname.startsWith("/api/auth")) return;
   if (publicPrefixes.some((p) => pathname.startsWith(p))) return;
   if (publicAssets.includes(pathname)) return;
-  if (pathname.startsWith(apiAuthPrefix)) return;
-  if (pathname === healthPath) return;
+  if (pathname === "/api/health") return;
   if (publicPaths.some((p) => pathname.startsWith(p))) return;
 
   if (!req.auth) {

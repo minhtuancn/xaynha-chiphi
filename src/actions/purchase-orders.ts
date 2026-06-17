@@ -71,6 +71,7 @@ export async function getPurchaseOrder(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function createPurchaseOrder(data: PurchaseOrderFormData) {

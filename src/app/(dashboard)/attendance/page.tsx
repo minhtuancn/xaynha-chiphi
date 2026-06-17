@@ -11,9 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "@/components/forms/date-picker";
 import { formatCurrency } from "@/lib/utils";
 import { formatTimeInput, parseTime } from "@/lib/time";
-import type { Worker } from "@prisma/client";
+type SerializedWorker = {
+  id: string;
+  name: string;
+  phone: string | null;
+  idCard: string | null;
+  skill: string | null;
+  dailyWage: number;
+  status: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+};
 
-type WorkerWithCount = Worker & {
+type WorkerWithCount = SerializedWorker & {
   _count: { attendances: number };
 };
 

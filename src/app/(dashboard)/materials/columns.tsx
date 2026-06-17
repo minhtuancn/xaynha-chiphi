@@ -4,9 +4,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatUnit } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Material, MaterialCategory, Supplier } from "@prisma/client";
+import type { MaterialCategory, Supplier } from "@prisma/client";
 
-export type MaterialWithRelations = Material & {
+export type MaterialWithRelations = {
+  id: string;
+  name: string;
+  unit: string;
+  currentStock: number;
+  minStock: number;
+  unitCost: number;
   category: MaterialCategory;
   supplier: Supplier | null;
 };

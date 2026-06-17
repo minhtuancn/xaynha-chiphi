@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { stageSchema, taskSchema, type StageFormData, type TaskFormData } from "@/schemas/stage";
 import { serialize } from "@/lib/serialize";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getStages(projectId?: string) {
   await requirePermission("stages", "view");

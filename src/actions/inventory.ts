@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { inventorySchema, type InventoryFormData } from "@/schemas/inventory";
 import { serialize } from "@/lib/serialize";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getInventoryTransactions() {
   await requirePermission("inventory", "view");

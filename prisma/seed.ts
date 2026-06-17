@@ -23,33 +23,14 @@ async function main() {
 
   // ===================== TÀI KHOẢN =====================
   const adminHash = await bcrypt.hash("Vkn@1234561", 10);
-  const userHash = await bcrypt.hash("user123", 10);
 
   const admin = await prisma.user.create({
     data: {
-      email: "admin@local.com",
+      email: "vietkeynet@gmail.com",
       passwordHash: adminHash,
-      name: "Nguyễn Văn Admin",
+      name: "Quản trị viên",
       role: "ADMIN",
       permissions: "{}",
-    },
-  });
-
-  await prisma.user.create({
-    data: {
-      email: "user@local.com",
-      passwordHash: userHash,
-      name: "Trần Thị User",
-      role: "USER",
-      permissions: JSON.stringify({
-        dashboard: ["view"],
-        projects: ["view"],
-        stages: ["view"],
-        dailyLogs: ["view", "create", "edit"],
-        materials: ["view"],
-        inventory: ["view"],
-        photos: ["view"],
-      }),
     },
   });
   console.log("✅ Tài khoản đã tạo");
@@ -522,8 +503,7 @@ async function main() {
   console.log(`   Dự án: Nhà anh chị Tuấn Mơ - 2 Tầng (8,1m x 14m)`);
   console.log(`   Địa chỉ: Xã Hồng Phong, Huyện Hoa Lư, Tỉnh Ninh Bình`);
   console.log(`   Ngân sách: 1.200.000.000₫`);
-  console.log(`   Admin: admin@local.com / Vkn@1234561`);
-  console.log(`   User:  user@local.com / user123`);
+  console.log(`   Tài khoản: vietkeynet@gmail.com / Vkn@1234561`);
 }
 
 main()

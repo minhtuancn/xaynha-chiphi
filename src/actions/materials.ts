@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { materialSchema, type MaterialFormData } from "@/schemas/material";
 import { serialize } from "@/lib/serialize";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getMaterials(options?: { page?: number; limit?: number }) {
   await requirePermission("materials", "view");

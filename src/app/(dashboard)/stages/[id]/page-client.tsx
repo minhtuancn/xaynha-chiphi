@@ -31,13 +31,40 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { taskSchema, type TaskFormData, stageSchema, type StageFormData } from "@/schemas/stage";
 import { createTask, updateTask, deleteTask, updateStage } from "@/actions/stages";
 import { formatCurrency, formatDate, STAGE_STATUS_LABELS, TASK_STATUS_LABELS } from "@/lib/utils";
-import type { ConstructionStage, ConstructionTask } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/hooks/use-confirm";
 
 interface StageDetailProps {
-  stage: ConstructionStage & {
-    tasks: ConstructionTask[];
+  stage: {
+    id: string;
+    projectId: string;
+    name: string;
+    order: number;
+    status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD";
+    startDate: Date | null;
+    endDate: Date | null;
+    estimatedBudget: number;
+    actualCost: number;
+    progress: number;
+    notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    tasks: {
+      id: string;
+      name: string;
+      status: string;
+      progress: number;
+      startDate: Date | null;
+      endDate: Date | null;
+      description: string | null;
+      assignee: string | null;
+      notes: string | null;
+      stageId: string;
+      createdAt: Date;
+      updatedAt: Date;
+      deletedAt: Date | null;
+    }[];
     project: { id: string; name: string };
   };
 }
@@ -164,7 +191,23 @@ function StageEditForm({
   onSubmit,
   isSubmitting,
 }: {
-  stage: ConstructionStage & { project: { id: string; name: string } };
+  stage: {
+    id: string;
+    projectId: string;
+    name: string;
+    order: number;
+    status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD";
+    startDate: Date | null;
+    endDate: Date | null;
+    estimatedBudget: number;
+    actualCost: number;
+    progress: number;
+    notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
+    project: { id: string; name: string };
+  };
   onSubmit: (data: StageFormData) => void;
   isSubmitting: boolean;
 }) {

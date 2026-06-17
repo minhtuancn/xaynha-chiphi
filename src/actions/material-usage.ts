@@ -64,8 +64,8 @@ export async function createMaterialUsage(
             url,
           },
         });
-      } catch (e) {
-        console.error("Failed to save photo:", e);
+      } catch (err: unknown) {
+        console.error("Failed to save photo:", err);
       }
     }
   }

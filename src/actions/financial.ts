@@ -192,17 +192,25 @@ export async function deleteAccount(id: string) {
 // TRANSACTIONS
 // ============================================
 
-export async function getTransactions() {
+export async function getTransactions(options?: { page?: number; limit?: number }) {
   await requirePermission("accounts", "view");
 
-  const result = await prisma.transaction.findMany({
-    include: {
-      account: { select: { id: true, name: true, type: true } },
-      user: { select: { id: true, name: true } },
-    },
-    orderBy: { date: "desc" },
-  });
-  return serialize(result);
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+
+  const [data, total] = await Promise.all([
+    prisma.transaction.findMany({
+      include: {
+        account: { select: { id: true, name: true, type: true } },
+        user: { select: { id: true, name: true } },
+      },
+      orderBy: { date: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.transaction.count(),
+  ]);
+  return serialize({ data, total });
 }
 
 export async function createTransaction(data: TransactionFormData) {
@@ -210,23 +218,17 @@ export async function createTransaction(data: TransactionFormData) {
 
   const validated = transactionSchema.parse(data);
 
-  const account = await prisma.account.findUnique({
-    where: { id: validated.accountId, deletedAt: null },
-  });
+  const transaction = await prisma.$transaction(async (tx) => {
+    const account = await tx.account.findUnique({
+      where: { id: validated.accountId, deletedAt: null },
+      select: { id: true, deletedAt: true },
+    });
 
-  if (!account) throw new Error("Tài khoản không tồn tại");
+    if (!account || account.deletedAt) throw new Error("Tài khoản không tồn tại");
 
-  const amount = new Decimal(validated.amount);
-  let newBalance: Decimal;
+    const amount = new Decimal(validated.amount);
 
-  if (validated.type === "INCOME") {
-    newBalance = account.balance.add(amount);
-  } else {
-    newBalance = account.balance.sub(amount);
-  }
-
-  const transaction = await prisma.$transaction([
-    prisma.transaction.create({
+    const created = await tx.transaction.create({
       data: {
         accountId: validated.accountId,
         type: validated.type,
@@ -235,14 +237,24 @@ export async function createTransaction(data: TransactionFormData) {
         category: validated.category || null,
         description: validated.description || null,
       },
-    }),
-    prisma.account.update({
-      where: { id: validated.accountId },
-      data: { balance: newBalance },
-    }),
-  ]) as [Awaited<ReturnType<typeof prisma.transaction.create>>, ...unknown[]];
+    });
 
-  await logAudit(user.id, "CREATE", "Transaction", transaction[0].id, {
+    if (validated.type === "INCOME") {
+      await tx.account.update({
+        where: { id: validated.accountId },
+        data: { balance: { increment: validated.amount } },
+      });
+    } else {
+      await tx.account.update({
+        where: { id: validated.accountId },
+        data: { balance: { decrement: validated.amount } },
+      });
+    }
+
+    return created;
+  });
+
+  await logAudit(user.id, "CREATE", "Transaction", transaction.id, {
     newValues: {
       accountId: validated.accountId,
       type: validated.type,
@@ -362,33 +374,32 @@ export async function addPayment(data: PaymentFormData) {
 
   const validated = paymentSchema.parse(data);
 
-  const debt = await prisma.debt.findUnique({
-    where: { id: validated.debtId, deletedAt: null },
-  });
+  const payment = await prisma.$transaction(async (tx) => {
+    const debt = await tx.debt.findUnique({
+      where: { id: validated.debtId, deletedAt: null },
+    });
 
-  if (!debt) throw new Error("Khoản nợ không tồn tại");
+    if (!debt) throw new Error("Khoản nợ không tồn tại");
 
-  const account = await prisma.account.findUnique({
-    where: { id: validated.accountId, deletedAt: null },
-  });
+    const account = await tx.account.findUnique({
+      where: { id: validated.accountId, deletedAt: null },
+    });
 
-  if (!account) throw new Error("Tài khoản không tồn tại");
+    if (!account) throw new Error("Tài khoản không tồn tại");
 
-  const amount = new Decimal(validated.amount);
-  const newPaidAmount = debt.paidAmount.add(amount);
-  const newBalance = account.balance.sub(amount);
+    const amount = new Decimal(validated.amount);
+    const newPaidAmount = debt.paidAmount.add(amount);
 
-  let newStatus: "UNPAID" | "PARTIAL" | "PAID";
-  if (newPaidAmount.gte(debt.amount)) {
-    newStatus = "PAID";
-  } else if (newPaidAmount.gt(0)) {
-    newStatus = "PARTIAL";
-  } else {
-    newStatus = "UNPAID";
-  }
+    let newStatus: "UNPAID" | "PARTIAL" | "PAID";
+    if (newPaidAmount.gte(debt.amount)) {
+      newStatus = "PAID";
+    } else if (newPaidAmount.gt(0)) {
+      newStatus = "PARTIAL";
+    } else {
+      newStatus = "UNPAID";
+    }
 
-  const [payment] = await prisma.$transaction([
-    prisma.payment.create({
+    const created = await tx.payment.create({
       data: {
         debtId: validated.debtId,
         accountId: validated.accountId,
@@ -397,19 +408,23 @@ export async function addPayment(data: PaymentFormData) {
         method: validated.method,
         notes: validated.notes || null,
       },
-    }),
-    prisma.debt.update({
+    });
+
+    await tx.debt.update({
       where: { id: validated.debtId },
       data: {
         paidAmount: newPaidAmount,
         status: newStatus,
       },
-    }),
-    prisma.account.update({
+    });
+
+    await tx.account.update({
       where: { id: validated.accountId },
-      data: { balance: newBalance },
-    }),
-  ]);
+      data: { balance: { decrement: validated.amount } },
+    });
+
+    return created;
+  });
 
   await logAudit(user.id, "CREATE", "Payment", payment.id, {
     newValues: {

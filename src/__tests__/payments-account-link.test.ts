@@ -55,11 +55,12 @@ describe("payment account linkage", () => {
     mockedPrisma.payment.create.mockResolvedValue({ id: "payment-1" } as never);
     mockedPrisma.account.update.mockResolvedValue({ id: "account-1" } as never);
     mockedPrisma.debt.update.mockResolvedValue({ id: "debt-1" } as never);
-    mockedPrisma.$transaction.mockResolvedValue([
-      { id: "payment-1" },
-      { id: "debt-1" },
-      { id: "account-1" },
-    ] as never);
+    mockedPrisma.$transaction.mockImplementation((async (fn: any) => {
+      if (typeof fn === "function") {
+        return fn(mockedPrisma);
+      }
+      return fn;
+    }) as never);
 
     await addPayment({
       debtId: "debt-1",
@@ -81,7 +82,7 @@ describe("payment account linkage", () => {
     );
     expect(mockedPrisma.account.update).toHaveBeenCalledWith({
       where: { id: "account-1" },
-      data: { balance: new Decimal(1850000) },
+      data: { balance: { decrement: 150000 } },
     });
     expect(mockedPrisma.debt.update).toHaveBeenCalledWith({
       where: { id: "debt-1" },

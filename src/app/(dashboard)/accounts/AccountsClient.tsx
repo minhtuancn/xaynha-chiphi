@@ -103,10 +103,11 @@ export default function AccountsClient() {
   useEffect(() => {
     async function load() {
       const { getAccounts, getTransactions } = await import("@/actions/financial");
-      const [accs, txs] = await Promise.all([getAccounts(), getTransactions()]);
+      const [accs, rawTxs] = await Promise.all([getAccounts(), getTransactions()]);
       const { serialize } = await import("@/lib/serialize");
       setAccounts(serialize(accs));
-      setTransactions(serialize(txs).map((t: any) => ({
+      const txs = (rawTxs as { data: unknown[] }).data ?? [];
+      setTransactions((txs as any[]).map((t: any) => ({
         ...t,
         date: new Date(t.date),
         account: t.account ?? { name: "-" },

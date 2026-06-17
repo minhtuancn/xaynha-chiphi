@@ -22,59 +22,52 @@ export async function getDashboardData() {
     return { project: null, stats: null, stages: [], recentPhotos: [], weather: null, upcomingTasks: [], recentExpenses: [] };
   }
 
-  const totalStages = await prisma.constructionStage.count({
-    where: { projectId: project.id, deletedAt: null },
-  });
-  const completedStages = await prisma.constructionStage.count({
-    where: { projectId: project.id, status: "COMPLETED", deletedAt: null },
-  });
-
-  const totalTasks = await prisma.constructionTask.count({
-    where: { stage: { projectId: project.id }, deletedAt: null },
-  });
-  const completedTasks = await prisma.constructionTask.count({
-    where: { stage: { projectId: project.id }, status: "COMPLETED", deletedAt: null },
-  });
-
-  const budget = await prisma.budget.findUnique({ where: { projectId: project.id } });
-
-  const totalExpenses = await prisma.expense.aggregate({
-    where: { projectId: project.id, deletedAt: null },
-    _sum: { amount: true },
-  });
-
-  const stages = await prisma.constructionStage.findMany({
-    where: { projectId: project.id, deletedAt: null },
-    orderBy: { order: "asc" },
-    include: { _count: { select: { tasks: true } } },
-  });
-
-  const recentPhotos = await prisma.photo.findMany({
-    where: { projectId: project.id, deletedAt: null },
-    orderBy: { takenAt: "desc" },
-    take: 6,
-  });
-
-  const today = new Date();
-  const weather = await getWeatherForDate(project.id, today);
-
-  const upcomingTasks = await prisma.constructionTask.findMany({
-    where: {
-      stage: { projectId: project.id },
-      status: { in: ["PENDING", "IN_PROGRESS"] },
-      deletedAt: null,
-    },
-    include: { stage: true },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    take: 5,
-  });
-
-  const recentExpenses = await prisma.expense.findMany({
-    where: { projectId: project.id, deletedAt: null },
-    include: { category: true },
-    orderBy: { date: "desc" },
-    take: 5,
-  });
+  const [totalStages, completedStages, totalTasks, completedTasks, budget, totalExpenses, stages, recentPhotos, upcomingTasks, recentExpenses, weather] = await Promise.all([
+    prisma.constructionStage.count({
+      where: { projectId: project.id, deletedAt: null },
+    }),
+    prisma.constructionStage.count({
+      where: { projectId: project.id, status: "COMPLETED", deletedAt: null },
+    }),
+    prisma.constructionTask.count({
+      where: { stage: { projectId: project.id }, deletedAt: null },
+    }),
+    prisma.constructionTask.count({
+      where: { stage: { projectId: project.id }, status: "COMPLETED", deletedAt: null },
+    }),
+    prisma.budget.findUnique({ where: { projectId: project.id } }),
+    prisma.expense.aggregate({
+      where: { projectId: project.id, deletedAt: null },
+      _sum: { amount: true },
+    }),
+    prisma.constructionStage.findMany({
+      where: { projectId: project.id, deletedAt: null },
+      orderBy: { order: "asc" },
+      include: { _count: { select: { tasks: true } } },
+    }),
+    prisma.photo.findMany({
+      where: { projectId: project.id, deletedAt: null },
+      orderBy: { takenAt: "desc" },
+      take: 6,
+    }),
+    prisma.constructionTask.findMany({
+      where: {
+        stage: { projectId: project.id },
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+        deletedAt: null,
+      },
+      include: { stage: true },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      take: 5,
+    }),
+    prisma.expense.findMany({
+      where: { projectId: project.id, deletedAt: null },
+      include: { category: true },
+      orderBy: { date: "desc" },
+      take: 5,
+    }),
+    getWeatherForDate(project.id, new Date()),
+  ]);
 
   return serialize({
     project,

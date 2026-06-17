@@ -125,7 +125,7 @@ export async function notifyAdmins(type: string, message: string) {
         message,
       })),
     });
-  } catch (e) {
-    console.warn("Failed to notify admins:", e);
+  } catch (err: unknown) {
+    console.warn("Failed to notify admins:", err);
   }
 }

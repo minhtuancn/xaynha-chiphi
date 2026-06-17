@@ -36,23 +36,31 @@ async function getDefaultPurchaseOrderExpenseCategory() {
   return fallbackCategory;
 }
 
-export async function getPurchaseOrders() {
+export async function getPurchaseOrders(options?: { page?: number; limit?: number }) {
   await requirePermission("purchaseOrders", "view");
 
-  const result = await prisma.purchaseOrder.findMany({
-    where: { deletedAt: null },
-    include: {
-      supplier: { select: { id: true, name: true } },
-      project: { select: { id: true, name: true } },
-      items: {
-        include: {
-          material: { select: { id: true, name: true, unit: true } },
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 50;
+
+  const [data, total] = await Promise.all([
+    prisma.purchaseOrder.findMany({
+      where: { deletedAt: null },
+      include: {
+        supplier: { select: { id: true, name: true } },
+        project: { select: { id: true, name: true } },
+        items: {
+          include: {
+            material: { select: { id: true, name: true, unit: true } },
+          },
         },
       },
-    },
-    orderBy: { orderDate: "desc" },
-  });
-  return serialize(result);
+      orderBy: { orderDate: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.purchaseOrder.count({ where: { deletedAt: null } }),
+  ]);
+  return serialize({ data, total });
 }
 
 export async function getPurchaseOrder(id: string) {

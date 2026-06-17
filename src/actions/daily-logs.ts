@@ -85,7 +85,8 @@ export async function createDailyLog(
       try {
         const url = await saveUploadedPhoto(photo, "daily-logs");
         photoRecords.push({ dailyLogId: dailyLog.id, url });
-      } catch (e) {
+      } catch (err: unknown) {
+        console.warn("Failed to save photo:", photo.name, err);
         photoErrors.push(photo.name);
       }
     }
@@ -145,7 +146,8 @@ export async function updateDailyLog(
       try {
         const url = await saveUploadedPhoto(photo, "daily-logs");
         photoRecords.push({ dailyLogId: id, url });
-      } catch (e) {
+      } catch (err: unknown) {
+        console.warn("Failed to save photo:", photo.name, err);
         photoErrors.push(photo.name);
       }
     }

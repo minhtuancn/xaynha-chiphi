@@ -12,14 +12,12 @@ export const authConfig = {
         rememberMe: {},
       },
       async authorize(credentials) {
-        console.log("DEBUG authorize:", JSON.stringify(credentials));
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
         const email = String(credentials.email);
         const password = String(credentials.password);
-        console.log("DEBUG email:", email, "password length:", password.length);
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -75,21 +73,13 @@ export const authConfig = {
       return session;
     },
   },
-  trustHost: true,
+  trustHost: false,
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        sameSite: "lax",
+        sameSite: "strict",
         path: "/",
         secure: process.env.NODE_ENV === "production",
       },
@@ -98,7 +88,15 @@ export const authConfig = {
       name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: "strict",
         path: "/",
         secure: process.env.NODE_ENV === "production",
       },

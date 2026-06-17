@@ -104,13 +104,6 @@ export default function LoginPage() {
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
         </form>
-        {process.env.NODE_ENV === "development" && (
-          <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted rounded-lg">
-            <p className="font-medium mb-1">Tài khoản dùng thử:</p>
-            <p>Quản trị: vietkeynet@gmail.com / Vkn@1234561</p>
-            <p>Người dùng: user@local.com / user123</p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

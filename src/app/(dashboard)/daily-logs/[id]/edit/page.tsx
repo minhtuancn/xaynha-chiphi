@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DailyLogForm } from "@/components/forms/daily-log-form";
 import { getDailyLog, updateDailyLog } from "@/actions/daily-logs";
 import { getProjects } from "@/actions/projects";
+import type { DailyLogFormData } from "@/schemas/daily-log";
 
 export default async function EditDailyLogPage({
   params,
@@ -27,7 +28,7 @@ export default async function EditDailyLogPage({
     workerCount: log.workerCount,
   };
 
-  async function handleSubmit(data: any, photos?: File[]) {
+  async function handleSubmit(data: DailyLogFormData, photos?: File[]) {
     "use server";
     await updateDailyLog(id, data, photos);
     redirect(`/daily-logs/${id}`);

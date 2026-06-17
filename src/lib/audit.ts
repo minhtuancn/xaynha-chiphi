@@ -17,7 +17,7 @@ export async function logAudit(
         changes: JSON.stringify(changes),
       },
     });
-  } catch (e) {
-    console.error("Audit log failed:", e);
+  } catch (err: unknown) {
+    console.error("Audit log failed:", err);
   }
 }

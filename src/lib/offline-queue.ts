@@ -27,7 +27,8 @@ function getQueue(): QueueItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
+  } catch (err: unknown) {
+    console.error("Failed to parse offline queue:", err);
     return [];
   }
 }
@@ -63,9 +64,9 @@ export async function drainQueue(): Promise<{ success: number; failed: number }>
       if (!fn) throw new Error(`Unknown action: ${item.action}`);
       await fn(item.payload);
       success++;
-    } catch {
+    } catch (err: unknown) {
+      console.error("Failed to process queued item:", err);
       failed++;
-      break;
     }
   }
 

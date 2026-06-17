@@ -44,7 +44,7 @@ export default function MaterialsPage() {
           <>
             <DataTable
               columns={columns}
-              data={(items || []) as unknown as MaterialWithRelations[]}
+              data={(items || []) as MaterialWithRelations[]}
               searchColumn="name"
               searchPlaceholder="Tìm kiếm vật liệu..."
               filters={[

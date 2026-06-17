@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const project = data?.project ?? null;
   const stats = data?.stats ?? null;
-  const stages = data?.stages ?? null;
+  const stages = data?.stages ?? [];
   const weather = data?.weather ?? null;
   const recentPhotos = data?.recentPhotos ?? [];
 

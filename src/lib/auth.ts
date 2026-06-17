@@ -32,6 +32,28 @@ export async function requireAdmin() {
   return user;
 }
 
-export async function requirePermission(_module: string, _action: string) {
-  return await requireAdmin();
+type UserPermissions = Record<string, string[]>;
+
+function hasPermission(permissions: UserPermissions, module: string, action: string): boolean {
+  const allowed = permissions[module];
+  if (!allowed) return false;
+  if (allowed.includes("manage")) return true;
+  return allowed.includes(action);
+}
+
+export async function requirePermission(module: string, action: string) {
+  const user = await requireUser();
+  if (user.role === "ADMIN") return user;
+
+  let permissions: UserPermissions = {};
+  try {
+    permissions = JSON.parse(user.permissions || "{}");
+  } catch {
+    // malformed JSON — deny
+  }
+
+  if (!hasPermission(permissions, module, action)) {
+    throw new Error(`Forbidden: missing permission ${module}:${action}`);
+  }
+  return user;
 }

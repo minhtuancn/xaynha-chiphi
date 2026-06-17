@@ -12,7 +12,36 @@ import { WeatherWidget } from '@/components/dashboard/weather-widget';
 import { WeatherShiftCard } from '@/components/dashboard/weather-shift-card';
 import { RecentPhotos } from '@/components/dashboard/recent-photos';
 
-export default function DashboardClient({ project, stats, stages, weather, recentPhotos }: any) {
+interface DashboardStats {
+  totalStages: number;
+  completedStages: number;
+  totalTasks: number;
+  completedTasks: number;
+  budget: number;
+  spent: number;
+  remaining: number;
+}
+
+interface DashboardProps {
+  project: {
+    id: string;
+    name: string;
+    address: string | null;
+    status: string;
+  } | null;
+  stats: DashboardStats | null;
+  stages: Array<{
+    id: string;
+    name: string;
+    status: string;
+    progress: number;
+    _count: { tasks: number };
+  }>;
+  weather: { condition: string; temperature: number; humidity: number; windSpeed: number } | null;
+  recentPhotos: Array<{ id: string; url: string; caption: string | null; takenAt: Date }>;
+}
+
+export default function DashboardClient({ project, stats, stages, weather, recentPhotos }: DashboardProps) {
   if (!project) {
     return <EmptyState icon={<Home className="h-8 w-8" />} title="Chưa có dự án" description="Tạo dự án để bắt đầu." />;
   }

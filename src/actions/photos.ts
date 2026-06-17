@@ -5,16 +5,18 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { deleteFile } from "@/lib/minio";
 import { getProjectScope } from "./project-scope";
+import { serialize } from "@/lib/serialize";
 
 export async function getPhotos() {
   await requirePermission("photos", "view");
 
   const projectScope = await getProjectScope();
 
-  return prisma.photo.findMany({
+  const result = await prisma.photo.findMany({
     where: { ...(projectScope ? { projectId: projectScope } : {}), deletedAt: null },
     orderBy: { takenAt: "desc" },
   });
+  return serialize(result);
 }
 
 export async function createPhoto(data: {

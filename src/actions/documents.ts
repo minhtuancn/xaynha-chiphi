@@ -4,15 +4,17 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { documentSchema } from "@/schemas/document";
+import { serialize } from "@/lib/serialize";
 
 export async function getDocuments() {
   await requirePermission("documents", "view");
 
-  return prisma.document.findMany({
+  const result = await prisma.document.findMany({
     where: { deletedAt: null },
     include: { project: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
+  return serialize(result);
 }
 
 export async function getDocument(id: string) {

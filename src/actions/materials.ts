@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { materialSchema, type MaterialFormData } from "@/schemas/material";
-import { Decimal } from "@prisma/client/runtime/library";
+import { serialize } from "@/lib/serialize";
 
 export async function getMaterials(options?: { page?: number; limit?: number }) {
   await requirePermission("materials", "view");
@@ -23,13 +23,13 @@ export async function getMaterials(options?: { page?: number; limit?: number }) 
     }),
     prisma.material.count({ where: { deletedAt: null } }),
   ]);
-  return { data, total };
+  return { data: serialize(data), total };
 }
 
 export async function getMaterial(id: string) {
   await requirePermission("materials", "view");
 
-  return prisma.material.findUnique({
+  const result = await prisma.material.findUnique({
     where: { id, deletedAt: null },
     include: {
       category: true,
@@ -39,6 +39,7 @@ export async function getMaterial(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function createMaterial(data: MaterialFormData) {

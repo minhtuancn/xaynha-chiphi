@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { inventorySchema, type InventoryFormData } from "@/schemas/inventory";
-import { Decimal } from "@prisma/client/runtime/library";
+import { serialize } from "@/lib/serialize";
 
 export async function getInventoryTransactions() {
   await requirePermission("inventory", "view");
 
-  return prisma.inventoryTransaction.findMany({
+  const result = await prisma.inventoryTransaction.findMany({
     include: {
       material: {
         select: { id: true, name: true, unit: true },
@@ -17,12 +17,13 @@ export async function getInventoryTransactions() {
     },
     orderBy: { date: "desc" },
   });
+  return serialize(result);
 }
 
 export async function getInventoryByMaterial() {
   await requirePermission("inventory", "view");
 
-  return prisma.material.findMany({
+  const result = await prisma.material.findMany({
     where: { deletedAt: null },
     include: {
       category: {
@@ -31,6 +32,7 @@ export async function getInventoryByMaterial() {
     },
     orderBy: { name: "asc" },
   });
+  return serialize(result);
 }
 
 export async function createTransaction(data: InventoryFormData) {

@@ -5,12 +5,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { stageSchema, taskSchema, type StageFormData, type TaskFormData } from "@/schemas/stage";
-import { Decimal } from "@prisma/client/runtime/library";
+import { serialize } from "@/lib/serialize";
 
 export async function getStages(projectId?: string) {
   await requirePermission("stages", "view");
 
-  return prisma.constructionStage.findMany({
+  const result = await prisma.constructionStage.findMany({
     where: {
       deletedAt: null,
       ...(projectId ? { projectId } : {}),
@@ -25,12 +25,13 @@ export async function getStages(projectId?: string) {
     },
     orderBy: { order: "asc" },
   });
+  return serialize(result);
 }
 
 export async function getStage(id: string) {
   await requirePermission("stages", "view");
 
-  return prisma.constructionStage.findUnique({
+  const result = await prisma.constructionStage.findUnique({
     where: { id, deletedAt: null },
     include: {
       tasks: {
@@ -42,6 +43,7 @@ export async function getStage(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function createStage(data: StageFormData, projectId: string, order: number) {

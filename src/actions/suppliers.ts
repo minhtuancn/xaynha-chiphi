@@ -7,6 +7,7 @@ import { requirePermission } from "@/lib/auth";
 import { supplierSchema, type SupplierFormData } from "@/schemas/supplier";
 import { createNotificationForCurrentUser } from "./notifications";
 import { logAudit } from "@/lib/audit";
+import { serialize } from "@/lib/serialize";
 
 async function notifyCurrentUser(type: string, message: string) {
   try {
@@ -19,7 +20,7 @@ async function notifyCurrentUser(type: string, message: string) {
 export async function getSuppliers() {
   await requirePermission("suppliers", "view");
 
-  return prisma.supplier.findMany({
+  const result = await prisma.supplier.findMany({
     where: { deletedAt: null },
     include: {
       _count: {
@@ -28,12 +29,13 @@ export async function getSuppliers() {
     },
     orderBy: { createdAt: "desc" },
   });
+  return serialize(result);
 }
 
 export async function getSupplier(id: string) {
   await requirePermission("suppliers", "view");
 
-  return prisma.supplier.findUnique({
+  const result = await prisma.supplier.findUnique({
     where: { id, deletedAt: null },
     include: {
       purchaseOrders: {
@@ -49,6 +51,7 @@ export async function getSupplier(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function createSupplier(data: SupplierFormData) {

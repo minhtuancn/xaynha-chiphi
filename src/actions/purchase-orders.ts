@@ -7,6 +7,7 @@ import { requirePermission } from "@/lib/auth";
 import { purchaseOrderSchema, type PurchaseOrderFormData } from "@/schemas/purchase-order";
 import { createNotificationForCurrentUser } from "./notifications";
 import { logAudit } from "@/lib/audit";
+import { serialize } from "@/lib/serialize";
 
 async function notifyCurrentUser(type: string, message: string) {
   try {
@@ -38,7 +39,7 @@ async function getDefaultPurchaseOrderExpenseCategory() {
 export async function getPurchaseOrders() {
   await requirePermission("purchaseOrders", "view");
 
-  return prisma.purchaseOrder.findMany({
+  const result = await prisma.purchaseOrder.findMany({
     where: { deletedAt: null },
     include: {
       supplier: { select: { id: true, name: true } },
@@ -51,12 +52,13 @@ export async function getPurchaseOrders() {
     },
     orderBy: { orderDate: "desc" },
   });
+  return serialize(result);
 }
 
 export async function getPurchaseOrder(id: string) {
   await requirePermission("purchaseOrders", "view");
 
-  return prisma.purchaseOrder.findUnique({
+  const result = await prisma.purchaseOrder.findUnique({
     where: { id, deletedAt: null },
     include: {
       supplier: true,

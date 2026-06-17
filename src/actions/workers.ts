@@ -8,6 +8,7 @@ import { requirePermission } from "@/lib/auth";
 import { workerSchema, type WorkerFormData } from "@/schemas/worker";
 import { createNotificationForCurrentUser } from "./notifications";
 import { logAudit } from "@/lib/audit";
+import { serialize } from "@/lib/serialize";
 
 async function notifyCurrentUser(type: string, message: string) {
   try {
@@ -20,7 +21,7 @@ async function notifyCurrentUser(type: string, message: string) {
 export async function getWorkers() {
   await requirePermission("workers", "view");
 
-  return prisma.worker.findMany({
+  const result = await prisma.worker.findMany({
     where: { deletedAt: null },
     include: {
       _count: {
@@ -29,12 +30,13 @@ export async function getWorkers() {
     },
     orderBy: { createdAt: "desc" },
   });
+  return serialize(result);
 }
 
 export async function getWorker(id: string) {
   await requirePermission("workers", "view");
 
-  return prisma.worker.findUnique({
+  const result = await prisma.worker.findUnique({
     where: { id, deletedAt: null },
     include: {
       _count: { select: { attendances: true } },
@@ -47,6 +49,7 @@ export async function getWorker(id: string) {
       },
     },
   });
+  return serialize(result);
 }
 
 export async function createWorker(data: WorkerFormData) {
@@ -137,7 +140,7 @@ export async function getAttendanceByDate(date: Date) {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  return prisma.workerAttendance.findMany({
+  const result = await prisma.workerAttendance.findMany({
     where: {
       date: {
         gte: startOfDay,
@@ -149,6 +152,7 @@ export async function getAttendanceByDate(date: Date) {
     },
     orderBy: { worker: { name: "asc" } },
   });
+  return serialize(result);
 }
 
 export async function bulkAttendance(

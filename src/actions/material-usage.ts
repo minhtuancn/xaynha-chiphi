@@ -6,13 +6,14 @@ import { requirePermission } from "@/lib/auth";
 import { materialUsageSchema } from "@/schemas/material-usage";
 import { saveUploadedPhoto } from "@/lib/upload";
 import { getProjectScope } from "./project-scope";
+import { serialize } from "@/lib/serialize";
 
 export async function getMaterialUsages() {
   await requirePermission("materialUsage", "view");
 
   const projectScope = await getProjectScope();
 
-  return prisma.materialUsage.findMany({
+  const result = await prisma.materialUsage.findMany({
     where: { ...(projectScope ? { projectId: projectScope } : {}) },
     include: {
       material: { select: { id: true, name: true, unit: true } },
@@ -22,6 +23,7 @@ export async function getMaterialUsages() {
     },
     orderBy: { date: "desc" },
   });
+  return serialize(result);
 }
 
 export async function createMaterialUsage(

@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { checklistSchema } from "@/schemas/checklist";
+import { serialize } from "@/lib/serialize";
 
 export async function getChecklists() {
   await requirePermission("checklists", "view");
 
-  return prisma.checklist.findMany({
+  const result = await prisma.checklist.findMany({
     where: { deletedAt: null },
     include: {
       stage: { select: { id: true, name: true, project: { select: { id: true, name: true } } } },
@@ -20,6 +21,7 @@ export async function getChecklists() {
     },
     orderBy: [{ stage: { name: "asc" } }, { order: "asc" }],
   });
+  return serialize(result);
 }
 
 export async function getChecklist(id: string) {

@@ -37,6 +37,7 @@ model User {
   expenses      Expense[]
   transactions  Transaction[]
   accounts      AuthAccount[]
+  estimates     Estimate[]
 
   @@index([email])
   @@index([deletedAt])
@@ -107,6 +108,7 @@ model Project {
   weatherRecords        WeatherRecord[]
   materialUsages        MaterialUsage[]
   inventoryTransactions InventoryTransaction[]
+  estimates             Estimate[]
 
   @@index([status])
   @@index([deletedAt])
@@ -173,9 +175,10 @@ model ConstructionStage {
   updatedAt       DateTime    @updatedAt
   deletedAt       DateTime?
 
-  tasks       ConstructionTask[]
-  checklists  Checklist[]
-  stageBudget StageBudget?
+  tasks         ConstructionTask[]
+  checklists    Checklist[]
+  stageBudget   StageBudget?
+  estimateItems EstimateItem[]
 
   @@index([projectId])
   @@index([status])
@@ -442,22 +445,22 @@ model MaterialUsage {
 // ============================================
 
 model Supplier {
-  id          String    @id @default(uuid())
-  name        String
-  contact     String?
-  phone       String?
-  email       String?
-  address     String?
-  taxCode     String?
-  bankName    String?
+  id                String    @id @default(uuid())
+  name              String
+  contact           String?
+  phone             String?
+  email             String?
+  address           String?
+  taxCode           String?
+  bankName          String?
   bankAccountNumber String?
   bankAccountHolder String?
-  bankBranch  String?
-  debtBalance Decimal   @default(0)
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  bankBranch        String?
+  debtBalance       Decimal   @default(0)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
 
   materials      Material[]
   purchaseOrders PurchaseOrder[]
@@ -526,22 +529,22 @@ enum WorkerStatus {
 }
 
 model Worker {
-  id        String       @id @default(uuid())
-  name      String
-  phone     String?
-  idCard    String?
-  skill     String?
-  taxCode   String?
-  bankName  String?
+  id                String       @id @default(uuid())
+  name              String
+  phone             String?
+  idCard            String?
+  skill             String?
+  taxCode           String?
+  bankName          String?
   bankAccountNumber String?
   bankAccountHolder String?
-  bankBranch String?
-  dailyWage Decimal      @default(0)
-  status    WorkerStatus @default(ACTIVE)
-  notes     String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  deletedAt DateTime?
+  bankBranch        String?
+  dailyWage         Decimal      @default(0)
+  status            WorkerStatus @default(ACTIVE)
+  notes             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
 
   attendances WorkerAttendance[]
   debts       Debt[]
@@ -641,31 +644,31 @@ enum ExpenseOrigin {
 }
 
 model Expense {
-  id          String          @id @default(uuid())
-  projectId   String
-  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  categoryId  String
-  category    ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  origin      ExpenseOrigin   @default(MANUAL)
-  accountId   String?
-  account     Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
-  purchaseOrderId String?     @unique
-  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
-  supplierId  String?
-  supplier    Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  workerId    String?
-  worker      Worker?         @relation(fields: [workerId], references: [id], onDelete: SetNull)
-  payeeName   String?
-  amount      Decimal
-  date        DateTime
-  description String?
-  receipt     String?
-  status      ExpenseStatus   @default(PENDING)
-  createdBy   String?
-  creator     User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  deletedAt   DateTime?
+  id              String          @id @default(uuid())
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  categoryId      String
+  category        ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  origin          ExpenseOrigin   @default(MANUAL)
+  accountId       String?
+  account         Account?        @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  purchaseOrderId String?         @unique
+  purchaseOrder   PurchaseOrder?  @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  supplierId      String?
+  supplier        Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  workerId        String?
+  worker          Worker?         @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  payeeName       String?
+  amount          Decimal
+  date            DateTime
+  description     String?
+  receipt         String?
+  status          ExpenseStatus   @default(PENDING)
+  createdBy       String?
+  creator         User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
 
   @@index([projectId])
   @@index([categoryId])
@@ -716,6 +719,73 @@ model StageBudget {
 
   @@index([stageId])
 }
+
+// ============================================
+// ESTIMATE / BOQ (Dự toán / Bảng lượng)
+// ============================================
+
+enum EstimateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CostType {
+  MATERIAL // Vật tư (VT)
+  LABOR // Nhân công (NC)
+  EQUIPMENT // Thiết bị (TT)
+  SUBCONTRACT // Nhà thầu phụ
+  OTHER // Khác
+}
+
+model Estimate {
+  id          String         @id @default(uuid())
+  projectId   String
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int            @default(1)
+  name        String // "Dự toán ban đầu", "Điều chỉnh lần 1"
+  status      EstimateStatus @default(DRAFT)
+  totalAmount Decimal        @default(0)
+  notes       String?
+  createdBy   String
+  creator     User           @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  items EstimateItem[]
+
+  @@unique([projectId, version])
+  @@index([projectId])
+  @@index([status])
+}
+
+model EstimateItem {
+  id             String             @id @default(uuid())
+  estimateId     String
+  estimate       Estimate           @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  stageId        String?
+  stage          ConstructionStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  code           String // Mã CP
+  name           String // Tên hạng mục
+  unit           String // Đơn vị
+  quantity       Decimal // Khối lượng dự toán
+  unitPrice      Decimal // Đơn giá
+  amount         Decimal // Thành tiền
+  costType       CostType // VT/NC/TT/SUBCONTRACT/OTHER
+  contractor     String? // Nhà thầu
+  progressPct    Int                @default(0)
+  actualQuantity Decimal            @default(0)
+  notes          String?
+  sortOrder      Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([estimateId])
+  @@index([stageId])
+  @@index([costType])
+}
+
+// ============================================
 
 enum DebtType {
   PAYABLE

@@ -494,6 +494,114 @@ async function main() {
     console.log("✅ Thanh toán đã tạo");
   }
 
+  // ===================== DỰ TOÁN (ESTIMATE) =====================
+  const estimate = await prisma.estimate.create({
+    data: {
+      projectId: project.id,
+      version: 1,
+      name: "Dự toán ban đầu",
+      status: "ACTIVE",
+      totalAmount: 0,
+      createdBy: admin.id,
+    },
+  });
+
+  // Estimate items grouped by stage
+  const estimateItems: { code: string; name: string; unit: string; quantity: number; unitPrice: number; costType: string; stageName: string; contractor?: string }[] = [
+    // Chuẩn bị mặt bằng
+    { code: "CB.01", name: "San lấp mặt bằng", unit: "m2", quantity: 113.4, unitPrice: 15000, costType: "LABOR", stageName: "Chuẩn bị mặt bằng" },
+    { code: "CB.02", name: "Lắp hàng rào tạm", unit: "m", quantity: 50, unitPrice: 25000, costType: "MATERIAL", stageName: "Chuẩn bị mặt bằng" },
+    { code: "CB.03", name: "Phá dỡ công trình cũ", unit: "m3", quantity: 30, unitPrice: 200000, costType: "LABOR", stageName: "Chuẩn bị mặt bằng" },
+    { code: "CB.04", name: "Đo đạc định vị", unit: "công", quantity: 5, unitPrice: 300000, costType: "LABOR", stageName: "Chuẩn bị mặt bằng" },
+    // Móng và nền tầng 1
+    { code: "MN.01", name: "Đào móng", unit: "m3", quantity: 85, unitPrice: 150000, costType: "LABOR", stageName: "Móng và nền tầng 1" },
+    { code: "MN.02", name: "Bê tông lót móng C15", unit: "m3", quantity: 12, unitPrice: 1100000, costType: "MATERIAL", stageName: "Móng và nền tầng 1" },
+    { code: "MN.03", name: "Bê tông móng C25", unit: "m3", quantity: 35, unitPrice: 1250000, costType: "MATERIAL", stageName: "Móng và nền tầng 1" },
+    { code: "MN.04", name: "Cốt thép móng Φ16", unit: "kg", quantity: 1200, unitPrice: 18500, costType: "MATERIAL", stageName: "Móng và nền tầng 1" },
+    { code: "MN.05", name: "Cốt thép móng Φ12", unit: "kg", quantity: 800, unitPrice: 18500, costType: "MATERIAL", stageName: "Móng và nền tầng 1" },
+    { code: "MN.06", name: "Xây tường móng", unit: "m3", quantity: 25, unitPrice: 850000, costType: "LABOR", stageName: "Móng và nền tầng 1" },
+    { code: "MN.07", name: "Gia cố nền", unit: "m2", quantity: 113.4, unitPrice: 50000, costType: "LABOR", stageName: "Móng và nền tầng 1" },
+    // Tầng 1 - Khung, tường
+    { code: "T1.01", name: "Bê tông cột tầng 1 C25", unit: "m3", quantity: 18, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.02", name: "Bê tông dầm tầng 1 C25", unit: "m3", quantity: 22, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.03", name: "Bê tông sàn tầng 1 C25", unit: "m3", quantity: 15, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.04", name: "Cốt thép cột Φ18", unit: "kg", quantity: 900, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.05", name: "Cốt thép dầm Φ20", unit: "kg", quantity: 600, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.06", name: "Cốt thép sàn Φ10", unit: "kg", quantity: 750, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.07", name: "Xây tường gạch ống", unit: "m2", quantity: 180, unitPrice: 95000, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.08", name: "Xây tường gạch (công)", unit: "m2", quantity: 180, unitPrice: 60000, costType: "LABOR", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.09", name: "Trát tường trong", unit: "m2", quantity: 320, unitPrice: 45000, costType: "LABOR", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.10", name: "Trát tường ngoài", unit: "m2", quantity: 180, unitPrice: 55000, costType: "LABOR", stageName: "Tầng 1 - Khung, tường" },
+    { code: "T1.11", name: "Lắp khung cửa", unit: "bộ", quantity: 6, unitPrice: 450000, costType: "MATERIAL", stageName: "Tầng 1 - Khung, tường" },
+    // Tầng 2 - Khung và tường
+    { code: "T2.01", name: "Bê tông cột tầng 2 C25", unit: "m3", quantity: 16, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.02", name: "Bê tông dầm tầng 2 C25", unit: "m3", quantity: 20, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.03", name: "Bê tông sàn tầng 2 C25", unit: "m3", quantity: 14, unitPrice: 1250000, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.04", name: "Cốt thép cột Φ18", unit: "kg", quantity: 800, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.05", name: "Cốt thép dầm Φ20", unit: "kg", quantity: 550, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.06", name: "Cốt thép sàn Φ10", unit: "kg", quantity: 700, unitPrice: 18500, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.07", name: "Xây tường gạch ống", unit: "m2", quantity: 160, unitPrice: 95000, costType: "MATERIAL", stageName: "Tầng 2 - Khung và tường" },
+    { code: "T2.08", name: "Trát tường ngoài", unit: "m2", quantity: 160, unitPrice: 55000, costType: "LABOR", stageName: "Tầng 2 - Khung và tường" },
+    // Mái nhà
+    { code: "MA.01", name: "Bê tông mái C25", unit: "m3", quantity: 12, unitPrice: 1250000, costType: "MATERIAL", stageName: "Mái nhà" },
+    { code: "MA.02", name: "Tôn Bluescope 4 lớp", unit: "m2", quantity: 60, unitPrice: 250000, costType: "MATERIAL", stageName: "Mái nhà" },
+    { code: "MA.03", name: "Xà gồ C75", unit: "cây", quantity: 40, unitPrice: 180000, costType: "MATERIAL", stageName: "Mái nhà" },
+    { code: "MA.04", name: "Chống thấm mái", unit: "m2", quantity: 70, unitPrice: 85000, costType: "MATERIAL", stageName: "Mái nhà" },
+    { code: "MA.05", name: "Thi công mái (công)", unit: "công", quantity: 20, unitPrice: 400000, costType: "LABOR", stageName: "Mái nhà" },
+    // Hệ thống điện
+    { code: "DI.01", name: "Dây điện 2.5mm²", unit: "cuộn", quantity: 15, unitPrice: 850000, costType: "MATERIAL", stageName: "Hệ thống điện" },
+    { code: "DI.02", name: "Dây điện 4mm²", unit: "cuộn", quantity: 10, unitPrice: 1200000, costType: "MATERIAL", stageName: "Hệ thống điện" },
+    { code: "DI.03", name: "Ổ cắm + công tắc", unit: "bộ", quantity: 40, unitPrice: 65000, costType: "MATERIAL", stageName: "Hệ thống điện" },
+    { code: "DI.04", name: "CB tổng + nhánh", unit: "bộ", quantity: 2, unitPrice: 1200000, costType: "MATERIAL", stageName: "Hệ thống điện" },
+    { code: "DI.05", name: "Đèn LED downlight", unit: "cái", quantity: 20, unitPrice: 120000, costType: "MATERIAL", stageName: "Hệ thống điện" },
+    { code: "DI.06", name: "Thi công điện (công)", unit: "công", quantity: 15, unitPrice: 450000, costType: "LABOR", stageName: "Hệ thống điện" },
+    // Hệ thống nước
+    { code: "NU.01", name: "Ống PPR Φ20", unit: "cây", quantity: 30, unitPrice: 85000, costType: "MATERIAL", stageName: "Hệ thống nước" },
+    { code: "NU.02", name: "Ống PPR Φ25", unit: "cây", quantity: 25, unitPrice: 110000, costType: "MATERIAL", stageName: "Hệ thống nước" },
+    { code: "NU.03", name: "Van + phụ kiện", unit: "bộ", quantity: 3, unitPrice: 750000, costType: "MATERIAL", stageName: "Hệ thống nước" },
+    { code: "NU.04", name: "Bồn cầu + chậu rửa", unit: "bộ", quantity: 3, unitPrice: 3700000, costType: "MATERIAL", stageName: "Hệ thống nước" },
+    { code: "NU.05", name: "Thi công nước (công)", unit: "công", quantity: 10, unitPrice: 420000, costType: "LABOR", stageName: "Hệ thống nước" },
+    // Hoàn thiện nội thất
+    { code: "NT.01", name: "Gạch lát nền 60x60", unit: "m2", quantity: 120, unitPrice: 85000, costType: "MATERIAL", stageName: "Hoàn thiện nội thất" },
+    { code: "NT.02", name: "Gạch ốp tường 20x25", unit: "m2", quantity: 80, unitPrice: 35000, costType: "MATERIAL", stageName: "Hoàn thiện nội thất" },
+    { code: "NT.03", name: "Đá ốp bếp", unit: "m2", quantity: 6, unitPrice: 450000, costType: "MATERIAL", stageName: "Hoàn thiện nội thất" },
+    { code: "NT.04", name: "Thi công ốp lát (công)", unit: "công", quantity: 25, unitPrice: 400000, costType: "LABOR", stageName: "Hoàn thiện nội thất" },
+    // Sơn và trang trí
+    { code: "SN.01", name: "Sơn Dulux nội thất 5L", unit: "thùng", quantity: 15, unitPrice: 850000, costType: "MATERIAL", stageName: "Sơn và trang trí" },
+    { code: "SN.02", name: "Sơn Dulux ngoại thất 5L", unit: "thùng", quantity: 10, unitPrice: 950000, costType: "MATERIAL", stageName: "Sơn và trang trí" },
+    { code: "SN.03", name: "Sơn lót + bột trét", unit: "bộ", quantity: 1, unitPrice: 3500000, costType: "MATERIAL", stageName: "Sơn và trang trí" },
+    { code: "SN.04", name: "Thi công sơn (công)", unit: "công", quantity: 20, unitPrice: 350000, costType: "LABOR", stageName: "Sơn và trang trí" },
+    // Kiểm tra và bàn giao
+    { code: "BG.01", name: "Dọn dẹp vệ sinh", unit: "công", quantity: 10, unitPrice: 280000, costType: "LABOR", stageName: "Kiểm tra và bàn giao" },
+    { code: "BG.02", name: "Kiểm tra kỹ thuật", unit: "lần", quantity: 1, unitPrice: 5000000, costType: "EQUIPMENT", stageName: "Kiểm tra và bàn giao" },
+    { code: "BG.03", name: "Chi phí bàn giao khác", unit: "lần", quantity: 1, unitPrice: 3000000, costType: "OTHER", stageName: "Kiểm tra và bàn giao" },
+  ];
+
+  for (const item of estimateItems) {
+    const sid = stageNameMap[item.stageName];
+    const amount = item.quantity * item.unitPrice;
+    await prisma.estimateItem.create({
+      data: {
+        estimateId: estimate.id,
+        stageId: sid || null,
+        code: item.code,
+        name: item.name,
+        unit: item.unit,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        amount,
+        costType: item.costType as any,
+        contractor: item.contractor || null,
+        progressPct: item.stageName === "Chuẩn bị mặt bằng" || item.stageName === "Móng và nền tầng 1" || item.stageName === "Tầng 1 - Khung, tường" ? 100 : 0,
+      },
+    });
+  }
+  // Recalc totalAmount
+  const allItems = await prisma.estimateItem.findMany({ where: { estimateId: estimate.id } });
+  const grandTotal = allItems.reduce((sum, i) => sum + Number(i.amount), 0);
+  await prisma.estimate.update({ where: { id: estimate.id }, data: { totalAmount: grandTotal } });
+  console.log("✅ Dự toán ban đầu đã tạo");
+
   // ===================== CÀI ĐẶT =====================
   await prisma.setting.create({ data: { key: "project.defaultLat", value: "10.7769" } });
   await prisma.setting.create({ data: { key: "project.defaultLon", value: "106.7009" } });

@@ -73,32 +73,32 @@ export const authConfig = {
       return session;
     },
   },
-  trustHost: process.env.NODE_ENV === "production" ? false : true,
+  trustHost: true,
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && process.env.NEXTAUTH_URL?.startsWith("https"),
       },
     },
     csrfToken: {
       name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && process.env.NEXTAUTH_URL?.startsWith("https"),
       },
     },
     callbackUrl: {
       name: `next-auth.callback-url`,
       options: {
-        sameSite: "strict",
+        sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && process.env.NEXTAUTH_URL?.startsWith("https"),
       },
     },
   },

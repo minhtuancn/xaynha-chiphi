@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -12,12 +12,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { CostType } from '@/schemas/estimate';
 import { updateEstimateItem, deleteEstimateItem, createEstimateItem } from '@/actions/estimate';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { costTypeLabels, costTypeColors, formatCurrency, formatNumber } from './estimate-utils';
 
 interface StageInfo {
   id: string;
@@ -48,37 +48,6 @@ interface EstimateTableProps {
   estimateId: string;
   items: EstimateItemData[];
   readOnly?: boolean;
-}
-
-const costTypeLabels: Record<string, string> = {
-  MATERIAL: 'VT',
-  LABOR: 'NC',
-  EQUIPMENT: 'TT',
-  SUBCONTRACT: 'NTP',
-  OTHER: 'Khác',
-};
-
-const costTypeColors: Record<string, string> = {
-  MATERIAL: 'bg-blue-100 text-blue-800',
-  LABOR: 'bg-orange-100 text-orange-800',
-  EQUIPMENT: 'bg-purple-100 text-purple-800',
-  SUBCONTRACT: 'bg-teal-100 text-teal-800',
-  OTHER: 'bg-gray-100 text-gray-800',
-};
-
-function formatCurrency(value: number | string) {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(num);
-}
-
-function formatNumber(value: number | string) {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  return new Intl.NumberFormat('vi-VN').format(num);
 }
 
 export function EstimateTable({ estimateId, items, readOnly = false }: EstimateTableProps) {
@@ -126,12 +95,12 @@ export function EstimateTable({ estimateId, items, readOnly = false }: EstimateT
   };
 
   const saveCellEdit = async (itemId: string, field: string) => {
-    if (!editValues[itemId]?.[field]) {
+    const value = editValues[itemId]?.[field];
+    if (value === undefined) {
       setEditingCell(null);
       return;
     }
 
-    const value = editValues[itemId][field];
     const parsedValue = field === 'progressPct' ? parseInt(value) : parseFloat(value);
 
     if (isNaN(parsedValue)) return;

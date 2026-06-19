@@ -1,4 +1,6 @@
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -18,8 +20,10 @@ module.exports = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['10.20.10.135:3000', 'localhost:3000', 'xaynha.go7s.net'],
+      allowedOrigins: ['10.20.10.135:3000', 'localhost:3000', 'xaynha.go7s.net', '10.20.10.135', 'localhost:3050'],
     },
   },
   allowedDevOrigins: ['10.20.10.135', 'xaynha.go7s.net'],
 };
+
+module.exports = nextConfig;

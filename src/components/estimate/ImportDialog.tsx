@@ -95,8 +95,15 @@ export function ImportDialog({ open, onClose, estimateId, onSuccess }: ImportDia
       const code = values[colMap['code']] || '';
       const name = values[colMap['name']] || '';
       const unit = values[colMap['unit']] || '';
-      const quantity = parseFloat(values[colMap['quantity']]?.replace(/[,.]/g, (m, idx, str) => idx < str.length - 3 ? '' : '.') || '0');
-      const unitPrice = parseFloat(values[colMap['unitPrice']]?.replace(/[,.]/g, (m, idx, str) => idx < str.length - 3 ? '' : '.') || '0');
+      const parseVNNumber = (s: string): number => {
+        if (!s) return NaN;
+        // Vietnamese format: 1.500,5 -> 1500.5
+        // Remove thousand separators (.) then replace decimal comma (,) with dot (.)
+        const normalized = s.replace(/\./g, '').replace(',', '.');
+        return parseFloat(normalized);
+      };
+      const quantity = parseVNNumber(values[colMap['quantity']] || '0');
+      const unitPrice = parseVNNumber(values[colMap['unitPrice']] || '0');
       const costType = values[colMap['costType']]?.toUpperCase() || 'MATERIAL';
 
       if (!code) errors.push('Thiếu mã CP');

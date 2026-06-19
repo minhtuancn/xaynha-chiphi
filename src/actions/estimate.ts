@@ -377,29 +377,15 @@ export async function syncProgressFromLogs(estimateId: string) {
     if (!item.stageId) continue;
 
     try {
-      // Get material usages for this stage
+      // Get material usages for this stage via task linkage
       const usages = await prisma.materialUsage.findMany({
         where: {
           projectId: estimate.projectId,
-          dailyLog: {
-            // Assuming DailyLog has stageId or we link via task
-            // For now, link via ConstructionTask which has stageId
-          },
-        },
-        include: {
-          dailyLog: true,
-          task: true,
+          task: { stageId: item.stageId },
         },
       });
 
-      // Filter by stageId via task or dailyLog
-      const stageUsages = usages.filter((u) =>
-        (u.task?.stageId === item.stageId) ||
-        // If DailyLog gets stageId in future: u.dailyLog?.stageId === item.stageId
-        false
-      );
-
-      const totalActualQty = stageUsages.reduce((sum, u) => sum + Number(u.quantity), 0);
+      const totalActualQty = usages.reduce((sum, u) => sum + Number(u.quantity), 0);
       const progressPct = Number(item.quantity) > 0
         ? Math.min(100, Math.round((totalActualQty / Number(item.quantity)) * 100))
         : 0;

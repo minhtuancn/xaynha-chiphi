@@ -12,7 +12,8 @@ test.describe('Estimate Module', () => {
     await page.waitForURL('**/dashboard');
     await page.goto(`${BASE_URL}/projects/${PROJECT_ID}/estimate`);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    // Wait for the version selector to appear (page fully loaded)
+    await expect(page.getByText(/v1/)).toBeVisible({ timeout: 10000 });
   });
 
   test('estimate page loads version selector', async ({ page }) => {
@@ -33,18 +34,14 @@ test.describe('Estimate Module', () => {
 
   test('create new version shows draft badge', async ({ page }) => {
     await page.getByRole('button', { name: /Tạo bản mới/ }).click();
-    await page.waitForTimeout(2000);
-    await expect(page.getByText('Nháp')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Nháp')).toBeVisible({ timeout: 15000 });
   });
 
   test('expand stage group shows estimate codes', async ({ page }) => {
-    // Click the "Bảng lượng" tab first (it's the default, but be explicit)
     await page.getByRole('tab', { name: 'Bảng lượng' }).click();
-    await page.waitForTimeout(1000);
-    // Click the first stage row to expand it
+    // Click the stage row to expand it
     const stageRow = page.getByRole('row').filter({ hasText: /Móng và nền/ }).first();
     await stageRow.click();
-    await page.waitForTimeout(2000);
     // Check for any estimate code pattern (CB.01, MN.01, etc.)
     const codePattern = /[A-Z]{2}\.\d{2}/;
     await expect(page.getByText(codePattern).first()).toBeVisible({ timeout: 5000 });
@@ -52,11 +49,9 @@ test.describe('Estimate Module', () => {
 
   test('summary tab shows cost type breakdown', async ({ page }) => {
     await page.getByRole('tab', { name: 'Tổng hợp' }).click();
-    await page.waitForTimeout(1000);
-    // Click "Tổng hợp theo loại CP" sub-tab to see cost type codes
+    // Click "Tổng hợp theo loại CP" sub-tab
     await page.getByRole('tab', { name: /loại CP/ }).click();
-    await page.waitForTimeout(1000);
-    // Check for cost type full names (Vật tư, Nhân công, Thiết bị)
+    // Check for cost type full names
     const text = await page.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Vật tư|Nhân công|Thiết bị/);
   });

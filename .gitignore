@@ -26,3 +26,11 @@ backups/
 
 # Auto-generated
 next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Local environment / secrets (never commit)
+ecosystem.config.js
+prisma/schema.prisma.bak
+
+# Agent tooling
+.opencode/

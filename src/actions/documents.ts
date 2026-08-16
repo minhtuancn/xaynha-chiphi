@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { documentSchema } from "@/schemas/document";
 import { serialize } from "@/lib/serialize";
+import { deleteFile } from "@/lib/minio";
 
 export async function getDocuments() {
   await requirePermission("documents", "view");
@@ -65,6 +66,19 @@ export async function deleteDocument(id: string) {
     where: { id },
     data: { deletedAt: new Date() },
   });
+
+  // Remove the stored file so storage does not leak
+  if (doc.url) {
+    try {
+      const bucket = process.env.MINIO_BUCKET || "documents";
+      const objectName = doc.url.split("/").pop();
+      if (objectName) {
+        await deleteFile(bucket, objectName);
+      }
+    } catch {
+      // MinIO may be unavailable; soft delete still succeeds
+    }
+  }
 
   revalidatePath("/documents");
 }

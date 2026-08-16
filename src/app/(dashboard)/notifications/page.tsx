@@ -24,6 +24,7 @@ import {
 } from "@/actions/notifications";
 import { ListSkeleton } from "@/components/ui/loading-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { toast } from "@/hooks/use-toast";
 
 interface NotificationItem {
@@ -147,9 +148,9 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Thông báo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Thông báo</h1>
           {unreadCount > 0 && (
             <Badge variant="destructive">{unreadCount} chưa đọc</Badge>
           )}
@@ -238,18 +239,14 @@ export default function NotificationsPage() {
                             Chưa đọc
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void handleDelete(n.id);
-                          }}
-                          title="Xóa"
-                          className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <span onClick={(e) => e.stopPropagation()}>
+                          <ConfirmDeleteButton
+                            onConfirm={() => handleDelete(n.id)}
+                            title="Xóa thông báo này?"
+                            description="Thông báo sẽ bị xóa vĩnh viễn."
+                            className="h-8 w-8 hover:bg-destructive/10"
+                          />
+                        </span>
                       </div>
                     </div>
                   </div>

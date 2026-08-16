@@ -118,7 +118,7 @@ export async function updateDailyLog(
 
   const validated = dailyLogSchema.parse(data);
 
-  const log = await prisma.dailyLog.findUnique({ where: { id } });
+  const log = await prisma.dailyLog.findFirst({ where: { id, deletedAt: null } });
   if (!log) throw new Error("Daily log not found");
 
   const weather = await getWeatherForDate(log.projectId, validated.date);

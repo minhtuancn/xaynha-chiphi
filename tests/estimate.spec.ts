@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'http://localhost:3050';
+// Fixed id: seeded deterministically in prisma/seed.ts
 const PROJECT_ID = 'c5a4398e-cf7f-4d09-a2f8-f0cb25795cf3';
 
 test.describe('Estimate Module', () => {
@@ -34,7 +35,7 @@ test.describe('Estimate Module', () => {
 
   test('create new version shows draft badge', async ({ page }) => {
     await page.getByRole('button', { name: /Tạo bản mới/ }).click();
-    await expect(page.getByText('Nháp')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Nháp').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('expand stage group shows estimate codes', async ({ page }) => {

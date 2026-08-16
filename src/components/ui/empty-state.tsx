@@ -14,7 +14,7 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <Card className={cn("border-dashed shadow-sm", className)}>
-      <div className="flex flex-col items-center justify-center p-12 text-center animate-fade-in">
+      <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in sm:p-12">
         <div className="mb-4 rounded-full bg-muted p-4 text-muted-foreground">
           {icon ?? <Inbox className="h-8 w-8" />}
         </div>

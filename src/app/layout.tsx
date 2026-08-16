@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/app/providers";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { OfflineProvider } from "@/components/offline-provider";
 import { OfflineBanner } from "@/components/offline-banner";
 
@@ -50,6 +51,14 @@ export default function RootLayout({
               <OfflineBanner />
               {children}
               <Toaster />
+              <SonnerToaster
+                position="top-center"
+                richColors
+                toastOptions={{
+                  style: { fontFamily: "inherit" },
+                  className: "max-w-[92vw] sm:max-w-md",
+                }}
+              />
             </OfflineProvider>
           </ThemeProvider>
         </Providers>

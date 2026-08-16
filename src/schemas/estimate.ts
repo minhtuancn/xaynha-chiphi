@@ -16,7 +16,8 @@ export const updateEstimateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200).optional(),
   notes: z.string().optional(),
-  status: EstimateStatusEnum.optional(),
+  // NOTE: status transitions must go through activateEstimate/archiveEstimate
+  // to preserve the single-ACTIVE invariant.
 });
 export type UpdateEstimateInput = z.infer<typeof updateEstimateSchema>;
 

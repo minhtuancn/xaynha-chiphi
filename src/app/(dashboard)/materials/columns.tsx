@@ -21,6 +21,7 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
   {
     id: "stt",
     header: "STT",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => row.index + 1,
     enableSorting: false,
     enableHiding: false,
@@ -60,6 +61,7 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
   {
     accessorKey: "minStock",
     header: "Tối thiểu",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) =>
       formatUnit(Number(row.original.minStock), row.original.unit),
   },
@@ -72,12 +74,13 @@ export const columns: ColumnDef<MaterialWithRelations>[] = [
     id: "supplierName",
     accessorFn: (row) => row.supplier?.name ?? "-",
     header: "Nhà cung cấp",
+    meta: { hideOnMobile: true } as never,
   },
   {
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
         <Link href={`/materials/${row.original.id}/edit?tab=edit`}>
           <Button variant="outline" size="sm">
             Sửa

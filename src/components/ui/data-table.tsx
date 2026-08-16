@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EmptySearchState } from "./empty-state";
+import { EmptySearchState, EmptyTableState } from "./empty-state";
 import { escapeCSV } from "@/lib/csv";
 
 interface FilterConfig {
@@ -47,6 +47,7 @@ interface DataTableProps<TData, TValue> {
   filters?: FilterConfig[];
   exportFilename?: string;
   pageSize?: number;
+  noDataText?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -57,6 +58,7 @@ export function DataTable<TData, TValue>({
   filters,
   exportFilename,
   pageSize = 10,
+  noDataText = "Chưa có dữ liệu",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -161,7 +163,7 @@ export function DataTable<TData, TValue>({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} aria-sort={
+                    <TableHead key={header.id} className={(header.column.columnDef.meta as any)?.hideOnMobile ? "hidden md:table-cell" : ""} aria-sort={
                       header.column.getIsSorted() === "asc" ? "ascending" :
                       header.column.getIsSorted() === "desc" ? "descending" : undefined
                     }>
@@ -189,10 +191,10 @@ export function DataTable<TData, TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="group cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="group hover:bg-muted/50 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className={(cell.column.columnDef.meta as any)?.hideOnMobile ? "hidden md:table-cell" : ""}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -201,7 +203,11 @@ export function DataTable<TData, TValue>({
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-48">
-                    <EmptySearchState query={(table.getColumn(searchColumn ?? "")?.getFilterValue() as string) ?? undefined} />
+                    {data.length === 0 && !hasFilter ? (
+                      <EmptyTableState title={noDataText} />
+                    ) : (
+                      <EmptySearchState query={(table.getColumn(searchColumn ?? "")?.getFilterValue() as string) ?? undefined} />
+                    )}
                   </TableCell>
                 </TableRow>
               )}

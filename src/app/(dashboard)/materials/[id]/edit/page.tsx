@@ -41,7 +41,7 @@ export default async function EditMaterialPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{material.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{material.name}</h1>
       <DetailViewTabs
         viewTab={<MaterialDetail material={serialize(material)} />}
         editTab={

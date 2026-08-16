@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon, XIcon, TrashIcon } from "lucide-react";
 import { updateExpenseStatus, deleteExpense } from "@/actions/financial";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +18,16 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function ApproveExpenseButton({ id }: { id: string }) {
+  const queryClient = useQueryClient();
   return (
     <Button
       variant="ghost"
       size="icon"
       className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
-      onClick={() => updateExpenseStatus(id, "APPROVED")}
+      onClick={async () => {
+        await updateExpenseStatus(id, "APPROVED");
+        await queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      }}
       title="Duyệt"
     >
       <CheckIcon className="h-4 w-4" />
@@ -31,12 +36,16 @@ export function ApproveExpenseButton({ id }: { id: string }) {
 }
 
 export function RejectExpenseButton({ id }: { id: string }) {
+  const queryClient = useQueryClient();
   return (
     <Button
       variant="ghost"
       size="icon"
       className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
-      onClick={() => updateExpenseStatus(id, "REJECTED")}
+      onClick={async () => {
+        await updateExpenseStatus(id, "REJECTED");
+        await queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      }}
       title="Từ chối"
     >
       <XIcon className="h-4 w-4" />
@@ -46,11 +55,13 @@ export function RejectExpenseButton({ id }: { id: string }) {
 
 export function DeleteExpenseButton({ id }: { id: string }) {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     setOpen(false);
     try {
       await deleteExpense(id);
+      await queryClient.invalidateQueries({ queryKey: ["expenses"] });
       toast({ title: "Đã xóa chi phí" });
     } catch {
       toast({ title: "Xóa thất bại", variant: "destructive" });

@@ -7,10 +7,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  allowedDevOrigins: ['10.20.10.135', 'xaynha.go7s.net'],
+  allowedDevOrigins: ['10.20.10.135', '10.20.10.103', 'xaynha.go7s.net'],
   experimental: {
     serverActions: {
-      allowedOrigins: ['10.20.10.135', 'xaynha.go7s.net'],
+      allowedOrigins: ['10.20.10.135', '10.20.10.103', 'xaynha.go7s.net'],
     },
   },
 };

@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { notifyAdmins } from "./notifications";
 import { requirePermission } from "@/lib/auth";
-import { workerSchema, type WorkerFormData } from "@/schemas/worker";
+import { workerSchema, attendanceSchema, type WorkerFormData } from "@/schemas/worker";
 import { createNotificationForCurrentUser } from "./notifications";
 import { logAudit } from "@/lib/audit";
 import { serialize } from "@/lib/serialize";
@@ -167,13 +168,25 @@ export async function bulkAttendance(
 ) {
   await requirePermission("attendance", "create");
 
+  if (records.length > 500) {
+    throw new Error("Quá nhiều bản ghi chấm công trong một lần (tối đa 500)");
+  }
+
+  const attendanceListSchema = z.array(
+    attendanceSchema.refine((r) => {
+      if (r.checkIn && r.checkOut) return r.checkIn <= r.checkOut;
+      return true;
+    }, { message: "Giờ vào phải trước giờ ra" })
+  );
+  const validatedRecords = attendanceListSchema.parse(records);
+
   const startOfDay = new Date(date);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
   await prisma.$transaction(
-    records.map((record) =>
+    validatedRecords.map((record) =>
       prisma.workerAttendance.upsert({
         where: {
           workerId_date: {

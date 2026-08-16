@@ -116,7 +116,7 @@ export function PaymentForm({ debts, accounts, onSubmit, isSubmitting = false }:
                   <Input
                     type="number"
                     min={0.01}
-                    step="1"
+                    step="0.01"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />

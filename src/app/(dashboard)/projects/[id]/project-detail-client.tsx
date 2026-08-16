@@ -20,8 +20,10 @@ import {
   Edit3,
   TrendingUp,
   TrendingDown,
+  BarChart3,
+  ArrowLeft,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Project = {
   id: string;
@@ -77,12 +79,20 @@ export function ProjectDetailDashboard({
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Quay lại danh sách dự án
+      </Link>
+
       {/* Hero Header */}
       <div className="rounded-xl border bg-gradient-to-br from-card to-muted/30 p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
               <Badge
                 className={
                   project.status === "ACTIVE"
@@ -127,13 +137,13 @@ export function ProjectDetailDashboard({
           <Card className="border-0 bg-background/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Ngân sách</p>
-              <p className="mt-1 text-lg font-bold">{formatCurrency(project.budget)}</p>
+              <p className="mt-1 text-base font-semibold break-words tabular-nums sm:text-lg">{formatCurrency(project.budget)}</p>
             </CardContent>
           </Card>
           <Card className="border-0 bg-background/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Đã chi</p>
-              <p className="mt-1 text-lg font-bold text-rose-600">
+              <p className="mt-1 text-base font-semibold break-words tabular-nums text-rose-600 sm:text-lg">
                 {formatCurrency(project.projectBudget?.spent ?? totalExpenses)}
               </p>
             </CardContent>
@@ -141,13 +151,13 @@ export function ProjectDetailDashboard({
           <Card className="border-0 bg-background/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Còn lại</p>
-              <p className="mt-1 text-lg font-bold text-emerald-600">{formatCurrency(Math.max(0, budgetRemaining))}</p>
+              <p className="mt-1 text-base font-semibold break-words tabular-nums text-emerald-600 sm:text-lg">{formatCurrency(Math.max(0, budgetRemaining))}</p>
             </CardContent>
           </Card>
           <Card className="border-0 bg-background/50">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Tiến độ</p>
-              <p className="mt-1 text-lg font-bold">{project.progress}%</p>
+              <p className="mt-1 text-base font-semibold tabular-nums sm:text-lg">{project.progress}%</p>
             </CardContent>
           </Card>
         </div>
@@ -207,7 +217,7 @@ export function ProjectDetailDashboard({
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2"><ListChecks className="h-4 w-4" />Giai đoạn thi công</CardTitle>
-              <Link href={`/projects/${project.id}/stages`}>
+              <Link href="/stages">
                 <Button variant="ghost" size="sm"><ArrowRight className="h-4 w-4" /></Button>
               </Link>
             </CardHeader>
@@ -456,6 +466,11 @@ export function ProjectDetailDashboard({
                 <Progress value={Math.min(100, parseFloat(budgetUtilization))} className="h-2" />
                 <p className="text-right text-xs text-muted-foreground mt-1">{budgetUtilization}%</p>
               </div>
+              <Link href={`/projects/${project.id}/estimate`}>
+                <Button variant="outline" size="sm" className="mt-4 w-full">
+                  <BarChart3 className="h-4 w-4 mr-1" /> Xem chi tiết dự toán
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </TabsContent>
@@ -479,9 +494,42 @@ export function ProjectDetailDashboard({
 }
 
 function WeatherWidget({ lat, lon, address }: { lat: number; lon: number; address: string | null }) {
-  const weatherData = useMemo(() => {
-    // Attempt to fetch weather from API
-    return null as { condition: string; temperature: number; humidity: number; windSpeed: number } | null;
+  const [weatherData, setWeatherData] = useState<{
+    condition: string;
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadWeather() {
+      try {
+        const res = await fetch(`/api/weather?lat=${lat}&lng=${lon}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const code = Number(data.weathercode ?? 0);
+        const condition =
+          code === 0 || code === 1 ? "Trời quang" :
+          code === 2 ? "Ít mây" :
+          code === 3 ? "Nhiều mây" :
+          code >= 51 && code <= 67 ? "Mưa" :
+          code >= 71 && code <= 77 ? "Tuyết" :
+          code >= 80 && code <= 82 ? "Mưa rào" :
+          code >= 95 ? "Dông" : "Trời quang";
+        setWeatherData({
+          condition,
+          temperature: Math.round(Number(data.temperature ?? 0)),
+          humidity: Math.round(Number(data.humidity ?? 0)),
+          windSpeed: Math.round(Number(data.windspeed ?? 0)),
+        });
+      } catch {
+        // Keep the placeholder on network failure.
+      }
+    }
+    void loadWeather();
+    return () => { cancelled = true; };
   }, [lat, lon]);
 
   if (weatherData) {
@@ -489,7 +537,7 @@ function WeatherWidget({ lat, lon, address }: { lat: number; lon: number; addres
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 text-center text-sm">
         <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-950/30">
           <CloudSun className="mx-auto h-8 w-8 text-blue-500" />
-          <p className="mt-2 text-2xl font-bold">{weatherData.temperature}°C</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">{weatherData.temperature}°C</p>
           <p className="text-muted-foreground">{weatherData.condition}</p>
         </div>
         <div className="rounded-lg bg-muted p-4">

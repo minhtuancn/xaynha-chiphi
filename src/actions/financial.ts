@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth";
+import { requireAdmin, requirePermission } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { notifyAdmins } from "./notifications";
 import {
@@ -10,6 +10,8 @@ import {
   transactionSchema,
   debtSchema,
   paymentSchema,
+  accountSchema,
+  accountUpdateSchema,
   type ExpenseFormData,
   type TransactionFormData,
   type DebtFormData,
@@ -65,15 +67,33 @@ export async function createExpense(data: ExpenseFormData) {
 
   if (!category) throw new Error("Danh mục chi phí không tồn tại");
 
-  const expense = await prisma.expense.create({
-    data: {
-      projectId: projectScope,
-      categoryId: validated.categoryId,
-      amount: new Decimal(validated.amount),
-      date: validated.date,
-      description: validated.description || null,
-      status: validated.status,
-    },
+  const expense = await prisma.$transaction(async (tx) => {
+    const created = await tx.expense.create({
+      data: {
+        projectId: projectScope,
+        categoryId: validated.categoryId,
+        amount: new Decimal(validated.amount),
+        date: validated.date,
+        description: validated.description || null,
+        status: validated.status,
+        createdBy: user.id,
+      },
+    });
+
+    // Keep the budget ledger in sync when an expense is recorded.
+    const budget = await tx.budget.findUnique({ where: { projectId: projectScope } });
+    if (budget) {
+      const newSpent = budget.spent.add(validated.amount);
+      await tx.budget.update({
+        where: { projectId: projectScope },
+        data: {
+          spent: newSpent,
+          remaining: budget.totalBudget.sub(newSpent),
+        },
+      });
+    }
+
+    return created;
   });
 
   await logAudit(user.id, "CREATE", "Expense", expense.id, {
@@ -91,7 +111,9 @@ export async function createExpense(data: ExpenseFormData) {
 }
 
 export async function updateExpenseStatus(id: string, status: "APPROVED" | "REJECTED") {
-  const user = await requirePermission("expenses", "edit");
+  // Approving/rejecting is an approval decision; restrict to admins (or users
+  // granted expenses edit, but never self-approve). Admins always allowed.
+  const user = await requireAdmin();
 
   const expense = await prisma.expense.findUnique({ where: { id } });
   if (!expense) throw new Error("Chi phí không tồn tại");
@@ -153,38 +175,69 @@ export async function getAccounts() {
 export async function createAccount(data: { name: string; type: "CASH" | "BANK"; balance?: number }) {
   await requirePermission("accounts", "create");
 
-  return prisma.account.create({
+  const validated = accountSchema.parse(data);
+
+  const account = await prisma.account.create({
     data: {
-      name: data.name,
-      type: data.type,
-      balance: new Decimal(data.balance ?? 0),
+      name: validated.name,
+      type: validated.type,
+      balance: new Decimal(validated.balance),
     },
   });
+
+  revalidatePath("/accounts");
+  return serialize(account);
 }
 
 export async function updateAccount(id: string, data: { name?: string; balance?: number }) {
   await requirePermission("accounts", "edit");
 
+  const validated = accountUpdateSchema.parse(data);
+
   const account = await prisma.account.findUnique({ where: { id } });
   if (!account) throw new Error("Tài khoản không tồn tại");
 
-  return prisma.account.update({
+  const updated = await prisma.account.update({
     where: { id },
     data: {
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.balance !== undefined && { balance: new Decimal(data.balance) }),
+      ...(validated.name !== undefined && { name: validated.name }),
+      ...(validated.balance !== undefined && { balance: new Decimal(validated.balance) }),
     },
   });
+
+  revalidatePath("/accounts");
+  return serialize(updated);
 }
 
 export async function deleteAccount(id: string) {
-  await requirePermission("accounts", "delete");
+  const user = await requirePermission("accounts", "delete");
 
-  await prisma.account.update({
-    where: { id },
-    data: { deletedAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    const account = await tx.account.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true, balance: true },
+    });
+    if (!account) throw new Error("Tài khoản không tồn tại");
+
+    if (!account.balance.isZero()) {
+      throw new Error("Không thể xóa tài khoản còn số dư khác 0");
+    }
+
+    const txCount = await tx.transaction.count({ where: { accountId: id } });
+    if (txCount > 0) {
+      throw new Error("Không thể xóa tài khoản đã có giao dịch");
+    }
+
+    await tx.account.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   });
 
+  await logAudit(user.id, "DELETE", "Account", id, {
+    oldValues: { id },
+    newValues: { deletedAt: new Date().toISOString() },
+  });
   revalidatePath("/accounts");
 }
 
@@ -197,6 +250,8 @@ export async function getTransactions(options?: { page?: number; limit?: number 
 
   const page = options?.page ?? 1;
   const limit = options?.limit ?? 50;
+  const safePage = Math.max(1, Math.floor(page));
+  const safeLimit = Math.min(200, Math.max(1, Math.floor(limit)));
 
   const [data, total] = await Promise.all([
     prisma.transaction.findMany({
@@ -205,8 +260,8 @@ export async function getTransactions(options?: { page?: number; limit?: number 
         user: { select: { id: true, name: true } },
       },
       orderBy: { date: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
     }),
     prisma.transaction.count(),
   ]);
@@ -221,12 +276,16 @@ export async function createTransaction(data: TransactionFormData) {
   const transaction = await prisma.$transaction(async (tx) => {
     const account = await tx.account.findUnique({
       where: { id: validated.accountId, deletedAt: null },
-      select: { id: true, deletedAt: true },
+      select: { id: true, deletedAt: true, balance: true },
     });
 
     if (!account || account.deletedAt) throw new Error("Tài khoản không tồn tại");
 
     const amount = new Decimal(validated.amount);
+
+    if (validated.type !== "INCOME" && account.balance.lt(amount)) {
+      throw new Error("Số dư tài khoản không đủ");
+    }
 
     const created = await tx.transaction.create({
       data: {
@@ -236,18 +295,19 @@ export async function createTransaction(data: TransactionFormData) {
         date: validated.date,
         category: validated.category || null,
         description: validated.description || null,
+        userId: user.id,
       },
     });
 
     if (validated.type === "INCOME") {
       await tx.account.update({
         where: { id: validated.accountId },
-        data: { balance: { increment: validated.amount } },
+        data: { balance: { increment: amount } },
       });
     } else {
       await tx.account.update({
         where: { id: validated.accountId },
-        data: { balance: { decrement: validated.amount } },
+        data: { balance: { decrement: amount } },
       });
     }
 
@@ -293,33 +353,49 @@ export async function createDebt(data: DebtFormData) {
     throw new Error("Phải chọn nhà cung cấp hoặc công nhân");
   }
 
-  if (validated.supplierId) {
-    const supplier = await prisma.supplier.findUnique({
-      where: { id: validated.supplierId, deletedAt: null },
-    });
-    if (!supplier) throw new Error("Nhà cung cấp không tồn tại");
-  }
-
-  if (validated.workerId) {
-    const worker = await prisma.worker.findUnique({
-      where: { id: validated.workerId, deletedAt: null },
-    });
-    if (!worker) throw new Error("Công nhân không tồn tại");
+  if (validated.supplierId && validated.workerId) {
+    throw new Error("Chỉ chọn một trong hai: nhà cung cấp hoặc công nhân");
   }
 
   const amount = new Decimal(validated.amount);
 
-  const debt = await prisma.debt.create({
-    data: {
-      supplierId: validated.supplierId || null,
-      workerId: validated.workerId || null,
-      type: validated.type,
-      amount,
-      paidAmount: new Decimal(0),
-      dueDate: validated.dueDate || null,
-      status: "UNPAID",
-      notes: validated.notes || null,
-    },
+  const debt = await prisma.$transaction(async (tx) => {
+    if (validated.supplierId) {
+      const supplier = await tx.supplier.findUnique({
+        where: { id: validated.supplierId, deletedAt: null },
+      });
+      if (!supplier) throw new Error("Nhà cung cấp không tồn tại");
+    }
+
+    if (validated.workerId) {
+      const worker = await tx.worker.findUnique({
+        where: { id: validated.workerId, deletedAt: null },
+      });
+      if (!worker) throw new Error("Công nhân không tồn tại");
+    }
+
+    const created = await tx.debt.create({
+      data: {
+        supplierId: validated.supplierId || null,
+        workerId: validated.workerId || null,
+        type: validated.type,
+        amount,
+        paidAmount: new Decimal(0),
+        dueDate: validated.dueDate || null,
+        status: "UNPAID",
+        notes: validated.notes || null,
+      },
+    });
+
+    // Keep the denormalized supplier balance in sync
+    if (validated.supplierId) {
+      await tx.supplier.update({
+        where: { id: validated.supplierId },
+        data: { debtBalance: { increment: amount } },
+      });
+    }
+
+    return created;
   });
 
   await logAudit(user.id, "CREATE", "Debt", debt.id, {
@@ -335,9 +411,27 @@ export async function createDebt(data: DebtFormData) {
 export async function deleteDebt(id: string) {
   const user = await requirePermission("debts", "delete");
 
-  await prisma.debt.update({
-    where: { id },
-    data: { deletedAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    const debt = await tx.debt.findUnique({ where: { id } });
+    if (!debt || debt.deletedAt) throw new Error("Công nợ không tồn tại");
+
+    const paymentCount = await tx.payment.count({ where: { debtId: id } });
+    if (paymentCount > 0) {
+      throw new Error("Không thể xóa công nợ đã có khoản thanh toán");
+    }
+
+    // Reverse the denormalized supplier balance before soft-delete
+    if (debt.supplierId) {
+      await tx.supplier.update({
+        where: { id: debt.supplierId },
+        data: { debtBalance: { decrement: debt.amount } },
+      });
+    }
+
+    await tx.debt.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   });
 
   await logAudit(user.id, "DELETE", "Debt", id, {});
@@ -390,6 +484,14 @@ export async function addPayment(data: PaymentFormData) {
     const amount = new Decimal(validated.amount);
     const newPaidAmount = debt.paidAmount.add(amount);
 
+    // Guards: no overpayment and no overdraft.
+    if (newPaidAmount.gt(debt.amount)) {
+      throw new Error("Số tiền thanh toán vượt quá khoản nợ còn lại");
+    }
+    if (account.balance.lt(amount)) {
+      throw new Error("Số dư tài khoản không đủ");
+    }
+
     let newStatus: "UNPAID" | "PARTIAL" | "PAID";
     if (newPaidAmount.gte(debt.amount)) {
       newStatus = "PAID";
@@ -410,6 +512,21 @@ export async function addPayment(data: PaymentFormData) {
       },
     });
 
+    // Record the balance movement in the account ledger so it can be
+    // reconciled via getTransactions.
+    await tx.transaction.create({
+      data: {
+        accountId: validated.accountId,
+        userId: user.id,
+        type: "EXPENSE",
+        amount,
+        date: validated.date,
+        category: debt.supplierId ? "Trả nợ nhà cung cấp" : "Trả nợ công nhân",
+        description: `Thanh toán công nợ ${debt.supplierId ? debt.supplierId : debt.workerId}`,
+        reference: `PAYMENT-${created.id}`,
+      },
+    });
+
     await tx.debt.update({
       where: { id: validated.debtId },
       data: {
@@ -418,9 +535,17 @@ export async function addPayment(data: PaymentFormData) {
       },
     });
 
+    // Keep the denormalized supplier balance in sync.
+    if (debt.supplierId) {
+      await tx.supplier.update({
+        where: { id: debt.supplierId },
+        data: { debtBalance: { decrement: amount } },
+      });
+    }
+
     await tx.account.update({
       where: { id: validated.accountId },
-      data: { balance: { decrement: validated.amount } },
+      data: { balance: { decrement: amount } },
     });
 
     return created;

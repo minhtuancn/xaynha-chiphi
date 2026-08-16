@@ -36,7 +36,7 @@ export default async function EditDailyLogPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Chỉnh sửa nhật ký</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Chỉnh sửa nhật ký</h1>
       <Card>
         <CardHeader>
           <CardTitle>Thông tin nhật ký</CardTitle>

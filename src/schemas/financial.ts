@@ -35,6 +35,17 @@ export const paymentSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const accountSchema = z.object({
+  name: z.string().min(1, "Tên tài khoản không được để trống").max(100),
+  type: z.enum(["CASH", "BANK"]),
+  balance: z.coerce.number().min(0, "Số dư không được âm").default(0),
+});
+
+export const accountUpdateSchema = z.object({
+  name: z.string().min(1, "Tên tài khoản không được để trống").max(100).optional(),
+  balance: z.coerce.number().min(0, "Số dư không được âm").optional(),
+});
+
 export type ExpenseFormData = z.infer<typeof expenseSchema>;
 export type TransactionFormData = z.infer<typeof transactionSchema>;
 export type DebtFormData = z.infer<typeof debtSchema>;

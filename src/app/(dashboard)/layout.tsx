@@ -3,6 +3,7 @@ import { auth } from "@/app/api/auth/[...nextauth]/auth";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarProvider } from "@/components/layout/sidebar-provider";
 import { DashboardLayoutClient } from "@/components/dashboard-layout-client";
 import { getUserSetting } from "@/actions/user-settings";
@@ -24,7 +25,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <DashboardLayoutClient initialSettings={userSettings}>
           <Sidebar />
           <div className="md:ml-64">
@@ -33,8 +34,11 @@ export default async function DashboardLayout({
               userEmail={user.email}
               userRole={user.role}
             />
-            <main id="main-content" className="p-4 md:p-6">{children}</main>
+            <main id="main-content" className="p-4 pb-20 md:p-6 md:pb-6">
+              {children}
+            </main>
           </div>
+          <BottomNav />
         </DashboardLayoutClient>
       </div>
     </SidebarProvider>

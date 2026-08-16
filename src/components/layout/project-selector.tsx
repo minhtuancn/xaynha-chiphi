@@ -46,7 +46,7 @@ export function ProjectSelector() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[220px] justify-between gap-2 border-dashed"
+          className="w-[140px] justify-between gap-1 border-dashed px-2.5 sm:w-[220px] sm:gap-2"
         >
           <Layers className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="truncate">

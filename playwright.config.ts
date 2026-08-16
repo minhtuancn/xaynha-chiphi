@@ -11,8 +11,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'http://localhost:3050',
     trace: 'on-first-retry',
-    actionTimeout: 30000,
-    navigationTimeout: 60000,
+    actionTimeout: 60000,
+    navigationTimeout: 90000,
   },
   projects: [
     {

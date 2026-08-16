@@ -5,14 +5,15 @@ import { loginLimiter } from "@/lib/rate-limit";
 const publicPaths = ["/login"];
 const apiAuthPrefix = "/api/auth";
 const healthPath = "/api/health";
-const publicAssets = ["/favicon.ico", "/manifest.json", "/sw.js"];
+const publicAssets = ["/favicon.ico", "/manifest.json", "/manifest.webmanifest", "/sw.js"];
 const publicPrefixes = ["/_next/", "/icons/", "/uploads/"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Rate limit login POST only
-  if (pathname === '/login' && req.method === 'POST') {
+  // Rate limit login form POST (the NextAuth credentials callback is
+  // rate-limited on FAILED attempts inside the authorize() function).
+  if (pathname === "/login" && req.method === "POST") {
     const limitResponse = loginLimiter(req);
     if (limitResponse) return limitResponse;
   }

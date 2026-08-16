@@ -36,27 +36,31 @@ export async function createProject(data: ProjectFormData) {
 
   const validated = projectSchema.parse(data);
 
-  const project = await prisma.project.create({
-    data: {
-      name: validated.name,
-      address: validated.address,
-      budget: new Decimal(validated.budget),
-      startDate: validated.startDate,
-      endDate: validated.endDate,
-      status: validated.status,
-      progress: validated.progress,
-      description: validated.description,
-    },
-  });
+  const project = await prisma.$transaction(async (tx) => {
+    const created = await tx.project.create({
+      data: {
+        name: validated.name,
+        address: validated.address,
+        budget: new Decimal(validated.budget),
+        startDate: validated.startDate,
+        endDate: validated.endDate,
+        status: validated.status,
+        progress: validated.progress,
+        description: validated.description,
+      },
+    });
 
-  await prisma.budget.create({
-    data: {
-      projectId: project.id,
-      totalBudget: new Decimal(validated.budget),
-      allocated: new Decimal(0),
-      spent: new Decimal(0),
-      remaining: new Decimal(validated.budget),
-    },
+    await tx.budget.create({
+      data: {
+        projectId: created.id,
+        totalBudget: new Decimal(validated.budget),
+        allocated: new Decimal(0),
+        spent: new Decimal(0),
+        remaining: new Decimal(validated.budget),
+      },
+    });
+
+    return created;
   });
 
   void notifyAdmins("DU_AN", `Dự án "${validated.name}" đã được tạo`);
@@ -70,26 +74,39 @@ export async function updateProject(id: string, data: ProjectFormData) {
 
   const validated = projectSchema.parse(data);
 
-  await prisma.project.update({
-    where: { id },
-    data: {
-      name: validated.name,
-      address: validated.address,
-      budget: new Decimal(validated.budget),
-      startDate: validated.startDate,
-      endDate: validated.endDate,
-      status: validated.status,
-      progress: validated.progress,
-      description: validated.description,
-    },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.project.update({
+      where: { id },
+      data: {
+        name: validated.name,
+        address: validated.address,
+        budget: new Decimal(validated.budget),
+        startDate: validated.startDate,
+        endDate: validated.endDate,
+        status: validated.status,
+        progress: validated.progress,
+        description: validated.description,
+      },
+    });
 
-  await prisma.budget.update({
-    where: { projectId: id },
-    data: {
-      totalBudget: new Decimal(validated.budget),
-      remaining: new Decimal(validated.budget),
-    },
+    const budget = await tx.budget.findUnique({ where: { projectId: id } });
+    const spent = budget?.spent ?? new Decimal(0);
+    const remaining = new Decimal(validated.budget).sub(spent);
+
+    await tx.budget.upsert({
+      where: { projectId: id },
+      create: {
+        projectId: id,
+        totalBudget: new Decimal(validated.budget),
+        allocated: new Decimal(0),
+        spent: new Decimal(0),
+        remaining,
+      },
+      update: {
+        totalBudget: new Decimal(validated.budget),
+        remaining,
+      },
+    });
   });
 
   revalidatePath("/projects");
@@ -146,42 +163,62 @@ export async function deleteProject(id: string) {
     }
   }
 
-  if (budget !== null) {
-    await prisma.budget.delete({ where: { projectId: id } });
-  }
-
   const now = new Date();
 
-  await prisma.$transaction([
-    prisma.constructionStage.updateMany({
+  await prisma.$transaction(async (tx) => {
+    if (budget !== null) {
+      await tx.budget.delete({ where: { projectId: id } });
+    }
+
+    const stages = await tx.constructionStage.findMany({
+      where: { projectId: id, deletedAt: null },
+      select: { id: true },
+    });
+    const stageIds = stages.map((s) => s.id);
+
+    if (stageIds.length > 0) {
+      await tx.stageBudget.deleteMany({ where: { stageId: { in: stageIds } } });
+      await tx.checklist.updateMany({
+        where: { stageId: { in: stageIds } },
+        data: { deletedAt: now },
+      });
+    }
+
+    // Estimates have no deletedAt; remove rows so no ACTIVE estimate outlives the project
+    await tx.estimate.deleteMany({ where: { projectId: id } });
+    // MaterialUsage has no deletedAt; remove the project-scoped rows
+    await tx.materialUsage.deleteMany({ where: { projectId: id } });
+    // InventoryTransaction/StageBudget have no deletedAt; delete the project-scoped rows
+    await tx.inventoryTransaction.deleteMany({ where: { projectId: id } });
+    await tx.constructionStage.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.dailyLog.updateMany({
+    });
+    await tx.dailyLog.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.expense.updateMany({
+    });
+    await tx.expense.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.purchaseOrder.updateMany({
+    });
+    await tx.purchaseOrder.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.photo.updateMany({
+    });
+    await tx.photo.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.document.updateMany({
+    });
+    await tx.document.updateMany({
       where: { projectId: id, deletedAt: null },
       data: { deletedAt: now },
-    }),
-    prisma.project.update({
+    });
+    await tx.project.update({
       where: { id },
       data: { deletedAt: now },
-    }),
-  ]);
+    });
+  });
 
   revalidatePath("/projects");
   return { success: true };

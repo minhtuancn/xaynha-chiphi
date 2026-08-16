@@ -41,7 +41,7 @@ export default async function DailyLogDetailPage({
             Quay lại
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold flex-1">
+        <h1 className="text-2xl font-semibold tracking-tight flex-1">
           Nhật ký ngày {formatDate(log.date)}
         </h1>
         <Link href={`/daily-logs/${id}/edit`}>
@@ -85,7 +85,7 @@ export default async function DailyLogDetailPage({
                   </div>
                 )}
                 <div>
-                  <p className="text-2xl font-bold">{weather.temperature}°C</p>
+                  <p className="text-2xl font-semibold tracking-tight">{weather.temperature}°C</p>
                   {label && (
                     <p className="text-sm text-muted-foreground">{label}</p>
                   )}
@@ -138,7 +138,16 @@ export default async function DailyLogDetailPage({
                   key={photo.id}
                   className="relative aspect-square rounded-lg border overflow-hidden bg-muted flex items-center justify-center"
                 >
-                  <Image className="h-8 w-8 text-muted-foreground" />
+                  {photo.url ? (
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || "Ảnh nhật ký"}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Image className="h-8 w-8 text-muted-foreground" />
+                  )}
                   {photo.caption && (
                     <p className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
                       {photo.caption}

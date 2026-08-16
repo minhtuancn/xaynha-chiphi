@@ -1,7 +1,8 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { requireUser } from '@/lib/auth';
+import { requirePermission } from '@/lib/auth';
+import { Decimal } from '@prisma/client/runtime/library';
 import {
   createEstimateSchema,
   updateEstimateSchema,
@@ -19,10 +20,15 @@ import {
 } from '@/schemas/estimate';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
+import { serialize } from '@/lib/serialize';
+import { escapeCSV } from '@/lib/csv';
 
-async function getCurrentUser() {
-  const user = await requireUser();
-  return user;
+async function getCurrentUser(action: 'view' | 'create' | 'edit' | 'delete' = 'view') {
+  return requirePermission('estimates', action);
+}
+
+async function requireEstimatePermission(action: 'view' | 'create' | 'edit' | 'delete') {
+  return requirePermission('estimates', action);
 }
 
 // ============================================
@@ -30,112 +36,135 @@ async function getCurrentUser() {
 // ============================================
 
 export async function createEstimate(input: CreateEstimateInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("create");
   const data = createEstimateSchema.parse(input);
 
-  // Get the latest version for this project
-  const latestEstimate = await prisma.estimate.findFirst({
-    where: { projectId: data.projectId },
-    orderBy: { version: 'desc' },
-  });
+  // Version computation and item copy run in one transaction; a unique-
+  // constraint race (concurrent creates) is retried with the fresh version.
+  let estimate: Awaited<ReturnType<typeof prisma.estimate.create>> | null = null;
 
-  const newVersion = (latestEstimate?.version ?? 0) + 1;
+  for (let attempt = 0; attempt < 3 && !estimate; attempt++) {
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const latestEstimate = await tx.estimate.findFirst({
+          where: { projectId: data.projectId },
+          orderBy: { version: 'desc' },
+        });
 
-  // Create new estimate as DRAFT
-  const estimate = await prisma.estimate.create({
-    data: {
-      projectId: data.projectId,
-      version: newVersion,
-      name: data.name,
-      status: 'DRAFT',
-      createdBy: user.id,
-      totalAmount: 0,
-    },
-  });
+        const newVersion = (latestEstimate?.version ?? 0) + 1;
 
-  // If there's an active estimate, copy its items to the new one
-  const activeEstimate = await prisma.estimate.findFirst({
-    where: { projectId: data.projectId, status: 'ACTIVE' },
-    include: { items: true },
-  });
+        // Create new estimate as DRAFT
+        const created = await tx.estimate.create({
+          data: {
+            projectId: data.projectId,
+            version: newVersion,
+            name: data.name,
+            status: 'DRAFT',
+            createdBy: user.id,
+            totalAmount: 0,
+          },
+        });
 
-  if (activeEstimate) {
-    await prisma.estimateItem.createMany({
-      data: activeEstimate.items.map((item) => ({
-        estimateId: estimate.id,
-        stageId: item.stageId,
-        code: item.code,
-        name: item.name,
-        unit: item.unit,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        amount: item.amount,
-        costType: item.costType,
-        contractor: item.contractor,
-        progressPct: item.progressPct,
-        actualQuantity: item.actualQuantity,
-        notes: item.notes,
-        sortOrder: item.sortOrder,
-      })),
-    });
+        // If there's an active estimate, copy its items to the new one
+        const activeEstimate = await tx.estimate.findFirst({
+          where: { projectId: data.projectId, status: 'ACTIVE' },
+          include: { items: true },
+        });
 
-    // Recalculate total
-    await recalcEstimateTotals(estimate.id);
+        if (activeEstimate) {
+          await tx.estimateItem.createMany({
+            data: activeEstimate.items.map((item) => ({
+              estimateId: created.id,
+              stageId: item.stageId,
+              code: item.code,
+              name: item.name,
+              unit: item.unit,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              amount: item.amount,
+              costType: item.costType,
+              contractor: item.contractor,
+              progressPct: item.progressPct,
+              actualQuantity: item.actualQuantity,
+              notes: item.notes,
+              sortOrder: item.sortOrder,
+            })),
+          });
+        }
+
+        return created;
+      });
+      estimate = result;
+    } catch (err) {
+      // P2002: unique constraint on (projectId, version) — concurrent create.
+      if ((err as { code?: string })?.code === "P2002") continue;
+      throw err;
+    }
   }
 
+  if (!estimate) {
+    throw new Error("Không thể tạo phiên bản dự toán, vui lòng thử lại");
+  }
+
+  // Recalculate total from the copied items
+  await recalcEstimateTotals(estimate.id);
+
   revalidatePath(`/projects/${data.projectId}/estimate`);
-  return estimate;
+  return serialize(estimate);
 }
 
 export async function getEstimatesByProject(projectId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("view");
 
-  return prisma.estimate.findMany({
-    where: { projectId },
-    orderBy: { version: 'desc' },
-    include: {
-      _count: { select: { items: true } },
-    },
-  });
+  return serialize(
+    await prisma.estimate.findMany({
+      where: { projectId },
+      orderBy: { version: 'desc' },
+      include: {
+        _count: { select: { items: true } },
+      },
+    })
+  );
 }
 
 export async function getEstimateWithItems(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("view");
 
-  return prisma.estimate.findUnique({
-    where: { id: estimateId },
-    include: {
-      items: {
-        include: {
-          stage: { select: { id: true, name: true, order: true } },
+  return serialize(
+    await prisma.estimate.findUnique({
+      where: { id: estimateId },
+      include: {
+        items: {
+          include: {
+            stage: { select: { id: true, name: true, order: true } },
+          },
+          orderBy: [{ stage: { order: 'asc' } }, { sortOrder: 'asc' }],
         },
-        orderBy: [{ stage: { order: 'asc' } }, { sortOrder: 'asc' }],
+        project: { select: { id: true, name: true } },
+        creator: { select: { id: true, name: true } },
       },
-      project: { select: { id: true, name: true } },
-      creator: { select: { id: true, name: true } },
-    },
-  });
+    })
+  );
 }
 
 export async function updateEstimate(input: UpdateEstimateInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
   const data = updateEstimateSchema.parse(input);
 
   const estimate = await prisma.estimate.update({
     where: { id: data.id },
     data: {
-      name: data.name,
-      notes: data.notes,
-      status: data.status,
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.notes !== undefined && { notes: data.notes }),
     },
   });
 
   revalidatePath(`/projects/${estimate.projectId}/estimate`);
-  return estimate;
+  return serialize(estimate);
 }
 
 export async function activateEstimate(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
 
   const estimate = await prisma.estimate.findUnique({
     where: { id: estimateId },
@@ -144,24 +173,26 @@ export async function activateEstimate(estimateId: string) {
 
   if (!estimate) throw new Error('Estimate not found');
 
-  // Archive current active estimate
-  await prisma.estimate.updateMany({
-    where: { projectId: estimate.projectId, status: 'ACTIVE' },
-    data: { status: 'ARCHIVED' },
-  });
+  // Archive current active + activate this one atomically, so a failure
+  // between the two steps can never leave the project without an ACTIVE.
+  const activated = await prisma.$transaction(async (tx) => {
+    await tx.estimate.updateMany({
+      where: { projectId: estimate.projectId, status: 'ACTIVE' },
+      data: { status: 'ARCHIVED' },
+    });
 
-  // Activate this one
-  const activated = await prisma.estimate.update({
-    where: { id: estimateId },
-    data: { status: 'ACTIVE' },
+    return tx.estimate.update({
+      where: { id: estimateId },
+      data: { status: 'ACTIVE' },
+    });
   });
 
   revalidatePath(`/projects/${estimate.projectId}/estimate`);
-  return activated;
+  return serialize(activated);
 }
 
 export async function archiveEstimate(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
 
   const estimate = await prisma.estimate.update({
     where: { id: estimateId },
@@ -169,11 +200,11 @@ export async function archiveEstimate(estimateId: string) {
   });
 
   revalidatePath(`/projects/${estimate.projectId}/estimate`);
-  return estimate;
+  return serialize(estimate);
 }
 
 export async function deleteEstimate(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("delete");
 
   const estimate = await prisma.estimate.findUnique({
     where: { id: estimateId },
@@ -194,9 +225,21 @@ export async function deleteEstimate(estimateId: string) {
 // ESTIMATE ITEM CRUD
 // ============================================
 
+/** Throws unless the estimate exists and is still DRAFT (items are locked once ACTIVE/ARCHIVED). */
+async function assertEstimateDraft(estimateId: string) {
+  const estimate = await prisma.estimate.findUnique({ where: { id: estimateId } });
+  if (!estimate) throw new Error("Không tìm thấy bản dự toán");
+  if (estimate.status !== "DRAFT") {
+    throw new Error("Chỉ có thể chỉnh sửa bản dự toán ở trạng thái Nháp");
+  }
+  return estimate;
+}
+
 export async function createEstimateItem(input: EstimateItemInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
   const data = estimateItemSchema.parse(input);
+
+  await assertEstimateDraft(data.estimateId);
 
   const amount = data.quantity * data.unitPrice;
 
@@ -221,11 +264,11 @@ export async function createEstimateItem(input: EstimateItemInput) {
 
   await recalcEstimateTotals(data.estimateId);
   revalidatePath(`/projects/*/estimate`);
-  return item;
+  return serialize(item);
 }
 
 export async function updateEstimateItem(itemId: string, input: Partial<EstimateItemInput>) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
   const data = estimateItemSchema.partial().parse(input);
 
   const item = await prisma.estimateItem.findUnique({
@@ -233,6 +276,8 @@ export async function updateEstimateItem(itemId: string, input: Partial<Estimate
   });
 
   if (!item) throw new Error('Item not found');
+
+  await assertEstimateDraft(item.estimateId);
 
   const updateData: Prisma.EstimateItemUpdateInput = { ...data };
   if (data.quantity !== undefined || data.unitPrice !== undefined) {
@@ -248,17 +293,19 @@ export async function updateEstimateItem(itemId: string, input: Partial<Estimate
 
   await recalcEstimateTotals(item.estimateId);
   revalidatePath(`/projects/*/estimate`);
-  return updated;
+  return serialize(updated);
 }
 
 export async function deleteEstimateItem(itemId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("delete");
 
   const item = await prisma.estimateItem.findUnique({
     where: { id: itemId },
   });
 
   if (!item) throw new Error('Item not found');
+
+  await assertEstimateDraft(item.estimateId);
 
   await prisma.estimateItem.delete({ where: { id: itemId } });
 
@@ -268,8 +315,10 @@ export async function deleteEstimateItem(itemId: string) {
 }
 
 export async function bulkUpsertEstimateItems(input: BulkUpsertEstimateItemsInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
   const data = bulkUpsertEstimateItemsSchema.parse(input);
+
+  await assertEstimateDraft(data.estimateId);
 
   const results = await prisma.$transaction(async (tx) => {
     const created: typeof data.items = [];
@@ -331,18 +380,22 @@ export async function bulkUpsertEstimateItems(input: BulkUpsertEstimateItemsInpu
 
   await recalcEstimateTotals(data.estimateId);
   revalidatePath(`/projects/*/estimate`);
-  return results;
+  return serialize(results);
 }
 
 export async function recalcEstimateTotals(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
 
   const items = await prisma.estimateItem.findMany({
     where: { estimateId },
     select: { amount: true },
   });
 
-  const totalAmount = items.reduce((sum, item) => sum + Number(item.amount), 0);
+  // Decimal accumulation avoids float drift across many items.
+  const totalAmount = items.reduce(
+    (sum, item) => sum.plus(new Decimal(item.amount.toString())),
+    new Decimal(0)
+  );
 
   await prisma.estimate.update({
     where: { id: estimateId },
@@ -357,7 +410,7 @@ export async function recalcEstimateTotals(estimateId: string) {
 // ============================================
 
 export async function syncProgressFromLogs(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
 
   const estimate = await prisma.estimate.findUnique({
     where: { id: estimateId },
@@ -414,7 +467,7 @@ export async function syncProgressFromLogs(estimateId: string) {
 // ============================================
 
 export async function compareEstimates(input: CompareEstimatesInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("view");
   const data = compareEstimatesSchema.parse(input);
 
   const [est1, est2] = await Promise.all([
@@ -578,7 +631,7 @@ export async function compareEstimates(input: CompareEstimatesInput) {
 // ============================================
 
 export async function importEstimateFromCSV(input: ImportEstimateInput) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("edit");
   const data = importEstimateSchema.parse(input);
 
   // Convert to EstimateItemInput format
@@ -602,7 +655,7 @@ export async function importEstimateFromCSV(input: ImportEstimateInput) {
 }
 
 export async function exportEstimateToCSV(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("view");
 
   const estimate = await prisma.estimate.findUnique({
     where: { id: estimateId },
@@ -621,6 +674,13 @@ export async function exportEstimateToCSV(estimateId: string) {
     'Loại CP', 'Giai đoạn', 'Nhà thầu', '% HT', 'SL thực tế', 'Chênh lệch', 'Ghi chú'
   ];
 
+  // Neutralize spreadsheet formula injection: any cell starting with = + - @
+  // gets a leading apostrophe so it renders as text in Excel/Sheets.
+  const safeCell = (val: unknown): string => {
+    const s = String(val ?? '');
+    return /^[=+\-@]/.test(s) ? `'${s}` : s;
+  };
+
   const rows = estimate.items.map((item) => [
     item.code,
     item.name,
@@ -637,7 +697,10 @@ export async function exportEstimateToCSV(estimateId: string) {
     item.notes || '',
   ]);
 
-  const csvContent = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((r) => r.map((c) => escapeCSV(safeCell(c))).join(',')),
+  ].join('\n');
 
   return csvContent;
 }
@@ -647,7 +710,7 @@ export async function downloadEstimateCSV(estimateId: string) {
 }
 
 export async function exportEstimateToPDF(estimateId: string) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("view");
 
   const estimate = await prisma.estimate.findUnique({
     where: { id: estimateId },

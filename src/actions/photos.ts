@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { deleteFile } from "@/lib/minio";
@@ -19,6 +20,14 @@ export async function getPhotos() {
   return serialize(result);
 }
 
+const photoSchema = z.object({
+  url: z.string().min(1).max(1000),
+  thumbnail: z.string().max(1000).nullable().optional(),
+  caption: z.string().max(500).nullable().optional(),
+  tags: z.array(z.string().max(50)).max(50).optional(),
+  takenAt: z.coerce.date(),
+});
+
 export async function createPhoto(data: {
   url: string;
   thumbnail?: string;
@@ -28,17 +37,19 @@ export async function createPhoto(data: {
 }) {
   await requirePermission("photos", "create");
 
+  const validated = photoSchema.parse(data);
+
   const projectScope = await getProjectScope();
   if (!projectScope) throw new Error("Không có dự án đang hoạt động");
 
   await prisma.photo.create({
     data: {
       projectId: projectScope,
-      url: data.url,
-      thumbnail: data.thumbnail ?? null,
-      caption: data.caption ?? null,
-      tags: data.tags ? JSON.stringify(data.tags) : "[]",
-      takenAt: data.takenAt,
+      url: validated.url,
+      thumbnail: validated.thumbnail ?? null,
+      caption: validated.caption ?? null,
+      tags: validated.tags ? JSON.stringify(validated.tags) : "[]",
+      takenAt: validated.takenAt,
     },
   });
 

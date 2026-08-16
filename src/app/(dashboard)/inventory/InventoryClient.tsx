@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import { InventoryUsageForm } from "@/components/inventory-usage-form";
 import { InventoryReturnForm } from "@/components/inventory-return-form";
 import { columns, type MaterialStockRow } from "./columns";
 import { formatNumber, formatDate } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import type { MaterialWithRelations, TransactionRow, PurchaseOrderForReturn } from "./inventory-types";
 
 const STOCK_FILTERS = [
@@ -48,6 +50,8 @@ export function InventoryClient({
   receivedPOs,
 }: InventoryClientProps) {
   const [stockFilter, setStockFilter] = useState("ALL");
+  const router = useRouter();
+  const { toast } = useToast();
 
   const stockData: MaterialStockRow[] = materials.map((m) => ({
     id: m.id,
@@ -71,7 +75,7 @@ export function InventoryClient({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản lý kho</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Quản lý kho</h1>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -115,7 +119,9 @@ export function InventoryClient({
                 materials={simpleMaterials}
                 onSubmit={async (data) => {
                   const { createTransaction } = await import("@/actions/inventory");
-                  return createTransaction(data);
+                  await createTransaction(data);
+                  toast({ title: "Đã lưu giao dịch kho", description: "Tồn kho đã được cập nhật." });
+                  router.refresh();
                 }}
               />
             </TabsContent>
@@ -125,7 +131,9 @@ export function InventoryClient({
                 materials={simpleMaterials}
                 onSubmit={async (data) => {
                   const { createTransaction } = await import("@/actions/inventory");
-                  return createTransaction(data);
+                  await createTransaction(data);
+                  toast({ title: "Đã lưu giao dịch kho", description: "Tồn kho đã được cập nhật." });
+                  router.refresh();
                 }}
               />
             </TabsContent>
@@ -135,7 +143,9 @@ export function InventoryClient({
                 materials={simpleMaterials}
                 onSubmit={async (data) => {
                   const { createTransaction } = await import("@/actions/inventory");
-                  return createTransaction(data);
+                  await createTransaction(data);
+                  toast({ title: "Đã lưu giao dịch kho", description: "Tồn kho đã được cập nhật." });
+                  router.refresh();
                 }}
               />
             </TabsContent>
@@ -155,6 +165,7 @@ export function InventoryClient({
                   <th className="px-4 py-3 text-left text-sm font-medium">Ngày</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Vật liệu</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Loại</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Tham chiếu</th>
                   <th className="px-4 py-3 text-right text-sm font-medium">Số lượng</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Ghi chú</th>
                 </tr>
@@ -162,7 +173,7 @@ export function InventoryClient({
               <tbody>
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       Chưa có giao dịch nào
                     </td>
                   </tr>
@@ -185,6 +196,9 @@ export function InventoryClient({
                         }`}>
                           {INVENTORY_TYPE_LABELS[tx.type] ?? tx.type}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {tx.reference ?? "-"}
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-mono">
                         {formatNumber(tx.quantity, 2)}{" "}

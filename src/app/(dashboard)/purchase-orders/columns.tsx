@@ -68,7 +68,7 @@ export const columns: ColumnDef<PurchaseOrderRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
         <Link href={`/purchase-orders/${row.original.id}?tab=view`}>
           <Button variant="outline" size="sm">
             Chi tiết

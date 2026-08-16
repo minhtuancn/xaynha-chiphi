@@ -71,11 +71,13 @@ export const transactionColumns: ColumnDef<TransactionRow>[] = [
     accessorKey: "category",
     header: "Danh mục",
     cell: ({ row }) => row.original.category || "-",
+    meta: { hideOnMobile: true } as never,
   },
   {
     accessorKey: "reference",
     header: "Tham chiếu",
     cell: ({ row }) => row.original.reference || "-",
+    meta: { hideOnMobile: true } as never,
   },
   {
     accessorKey: "description",
@@ -85,6 +87,7 @@ export const transactionColumns: ColumnDef<TransactionRow>[] = [
         {row.original.description || "-"}
       </span>
     ),
+    meta: { hideOnMobile: true } as never,
   },
 ];
 
@@ -121,7 +124,7 @@ export default function AccountsClient() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản lý tài khoản</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Quản lý tài khoản</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -131,7 +134,7 @@ export default function AccountsClient() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-semibold tracking-tight">
               {formatCurrency(totalBalance)}
             </div>
           </CardContent>
@@ -145,7 +148,7 @@ export default function AccountsClient() {
             </CardHeader>
             <CardContent>
               <div className={cn(
-                "text-2xl font-bold",
+                "text-2xl font-semibold tracking-tight",
                 acc.balance < 0 && "text-destructive"
               )}>
                 {formatCurrency(acc.balance)}

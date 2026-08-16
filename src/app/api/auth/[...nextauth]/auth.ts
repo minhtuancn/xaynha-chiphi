@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { isLoginBlocked, resetLoginFailures } from "@/lib/rate-limit";
 
 export const authConfig = {
   providers: [
@@ -11,13 +12,18 @@ export const authConfig = {
         password: {},
         rememberMe: {},
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
         const email = String(credentials.email);
         const password = String(credentials.password);
+
+        // Block when this IP+account has failed too many times recently.
+        if (request && isLoginBlocked(request as unknown as Request, email)) {
+          throw new Error("Quá nhiều lần đăng nhập thất bại, vui lòng thử lại sau");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -30,6 +36,10 @@ export const authConfig = {
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
           return null;
+        }
+
+        if (request) {
+          resetLoginFailures(request as unknown as Request, email);
         }
 
         await prisma.user.update({

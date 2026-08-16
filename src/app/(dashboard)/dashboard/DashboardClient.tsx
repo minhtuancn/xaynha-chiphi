@@ -49,7 +49,7 @@ export default function DashboardClient({ project, stats, stages, weather, recen
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{project.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
         <p className="text-muted-foreground">{project.address}</p>
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

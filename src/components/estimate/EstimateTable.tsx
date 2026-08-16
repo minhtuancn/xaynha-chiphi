@@ -177,9 +177,18 @@ export function EstimateTable({ estimateId, items, readOnly = false }: EstimateT
     if (readOnly || !isEditing) {
       return (
         <span
-          className="cursor-default"
-          onDoubleClick={() => {
+          className="cursor-pointer rounded px-0.5 py-1 -m-1 hover:bg-muted sm:cursor-text"
+          role="button"
+          tabIndex={0}
+          aria-label={`Sửa ${field}`}
+          onClick={() => {
             if (!readOnly) {
+              setEditingCell({ itemId, field });
+              handleCellEdit(itemId, field, String(numValue));
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !readOnly) {
               setEditingCell({ itemId, field });
               handleCellEdit(itemId, field, String(numValue));
             }
@@ -230,7 +239,7 @@ export function EstimateTable({ estimateId, items, readOnly = false }: EstimateT
       <TableCell className="max-w-[120px] truncate text-xs">{item.notes || ''}</TableCell>
       {!readOnly && (
         <TableCell className="p-1">
-          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteItem(item.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-6 sm:w-6 transition-opacity sm:opacity-0 sm:group-hover:opacity-100" onClick={() => handleDeleteItem(item.id)}>
             <Trash2 className="h-3 w-3 text-destructive" />
           </Button>
         </TableCell>

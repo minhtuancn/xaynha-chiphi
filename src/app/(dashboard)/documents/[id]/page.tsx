@@ -54,7 +54,7 @@ export default async function DocumentDetailPage({
               Quay lại
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">{data.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{data.name}</h1>
           <Badge variant={DOCUMENT_TYPE_VARIANTS[data.type] || "secondary"}>
             {DOCUMENT_TYPE_LABELS[data.type] || data.type}
           </Badge>

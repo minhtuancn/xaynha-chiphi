@@ -35,9 +35,25 @@ async function main() {
   });
   console.log("✅ Tài khoản đã tạo");
 
+  // Mặc định chọn dự án cho admin để các chức năng dùng project scope hoạt động ngay
+  await prisma.userSetting.create({
+    data: {
+      userId: admin.id,
+      language: "vi",
+      theme: "light",
+      dateFormat: "dd/mm/yyyy",
+      timezone: "Asia/Ho_Chi_Minh",
+      currency: "VND",
+      currencyDec: 0,
+      selectedProjectId: "c5a4398e-cf7f-4d09-a2f8-f0cb25795cf3",
+    },
+  });
+  console.log("✅ Cài đặt người dùng đã tạo");
+
   // ===================== DỰ ÁN: TUẤN MƠ =====================
   const project = await prisma.project.create({
     data: {
+      id: "c5a4398e-cf7f-4d09-a2f8-f0cb25795cf3", // Fixed id: estimate E2E depends on it
       name: "Nhà anh chị Tuấn Mơ - 2 Tầng (8,1m x 14m)",
       address: "Xã Hồng Phong, Huyện Hoa Lư, Tỉnh Ninh Bình",
       budget: 1200000000,

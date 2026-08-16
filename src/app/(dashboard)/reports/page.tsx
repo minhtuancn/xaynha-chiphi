@@ -82,7 +82,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Báo cáo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Báo cáo</h1>
           <p className="text-muted-foreground">Tổng quan tiến độ, tài chính, vật tư, nhà cung cấp, nhân công</p>
         </div>
       </div>
@@ -192,7 +192,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={handleExport} variant="outline" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Xuất CSV
@@ -210,7 +210,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng giai đoạn</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.stages.length}</div>
+            <div className="text-2xl font-semibold tracking-tight">{data.stages.length}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -218,7 +218,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Task hoàn thành</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.completedTasks}/{data.totalTasks}</div>
+            <div className="text-2xl font-semibold tracking-tight">{data.completedTasks}/{data.totalTasks}</div>
             <p className="text-xs text-muted-foreground mt-1">{formatPercent(data.taskCompletionRate)}</p>
           </CardContent>
         </Card>
@@ -227,7 +227,7 @@ function ProgressReportTab({ data }: { data: ProgressReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tiến độ trung bình</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-semibold tracking-tight">
               {formatPercent(data.stages.reduce((sum, s) => sum + s.progress, 0) / data.stages.length)}
             </div>
           </CardContent>
@@ -339,7 +339,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={handleExportCategory} variant="outline" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Xuất CSV danh mục
@@ -360,7 +360,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Ngân sách</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(data.budgetVsActual.budget)}</div>
+            <div className="text-2xl font-semibold tracking-tight">{formatCurrency(data.budgetVsActual.budget)}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -368,7 +368,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Đã chi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(data.budgetVsActual.spent)}</div>
+            <div className="text-2xl font-semibold tracking-tight text-destructive">{formatCurrency(data.budgetVsActual.spent)}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -376,7 +376,7 @@ function FinancialReportTab({ data }: { data: FinancialReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Còn lại</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${data.budgetVsActual.remaining >= 0 ? "text-accent" : "text-destructive"}`}>
+            <div className={`text-2xl font-semibold tracking-tight ${data.budgetVsActual.remaining >= 0 ? "text-emerald-600" : "text-destructive"}`}>
               {formatCurrency(data.budgetVsActual.remaining)}
             </div>
           </CardContent>
@@ -505,7 +505,7 @@ function MaterialsReportTab({ data }: { data: MaterialReport | null }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={handleExport} variant="outline" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Xuất CSV
@@ -649,7 +649,7 @@ function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={handleExport} variant="outline" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Xuất CSV
@@ -694,7 +694,7 @@ function SuppliersReportTab({ data }: { data: SupplierReport | null }) {
                     {s.outstandingDebt > 0 ? (
                       <span className="text-destructive font-medium">{formatCurrency(s.outstandingDebt)}</span>
                     ) : (
-                      <span className="text-accent">0 ₫</span>
+                      <span className="text-muted-foreground">0 ₫</span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -757,7 +757,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={handleExport} variant="outline" size="sm">
           <Download className="w-4 h-4 mr-2" />
           Xuất CSV
@@ -774,7 +774,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng công nhân</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.length}</div>
+            <div className="text-2xl font-semibold tracking-tight">{data.length}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -782,7 +782,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng lương</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalWages)}</div>
+            <div className="text-2xl font-semibold tracking-tight">{formatCurrency(totalWages)}</div>
           </CardContent>
         </Card>
         <Card className="shadow-sm hover:shadow-md transition-all">
@@ -790,7 +790,7 @@ function WorkersReportTab({ data }: { data: WorkerReport | null }) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Chuyên cần TB</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatPercent(avgAttendance)}</div>
+            <div className="text-2xl font-semibold tracking-tight">{formatPercent(avgAttendance)}</div>
           </CardContent>
         </Card>
       </div>

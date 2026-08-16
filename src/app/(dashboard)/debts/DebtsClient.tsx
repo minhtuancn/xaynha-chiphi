@@ -52,6 +52,7 @@ export const debtColumns: ColumnDef<DebtRow>[] = [
   {
     accessorKey: "type",
     header: "Loại",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => (
       <Badge variant={DEBT_TYPE_VARIANTS[row.original.type]}>
         {DEBT_TYPE_LABELS[row.original.type]}
@@ -69,8 +70,9 @@ export const debtColumns: ColumnDef<DebtRow>[] = [
     id: "paidAmount",
     accessorKey: "paidAmount",
     header: () => <span className="text-right">Đã trả</span>,
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => (
-      <span className="text-right font-mono block text-accent">{formatCurrency(row.original.paidAmount)}</span>
+      <span className="text-right font-mono block text-foreground">{formatCurrency(row.original.paidAmount)}</span>
     ),
   },
   {
@@ -98,11 +100,13 @@ export const debtColumns: ColumnDef<DebtRow>[] = [
     accessorKey: "dueDate",
     header: "Hạn",
     cell: ({ row }) => row.original.dueDate ? formatDate(row.original.dueDate) : "-",
+    meta: { hideOnMobile: true } as never,
   },
   {
     id: "notes",
     accessorKey: "notes",
     header: "Ghi chú",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => (
       <span className="text-xs text-muted-foreground max-w-[120px] truncate block">
         {row.original.notes || "-"}
@@ -140,7 +144,7 @@ export const paymentColumns: ColumnDef<PaymentRow>[] = [
     accessorKey: "amount",
     header: () => <span className="text-right">Số tiền</span>,
     cell: ({ row }) => (
-      <span className="text-right font-mono block text-accent">{formatCurrency(row.original.amount)}</span>
+      <span className="text-right font-mono block text-foreground">{formatCurrency(row.original.amount)}</span>
     ),
   },
   {
@@ -200,7 +204,7 @@ export default function DebtsClient() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Quản lý công nợ</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Quản lý công nợ</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -209,7 +213,7 @@ export default function DebtsClient() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng phải trả</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(totalPayable)}</div>
+            <div className="text-2xl font-semibold tracking-tight text-destructive">{formatCurrency(totalPayable)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -217,7 +221,7 @@ export default function DebtsClient() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tổng phải thu</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">{formatCurrency(totalReceivable)}</div>
+            <div className="text-2xl font-semibold tracking-tight text-emerald-600">{formatCurrency(totalReceivable)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -225,7 +229,7 @@ export default function DebtsClient() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Khoản nợ chưa thanh toán</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeDebts.length}</div>
+            <div className="text-2xl font-semibold tracking-tight">{activeDebts.length}</div>
           </CardContent>
         </Card>
       </div>

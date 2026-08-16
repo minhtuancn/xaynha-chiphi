@@ -8,6 +8,7 @@ import { purchaseOrderSchema, type PurchaseOrderFormData } from "@/schemas/purch
 import { createNotificationForCurrentUser } from "./notifications";
 import { logAudit } from "@/lib/audit";
 import { serialize } from "@/lib/serialize";
+import { Decimal } from "@prisma/client/runtime/library";
 
 async function notifyCurrentUser(type: string, message: string) {
   try {
@@ -41,6 +42,8 @@ export async function getPurchaseOrders(options?: { page?: number; limit?: numbe
 
   const page = options?.page ?? 1;
   const limit = options?.limit ?? 50;
+  const safePage = Math.max(1, Math.floor(page));
+  const safeLimit = Math.min(200, Math.max(1, Math.floor(limit)));
 
   const [data, total] = await Promise.all([
     prisma.purchaseOrder.findMany({
@@ -55,8 +58,8 @@ export async function getPurchaseOrders(options?: { page?: number; limit?: numbe
         },
       },
       orderBy: { orderDate: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
     }),
     prisma.purchaseOrder.count({ where: { deletedAt: null } }),
   ]);
@@ -88,8 +91,8 @@ export async function createPurchaseOrder(data: PurchaseOrderFormData) {
   const validated = purchaseOrderSchema.parse(data);
 
   const totalAmount = validated.items.reduce(
-    (sum, item) => sum + item.quantity * item.unitPrice,
-    0
+    (sum, item) => sum.plus(new Decimal(item.quantity).times(item.unitPrice)),
+    new Decimal(0)
   );
 
   const order = await prisma.purchaseOrder.create({
@@ -135,6 +138,44 @@ export async function updatePurchaseOrderStatus(
     select: { status: true, deletedAt: true },
   });
 
+  if (!currentOrder || currentOrder.deletedAt) throw new Error("Đơn hàng không tồn tại");
+
+  // A cancelled order is terminal: no further transitions are allowed.
+  if (currentOrder.status === "CANCELLED" && status !== "CANCELLED") {
+    throw new Error("Không thể thay đổi trạng thái đơn hàng đã hủy");
+  }
+
+  // A received order already touched the ledger (expense, stock, prices);
+  // it must be reverted explicitly, never silently cancelled.
+  if (status === "CANCELLED" && currentOrder.status === "RECEIVED") {
+    throw new Error("Không thể hủy đơn hàng đã nhận kho");
+  }
+
+  // Reverting a received order must undo every receiving side effect.
+  if (currentOrder.status === "RECEIVED" && status !== "RECEIVED") {
+    await prisma.$transaction(async (tx) => {
+      const received = await tx.purchaseOrder.findUnique({
+        where: { id },
+        include: { items: true, expense: true },
+      });
+      if (!received) return;
+      if (received.expense && !received.expense.deletedAt) {
+        await tx.expense.update({
+          where: { id: received.expense.id },
+          data: { deletedAt: new Date() },
+        });
+      }
+      for (const item of received.items) {
+        await tx.material.update({
+          where: { id: item.materialId },
+          data: { currentStock: { decrement: Number(item.quantity) } },
+        });
+      }
+      await tx.inventoryTransaction.deleteMany({ where: { purchaseOrderId: id } });
+      await tx.materialPrice.deleteMany({ where: { purchaseOrderId: id } });
+    });
+  }
+
   if (status === "RECEIVED" && currentOrder?.status !== "RECEIVED") {
     const orderWithItems = await prisma.purchaseOrder.findUnique({
       where: { id },
@@ -148,28 +189,52 @@ export async function updatePurchaseOrderStatus(
     if (orderWithItems && !orderWithItems.deletedAt && !orderWithItems.expense) {
       const category = await getDefaultPurchaseOrderExpenseCategory();
 
-      await prisma.expense.create({
-        data: {
-          projectId: orderWithItems.projectId,
-          categoryId: category.id,
-          amount: orderWithItems.totalAmount,
-          date: orderWithItems.orderDate,
-          description: `Chi phí tự động từ đơn hàng ${id}`,
-          status: "APPROVED",
-          origin: "PURCHASE_ORDER",
-          purchaseOrderId: id,
-          supplierId: orderWithItems.supplierId,
-          payeeName: orderWithItems.supplier?.name ?? null,
-        },
-      });
+      // Atomically: record expense, material prices, stock IN and inventory
+      // transactions so receiving goods is fully reflected in the ledger.
+      await prisma.$transaction(async (tx) => {
+        await tx.expense.create({
+          data: {
+            projectId: orderWithItems.projectId,
+            categoryId: category.id,
+            amount: orderWithItems.totalAmount,
+            date: orderWithItems.orderDate,
+            description: `Chi phí tự động từ đơn hàng ${id}`,
+            status: "APPROVED",
+            origin: "PURCHASE_ORDER",
+            purchaseOrderId: id,
+            supplierId: orderWithItems.supplierId,
+            payeeName: orderWithItems.supplier?.name ?? null,
+          },
+        });
 
-      await prisma.materialPrice.createMany({
-        data: orderWithItems.items.map((item) => ({
-          materialId: item.materialId,
-          price: item.unitPrice,
-          source: "PO" as const,
-          purchaseOrderId: id,
-        })),
+        await tx.materialPrice.createMany({
+          data: orderWithItems.items.map((item) => ({
+            materialId: item.materialId,
+            price: item.unitPrice,
+            source: "PO" as const,
+            purchaseOrderId: id,
+          })),
+        });
+
+        for (const item of orderWithItems.items) {
+          const qty = Number(item.quantity);
+          await tx.material.update({
+            where: { id: item.materialId },
+            data: { currentStock: { increment: qty } },
+          });
+          await tx.inventoryTransaction.create({
+            data: {
+              materialId: item.materialId,
+              type: "IN",
+              quantity: qty,
+              date: new Date(),
+              reference: `PO-${id}`,
+              notes: "Nhập kho từ đơn hàng",
+              purchaseOrderId: id,
+              projectId: orderWithItems.projectId,
+            },
+          });
+        }
       });
     }
   }
@@ -198,8 +263,8 @@ export async function updatePurchaseOrder(
   const validated = purchaseOrderSchema.parse(data);
 
   const totalAmount = validated.items.reduce(
-    (sum, item) => sum + item.quantity * item.unitPrice,
-    0
+    (sum, item) => sum.plus(new Decimal(item.quantity).times(item.unitPrice)),
+    new Decimal(0)
   );
 
   await prisma.$transaction(async (tx) => {
@@ -219,7 +284,7 @@ export async function updatePurchaseOrder(
             materialId: item.materialId,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            total: item.quantity * item.unitPrice,
+            total: new Decimal(item.quantity).times(item.unitPrice),
           })),
         },
       },
@@ -243,20 +308,38 @@ export async function deletePurchaseOrder(id: string) {
 
   const currentOrder = await prisma.purchaseOrder.findUnique({
     where: { id },
-    include: { expense: true },
+    include: { expense: true, items: true },
   });
 
-  await prisma.purchaseOrder.update({
-    where: { id },
-    data: { deletedAt: new Date() },
-  });
+  if (!currentOrder) throw new Error("Đơn hàng không tồn tại");
 
-  if (currentOrder?.expense) {
-    await prisma.expense.update({
-      where: { id: currentOrder.expense.id },
+  await prisma.$transaction(async (tx) => {
+    // Deleting a received order must reverse the stock it brought in,
+    // remove its inventory transactions and recorded prices, then
+    // soft-delete the order and its auto-generated expense.
+    if (currentOrder.status === "RECEIVED") {
+      for (const item of currentOrder.items) {
+        await tx.material.update({
+          where: { id: item.materialId },
+          data: { currentStock: { decrement: Number(item.quantity) } },
+        });
+      }
+      await tx.inventoryTransaction.deleteMany({ where: { purchaseOrderId: id } });
+      await tx.materialPrice.deleteMany({ where: { purchaseOrderId: id } });
+    }
+
+    await tx.purchaseOrder.update({
+      where: { id },
       data: { deletedAt: new Date() },
     });
-  }
+
+    if (currentOrder.expense && !currentOrder.expense.deletedAt) {
+      await tx.expense.update({
+        where: { id: currentOrder.expense.id },
+        data: { deletedAt: new Date() },
+      });
+    }
+  });
 
   await logAudit(user.id, "DELETE", "PurchaseOrder", id, {
     oldValues: {

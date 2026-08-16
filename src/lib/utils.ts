@@ -175,7 +175,8 @@ export type ModuleName =
   | "checklists"
   | "notifications"
   | "reports"
-  | "settings";
+  | "settings"
+  | "estimates";
 
 export type Permissions = Partial<Record<ModuleName, ModulePermission[]>>;
 

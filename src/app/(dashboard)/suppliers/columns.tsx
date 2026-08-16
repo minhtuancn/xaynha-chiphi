@@ -26,6 +26,7 @@ export const columns: ColumnDef<SupplierRow>[] = [
   {
     accessorKey: "contact",
     header: "Người liên hệ",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => row.original.contact ?? "-",
   },
   {
@@ -36,6 +37,7 @@ export const columns: ColumnDef<SupplierRow>[] = [
   {
     accessorKey: "email",
     header: "Email",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => row.original.email ?? "-",
   },
   {
@@ -55,13 +57,14 @@ export const columns: ColumnDef<SupplierRow>[] = [
     id: "orderCount",
     accessorFn: (row) => row._count.purchaseOrders,
     header: "Số đơn hàng",
+    meta: { hideOnMobile: true } as never,
   },
   {
     id: "actions",
     header: "",
     cell: ({ row }) => (
       <Link href={`/suppliers/${row.original.id}/edit?tab=edit`}>
-        <Button variant="outline" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button variant="outline" size="sm" className="transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
           Sửa
         </Button>
       </Link>

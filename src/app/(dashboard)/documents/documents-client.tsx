@@ -87,8 +87,8 @@ export default function DocumentsClient({ documents, projects }: DocumentsClient
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tài liệu</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Tài liệu</h1>
         <Link href="/documents/upload">
           <Button>
             <Plus className="mr-2 h-4 w-4" />

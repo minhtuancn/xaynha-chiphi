@@ -7,6 +7,8 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/setupTests.ts',
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/**'],
+    pool: 'forks',
+    fileParallelism: false,
   },
   resolve: {
     alias: {

@@ -37,3 +37,37 @@ function checkRateLimit(request: Request, maxRequests: number, windowMs: number)
 export function loginLimiter(request: Request): NextResponse | null {
   return checkRateLimit(request, 5, 15 * 60 * 1000);
 }
+
+/**
+ * Rate limiter for FAILED credential attempts, keyed by IP + email so
+ * legitimate logins are never blocked and attackers cannot brute-force a
+ * specific account. Returns true when the attempt should be blocked.
+ */
+export function isLoginBlocked(request: Request, email: string): boolean {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  const key = "loginfail:" + ip + ":" + email.toLowerCase();
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const maxFailures = 10;
+
+  const entry = store.get(key);
+  if (!entry || entry.resetAt < now) {
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > maxFailures;
+}
+
+/** Reset the failure counter after a successful login for that key. */
+export function resetLoginFailures(request: Request, email: string): void {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  store.delete("loginfail:" + ip + ":" + email.toLowerCase());
+}

@@ -156,9 +156,16 @@ export function MaterialForm({
                     min={0}
                     step="0.01"
                     {...field}
+                    readOnly={Boolean(defaultValues)}
+                    disabled={Boolean(defaultValues)}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
+                {defaultValues ? (
+                  <p className="text-xs text-muted-foreground">
+                    Tồn kho được cập nhật tự động từ giao dịch nhập/xuất.
+                  </p>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}

@@ -132,7 +132,7 @@ export default function ChecklistDetailPage() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">{checklist.name}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">{checklist.name}</h1>
                 <Button variant="ghost" size="icon" onClick={() => setEditing(true)}>
                   <Edit3 className="h-4 w-4" />
                 </Button>

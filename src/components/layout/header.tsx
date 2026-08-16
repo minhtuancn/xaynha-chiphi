@@ -22,7 +22,7 @@ function SyncIndicator() {
   const { pendingCount } = useOffline();
   if (pendingCount === 0) return null;
   return (
-    <button className="relative p-2 hover:bg-muted rounded-full" title="Đang chờ đồng bộ">
+    <button className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted md:h-9 md:w-9" title="Đang chờ đồng bộ">
       <Upload className="w-5 h-5" />
       <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
         {pendingCount}
@@ -41,10 +41,11 @@ export function Header({ userName, userEmail, userRole }: HeaderProps) {
   const { toggle } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-1.5 border-b bg-card px-3 md:gap-4 md:px-6">
       <button
         onClick={toggle}
-        className="rounded-md p-1 hover:bg-accent md:hidden"
+        aria-label="Mở menu điều hướng"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md hover:bg-accent md:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -55,8 +56,8 @@ export function Header({ userName, userEmail, userRole }: HeaderProps) {
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full md:h-9 md:w-9">
+            <Avatar className="h-9 w-9 md:h-8 md:w-8">
               <AvatarFallback>
                 {userName.charAt(0).toUpperCase()}
               </AvatarFallback>

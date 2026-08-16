@@ -108,7 +108,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Cài đặt</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Cài đặt</h1>
 
       <Card>
         <CardHeader>

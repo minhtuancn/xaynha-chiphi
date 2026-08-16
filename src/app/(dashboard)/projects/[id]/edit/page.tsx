@@ -29,7 +29,7 @@ export default async function EditProjectPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dự án: {project.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Dự án: {project.name}</h1>
       <DetailViewTabs
         viewTab={<ProjectDetail project={serialize(project)} />}
         editTab={

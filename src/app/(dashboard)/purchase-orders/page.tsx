@@ -9,12 +9,16 @@ import { columns } from "./columns";
 import type { PurchaseOrderRow } from "./columns";
 
 export default async function PurchaseOrdersPage() {
-  const orders = serialize(await getPurchaseOrders()) as unknown as PurchaseOrderRow[];
+  const result = serialize(await getPurchaseOrders()) as unknown as {
+    data: PurchaseOrderRow[];
+    total: number;
+  };
+  const orders = result.data ?? [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Đơn đặt hàng</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Đơn đặt hàng</h1>
         <Link href="/purchase-orders/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />

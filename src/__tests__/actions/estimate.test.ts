@@ -44,6 +44,12 @@ vi.mock('@/lib/auth', () => ({
     name: 'Admin',
     role: 'ADMIN',
   }),
+  requirePermission: vi.fn().mockResolvedValue({
+    id: 'user-1',
+    email: 'admin@test.com',
+    name: 'Admin',
+    role: 'ADMIN',
+  }),
 }));
 
 // Mock next/cache
@@ -122,8 +128,8 @@ describe('createEstimate', () => {
   });
 
   it('throws unauthorized when no session', async () => {
-    const { requireUser } = await import('@/lib/auth');
-    vi.mocked(requireUser).mockRejectedValueOnce(new Error('Unauthorized'));
+    const { requirePermission } = await import('@/lib/auth');
+    vi.mocked(requirePermission).mockRejectedValueOnce(new Error('Unauthorized'));
 
     const { createEstimate } = await import('@/actions/estimate');
 
@@ -369,5 +375,47 @@ describe('syncProgressFromLogs', () => {
     expect(result.updated).toBe(1);
     expect(prisma.estimateItem.update).toHaveBeenCalled();
     expect(result.errors).toHaveLength(0);
+  });
+});
+
+describe('estimate item DRAFT-only guard (M15)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('rejects updating items of an ACTIVE estimate', async () => {
+    vi.mocked(prisma.estimateItem.findUnique).mockResolvedValue({
+      id: 'item-1',
+      estimateId: 'est-1',
+    } as any);
+    vi.mocked(prisma.estimate.findUnique).mockResolvedValue({
+      id: 'est-1',
+      status: 'ACTIVE',
+    } as any);
+
+    const { updateEstimateItem } = await import('@/actions/estimate');
+    await expect(
+      updateEstimateItem('item-1', { quantity: 10 })
+    ).rejects.toThrow('Chỉ có thể chỉnh sửa bản dự toán ở trạng thái Nháp');
+    expect(prisma.estimateItem.update).not.toHaveBeenCalled();
+  });
+
+  it('allows updating items of a DRAFT estimate', async () => {
+    vi.mocked(prisma.estimate.findUnique)
+      .mockResolvedValueOnce({ id: 'est-1', status: 'DRAFT' } as any);
+    vi.mocked(prisma.estimateItem.findUnique).mockResolvedValue({
+      id: 'item-1',
+      estimateId: 'est-1',
+      quantity: new (require('@prisma/client/runtime/library').Decimal)(5),
+      unitPrice: new (require('@prisma/client/runtime/library').Decimal)(1000),
+    } as any);
+    vi.mocked(prisma.estimateItem.update).mockResolvedValue({ id: 'item-1' } as any);
+    vi.mocked(prisma.estimateItem.findMany).mockResolvedValue([{ amount: new (require('@prisma/client/runtime/library').Decimal)(5000) } as any]);
+    vi.mocked(prisma.estimate.update).mockResolvedValue({ id: 'est-1' } as any);
+
+    const { updateEstimateItem } = await import('@/actions/estimate');
+    const result = await updateEstimateItem('item-1', { quantity: 10 });
+    expect(prisma.estimateItem.update).toHaveBeenCalled();
+    expect(result).toBeDefined();
   });
 });

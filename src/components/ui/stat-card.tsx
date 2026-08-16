@@ -16,9 +16,9 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, className 
     <Card className={cn("", className)}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
+            <p className="text-lg font-semibold mt-1 tabular-nums sm:text-xl">{value}</p>
             {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             {trend && (
               <p className={cn("text-xs mt-1", trend.positive ? "text-emerald-600" : "text-red-600")}>

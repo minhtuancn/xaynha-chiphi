@@ -15,7 +15,7 @@ export default function Error({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-      <h2 className="text-2xl font-bold">Đã xảy ra lỗi</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">Đã xảy ra lỗi</h2>
       <p className="text-muted-foreground">{error.message}</p>
       <Button onClick={reset}>Thử lại</Button>
     </div>

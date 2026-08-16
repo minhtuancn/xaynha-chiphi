@@ -43,6 +43,12 @@ const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
   LATE: "Đi trễ",
 };
 
+const ATTENDANCE_STATUS_SHORT: Record<string, string> = {
+  PRESENT: "Có",
+  ABSENT: "Vắng",
+  LATE: "Trễ",
+};
+
 export default function AttendancePage() {
   const [date, setDate] = useState<Date>(new Date());
   const [workers, setWorkers] = useState<WorkerWithCount[]>([]);
@@ -106,6 +112,7 @@ export default function AttendancePage() {
 
     const recordsArray = Array.from(records.values()).map((r) => ({
       workerId: r.workerId,
+      date,
       status: r.status,
       checkIn: parseTime(r.checkIn, date),
       checkOut: parseTime(r.checkOut, date),
@@ -144,8 +151,8 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Chấm công</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Chấm công</h1>
         <div className="flex items-center gap-4">
           <div className="w-48">
             <DatePicker value={date} onChange={(d) => d && setDate(d)} />
@@ -167,7 +174,7 @@ export default function AttendancePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Có mặt</p>
-              <p className="text-2xl font-bold mt-1">{statusCounts.PRESENT}</p>
+              <p className="text-2xl font-semibold tracking-tight mt-1">{statusCounts.PRESENT}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
               <span className="text-accent text-lg font-bold">{statusCounts.PRESENT}</span>
@@ -178,7 +185,7 @@ export default function AttendancePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Vắng mặt</p>
-              <p className="text-2xl font-bold mt-1">{statusCounts.ABSENT}</p>
+              <p className="text-2xl font-semibold tracking-tight mt-1">{statusCounts.ABSENT}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
               <span className="text-destructive text-lg font-bold">{statusCounts.ABSENT}</span>
@@ -189,7 +196,7 @@ export default function AttendancePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Đi trễ</p>
-              <p className="text-2xl font-bold mt-1">{statusCounts.LATE}</p>
+              <p className="text-2xl font-semibold tracking-tight mt-1">{statusCounts.LATE}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center">
               <span className="text-yellow-600 dark:text-yellow-400 text-lg font-bold">{statusCounts.LATE}</span>
@@ -199,16 +206,16 @@ export default function AttendancePage() {
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-x-auto dark:bg-slate-900 dark:border-slate-800">
-        <table className="w-full min-w-[640px]">
+        <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50 dark:bg-slate-800/50">
               <th className="px-4 py-3 text-left text-sm font-medium">Tên công nhân</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Tay nghề</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Lương ngày</th>
+              <th className="px-4 py-3 text-left text-sm font-medium hidden md:table-cell">Tay nghề</th>
+              <th className="px-4 py-3 text-left text-sm font-medium hidden md:table-cell">Lương ngày</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Giờ vào</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Giờ ra</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Ghi chú</th>
+              <th className="px-4 py-3 text-left text-sm font-medium hidden md:table-cell">Ghi chú</th>
             </tr>
           </thead>
           <tbody>
@@ -218,22 +225,22 @@ export default function AttendancePage() {
 
               return (
                 <tr key={worker.id} className="border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-muted/50 dark:hover:bg-slate-800/50">
-                  <td className="px-4 py-3 font-medium">{worker.name}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                  <td className="px-2 sm:px-4 py-3 font-medium max-w-28"><span className="block truncate">{worker.name}</span></td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">
                     {worker.skill ?? "-"}
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm hidden md:table-cell">
                     {formatCurrency(Number(worker.dailyWage))}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
+                  <td className="px-2 sm:px-4 py-3">
+                    <div className="flex gap-1 sm:gap-2">
                       {(["PRESENT", "ABSENT", "LATE"] as const).map((status) => (
                         <button
                           key={status}
                           type="button"
                           aria-pressed={record.status === status}
                           onClick={() => updateRecord(worker.id, { status })}
-                          className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                          className={`rounded-md border px-1 sm:px-2 py-1.5 text-xs font-medium transition-colors ${
                             record.status === status
                               ? status === "PRESENT"
                                 ? "border-green-500 bg-green-50 text-green-700 dark:border-green-400 dark:bg-green-900/40 dark:text-green-300"
@@ -243,26 +250,27 @@ export default function AttendancePage() {
                             : "border-border bg-background text-muted-foreground hover:bg-muted dark:hover:bg-muted"
                           }`}
                         >
-                          {ATTENDANCE_STATUS_LABELS[status]}
+                          <span className="sm:hidden">{ATTENDANCE_STATUS_SHORT[status]}</span>
+                          <span className="hidden sm:inline">{ATTENDANCE_STATUS_LABELS[status]}</span>
                         </button>
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-3">
                     <Input
                       type="time"
                       value={record.checkIn}
                       onChange={(e) => updateRecord(worker.id, { checkIn: e.target.value })}
-                      className="h-8 w-28 md:w-auto min-w-[80px]"
+                      className="h-8 w-14 md:w-auto min-w-0"
                       disabled={record.status === "ABSENT"}
                     />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-3">
                     <Input
                       type="time"
                       value={record.checkOut}
                       onChange={(e) => updateRecord(worker.id, { checkOut: e.target.value })}
-                      className="h-8 w-28 md:w-auto min-w-[80px]"
+                      className="h-8 w-14 md:w-auto min-w-0"
                       disabled={record.status === "ABSENT"}
                     />
                   </td>
@@ -270,7 +278,7 @@ export default function AttendancePage() {
                     <Input
                       value={record.notes}
                       onChange={(e) => updateRecord(worker.id, { notes: e.target.value })}
-                      className="h-8 w-32 md:w-auto min-w-[100px]"
+                      className="h-8 w-32 md:w-auto min-w-[100px] hidden md:block"
                       placeholder="Ghi chú..."
                     />
                   </td>

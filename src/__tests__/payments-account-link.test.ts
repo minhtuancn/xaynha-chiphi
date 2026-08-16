@@ -26,6 +26,12 @@ vi.mock("@/lib/prisma", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    transaction: {
+      create: vi.fn(),
+    },
+    supplier: {
+      update: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
@@ -82,8 +88,17 @@ describe("payment account linkage", () => {
     );
     expect(mockedPrisma.account.update).toHaveBeenCalledWith({
       where: { id: "account-1" },
-      data: { balance: { decrement: 150000 } },
+      data: { balance: { decrement: new Decimal(150000) } },
     });
+    expect(mockedPrisma.transaction.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          accountId: "account-1",
+          type: "EXPENSE",
+          reference: expect.stringContaining("PAYMENT-"),
+        }),
+      })
+    );
     expect(mockedPrisma.debt.update).toHaveBeenCalledWith({
       where: { id: "debt-1" },
       data: {

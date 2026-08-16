@@ -37,6 +37,7 @@ export const columns: ColumnDef<WorkerRow>[] = [
   {
     accessorKey: "phone",
     header: "Số điện thoại",
+    meta: { hideOnMobile: true } as never,
     cell: ({ row }) => row.original.phone ?? "-",
   },
   {
@@ -62,6 +63,7 @@ export const columns: ColumnDef<WorkerRow>[] = [
     id: "attendanceCount",
     accessorFn: (row) => row._count.attendances,
     header: "Số lần chấm công",
+    meta: { hideOnMobile: true } as never,
   },
   {
     id: "actions",

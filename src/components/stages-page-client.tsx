@@ -71,7 +71,15 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!formName.trim() || !selectedProjectId || isSubmitting.current) return;
+    if (isSubmitting.current) return;
+    if (!formName.trim()) {
+      toast({ title: "Vui lòng nhập tên giai đoạn", variant: "destructive" });
+      return;
+    }
+    if (!selectedProjectId) {
+      toast({ title: "Vui lòng chọn dự án", variant: "destructive" });
+      return;
+    }
 
     isSubmitting.current = true;
     const order = filteredStages.length;
@@ -237,9 +245,9 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
                             <th className="px-4 py-3 text-left text-sm font-medium">Tên giai đoạn</th>
                             <th className="px-4 py-3 text-left text-sm font-medium">Trạng thái</th>
                             <th className="px-4 py-3 text-left text-sm font-medium">Tiến độ</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium">Số task</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium">Ngân sách</th>
-                            <th className="px-4 py-3 text-center text-sm font-medium">Thời gian</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium hidden md:table-cell">Số task</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium hidden md:table-cell">Ngân sách</th>
+                            <th className="px-4 py-3 text-center text-sm font-medium hidden md:table-cell">Thời gian</th>
                             <th className="px-4 py-3 text-right text-sm font-medium"></th>
                           </tr>
                         </thead>
@@ -283,17 +291,17 @@ export function StagesPageClient({ projects, stages }: StagesPageClientProps) {
                                     </span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-right text-sm tabular-nums">
+                                <td className="px-4 py-3 text-right text-sm tabular-nums hidden md:table-cell">
                                   {stage._count.tasks}
                                 </td>
-                                <td className="px-4 py-3 text-right text-sm font-mono tabular-nums">
+                                <td className="px-4 py-3 text-right text-sm font-mono tabular-nums hidden md:table-cell">
                                   {formatCurrency(stage.estimatedBudget)}
                                 </td>
-                                <td className="px-4 py-3 text-center text-sm text-muted-foreground whitespace-nowrap">
+                                <td className="px-4 py-3 text-center text-sm text-muted-foreground whitespace-nowrap hidden md:table-cell">
                                   {dateLabel}
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                                     <Link href={`/stages/${stage.id}`}>
                                       <Button variant="outline" size="sm">Chi tiết</Button>
                                     </Link>

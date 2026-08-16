@@ -14,7 +14,7 @@ export default async function NewMaterialPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Thêm vật liệu mới</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Thêm vật liệu mới</h1>
       <Card>
         <CardHeader>
           <CardTitle>Thông tin vật liệu</CardTitle>

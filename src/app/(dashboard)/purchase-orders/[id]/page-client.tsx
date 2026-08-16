@@ -90,7 +90,7 @@ export default function PurchaseOrderDetailPage({
               Quay lại
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Chi tiết đơn hàng</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Chi tiết đơn hàng</h1>
           <Badge variant={PO_STATUS_VARIANTS[order.status] || "secondary"}>
             {PO_STATUS_LABELS[order.status] || order.status}
           </Badge>

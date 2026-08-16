@@ -34,7 +34,16 @@ vi.mock("@/lib/prisma", () => ({
     },
     materialPrice: {
       createMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
+    material: {
+      update: vi.fn(),
+    },
+    inventoryTransaction: {
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -78,6 +87,14 @@ describe("purchase order to expense linkage", () => {
     mockedPrisma.materialPrice.createMany.mockResolvedValue({ count: 1 } as never);
     mockedPrisma.expense.create.mockResolvedValue({ id: "expense-1" } as never);
     mockedPrisma.purchaseOrder.update.mockResolvedValue({ id: "po-1" } as never);
+    mockedPrisma.material.update.mockResolvedValue({ id: "mat-1" } as never);
+    mockedPrisma.inventoryTransaction.create.mockResolvedValue({ id: "tx-1" } as never);
+    mockedPrisma.$transaction.mockImplementation((async (fn: any) => {
+      if (typeof fn === "function") {
+        return fn(mockedPrisma);
+      }
+      return fn;
+    }) as never);
 
     await updatePurchaseOrderStatus("po-1", "RECEIVED");
 
@@ -96,6 +113,20 @@ describe("purchase order to expense linkage", () => {
       where: { id: "po-1" },
       data: { status: "RECEIVED" },
     });
+    // Receiving goods must also update stock and record an inventory IN.
+    expect(mockedPrisma.material.update).toHaveBeenCalledWith({
+      where: { id: "mat-1" },
+      data: { currentStock: { increment: 100 } },
+    });
+    expect(mockedPrisma.inventoryTransaction.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          materialId: "mat-1",
+          type: "IN",
+          quantity: 100,
+        }),
+      })
+    );
     expect(mockedLogAudit).toHaveBeenCalledWith(
       "user-1",
       "UPDATE",
@@ -135,5 +166,78 @@ describe("purchase order to expense linkage", () => {
       "po-1",
       expect.any(Object)
     );
+  });
+});
+
+describe("purchase order lifecycle guards (M11)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.$transaction.mockImplementation((async (fn: any) => {
+      if (typeof fn === "function") {
+        return fn(mockedPrisma);
+      }
+      return fn;
+    }) as never);
+  });
+
+  test("cancelled orders are terminal", async () => {
+    mockedPrisma.purchaseOrder.findUnique.mockResolvedValue({
+      id: "po-1",
+      status: "CANCELLED",
+      deletedAt: null,
+    } as never);
+
+    await expect(updatePurchaseOrderStatus("po-1", "SENT")).rejects.toThrow("đã hủy");
+    expect(mockedPrisma.purchaseOrder.update).not.toHaveBeenCalled();
+  });
+
+  test("received orders cannot be cancelled", async () => {
+    mockedPrisma.purchaseOrder.findUnique.mockResolvedValue({
+      id: "po-1",
+      status: "RECEIVED",
+      deletedAt: null,
+    } as never);
+
+    await expect(updatePurchaseOrderStatus("po-1", "CANCELLED")).rejects.toThrow("đã nhận kho");
+    expect(mockedPrisma.purchaseOrder.update).not.toHaveBeenCalled();
+  });
+
+  test("reverting a received order reverses expense, stock and prices", async () => {
+    mockedPrisma.purchaseOrder.findUnique
+      .mockResolvedValueOnce({ id: "po-1", status: "RECEIVED", deletedAt: null } as never)
+      .mockResolvedValueOnce({
+        id: "po-1",
+        status: "RECEIVED",
+        deletedAt: null,
+        items: [{ materialId: "mat-1", quantity: "100" }],
+        expense: { id: "expense-1", deletedAt: null },
+      } as never);
+
+    mockedPrisma.expense.update.mockResolvedValue({ id: "expense-1" } as never);
+    mockedPrisma.material.update.mockResolvedValue({ id: "mat-1" } as never);
+    mockedPrisma.inventoryTransaction.deleteMany.mockResolvedValue({ count: 1 } as never);
+    mockedPrisma.materialPrice.deleteMany.mockResolvedValue({ count: 1 } as never);
+    mockedPrisma.purchaseOrder.update.mockResolvedValue({ id: "po-1" } as never);
+
+    await updatePurchaseOrderStatus("po-1", "DRAFT");
+
+    expect(mockedPrisma.expense.update).toHaveBeenCalledWith({
+      where: { id: "expense-1" },
+      data: { deletedAt: expect.any(Date) },
+    });
+    expect(mockedPrisma.material.update).toHaveBeenCalledWith({
+      where: { id: "mat-1" },
+      data: { currentStock: { decrement: 100 } },
+    });
+    expect(mockedPrisma.inventoryTransaction.deleteMany).toHaveBeenCalledWith({
+      where: { purchaseOrderId: "po-1" },
+    });
+    expect(mockedPrisma.materialPrice.deleteMany).toHaveBeenCalledWith({
+      where: { purchaseOrderId: "po-1" },
+    });
+    expect(mockedPrisma.purchaseOrder.update).toHaveBeenCalledWith({
+      where: { id: "po-1" },
+      data: { status: "DRAFT" },
+    });
   });
 });

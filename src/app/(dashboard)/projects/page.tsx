@@ -10,14 +10,16 @@ import { useProjects } from "@/hooks/use-projects";
 import { TableSkeleton } from "@/components/ui/loading-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FolderKanban } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const { data: projects, isLoading } = useProjects();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading font-semibold text-foreground">Quản lý dự án</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Quản lý dự án</h1>
         <Link href="/projects/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -33,7 +35,7 @@ export default function ProjectsPage() {
           icon={<FolderKanban className="h-8 w-8" />}
           title="Chưa có dự án nào"
           description="Tạo dự án đầu tiên để bắt đầu quản lý thi công."
-          action={{ label: "Tạo dự án", onClick: () => window.location.href = "/projects/new" }}
+          action={{ label: "Tạo dự án", onClick: () => router.push("/projects/new") }}
         />
       ) : (
         <Card className="shadow-sm">

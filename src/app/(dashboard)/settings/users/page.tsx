@@ -88,6 +88,7 @@ const MODULE_LABELS: Record<ModuleName, string> = {
   notifications: "Thông báo",
   reports: "Báo cáo",
   settings: "Cài đặt",
+  estimates: "Dự toán",
 };
 
 const PERMISSION_LABELS: Record<ModulePermission, string> = {
@@ -219,8 +220,8 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Quản lý người dùng</h1>
         <Button onClick={() => setShowCreate(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Tạo người dùng

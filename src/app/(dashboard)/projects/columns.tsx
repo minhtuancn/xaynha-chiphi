@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,13 @@ export type ProjectRow = {
 function ActionsCell({ project }: { project: ProjectRow }) {
   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     const result = await deleteProject(project.id);
     if (result.success) {
       toast({ title: "Đã xóa dự án" });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       router.refresh();
     } else {
       toast({
@@ -101,6 +104,7 @@ export const columns: ColumnDef<ProjectRow>[] = [
   {
     accessorKey: "address",
     header: "Địa chỉ",
+    meta: { hideOnMobile: true } as never,
   },
   {
     accessorKey: "budget",
@@ -126,6 +130,7 @@ export const columns: ColumnDef<ProjectRow>[] = [
     accessorKey: "startDate",
     header: "Ngày bắt đầu",
     cell: ({ row }) => formatDate(row.getValue("startDate")),
+    meta: { hideOnMobile: true } as never,
   },
   {
     id: "actions",

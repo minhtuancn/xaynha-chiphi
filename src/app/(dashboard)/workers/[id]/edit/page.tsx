@@ -32,7 +32,7 @@ export default async function EditWorkerPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{worker.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{worker.name}</h1>
       <DetailViewTabs
         viewTab={<WorkerDetail worker={serialize(worker)} />}
         editTab={

@@ -271,7 +271,7 @@ model DailyLog {
   dailyLogPhotos DailyLogPhoto[]
   materialUsages MaterialUsage[]
 
-  @@unique([projectId, date])
+  @@unique([projectId, date, timeOfDay])
   @@index([projectId, date])
   @@index([deletedAt])
 }

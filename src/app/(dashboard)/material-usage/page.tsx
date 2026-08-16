@@ -207,8 +207,8 @@ export default function MaterialUsagePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vật tư sử dụng</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Vật tư sử dụng</h1>
       </div>
 
       {error && (
@@ -425,7 +425,7 @@ export default function MaterialUsagePage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
                             onClick={() => handleDelete(r.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />

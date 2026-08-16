@@ -166,21 +166,21 @@ export function NotificationsDropdown() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6"
+                      className="h-9 w-9"
                       onClick={() => void handleMarkRead(n.id)}
                       title="Đánh dấu đã đọc"
                     >
-                      <Check className="h-3 w-3" />
+                      <Check className="h-4 w-4" />
                     </Button>
                   )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-9 w-9"
                     onClick={() => void handleDelete(n.id)}
                     title="Xóa"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

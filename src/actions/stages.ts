@@ -51,11 +51,12 @@ export async function createStage(data: StageFormData, projectId: string, order:
   await requirePermission("stages", "create");
 
   const validated = stageSchema.parse(data);
+  const safeOrder = Math.max(0, Math.floor(Number(order) || 0));
 
   const stage = await prisma.constructionStage.create({
     data: {
       projectId,
-      order,
+      order: safeOrder,
       name: validated.name,
       status: validated.status,
       startDate: validated.startDate,
@@ -96,9 +97,25 @@ export async function updateStage(id: string, data: StageFormData) {
 export async function deleteStage(id: string) {
   await requirePermission("stages", "delete");
 
-  await prisma.constructionStage.update({
-    where: { id },
-    data: { deletedAt: new Date() },
+  const now = new Date();
+
+  // Soft-delete children together so no tasks/checklists outlive the stage.
+  await prisma.$transaction(async (tx) => {
+    await tx.constructionTask.updateMany({
+      where: { stageId: id, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    await tx.checklist.updateMany({
+      where: { stageId: id, deletedAt: null },
+      data: { deletedAt: now },
+    });
+    // StageBudget has no deletedAt column; remove the aggregate row.
+    await tx.stageBudget.deleteMany({ where: { stageId: id } });
+
+    await tx.constructionStage.update({
+      where: { id },
+      data: { deletedAt: now },
+    });
   });
 
   revalidatePath("/stages");

@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind } from "lucide-react";
+import { useState } from "react";
+import { Plus, Eye, Trash2, Sun, Cloud, CloudRain, CloudLightning, Wind, Search } from "lucide-react";
 import { useDailyLogs } from "@/hooks/use-daily-logs";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { deleteDailyLog } from "@/actions/daily-logs";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,18 +33,42 @@ const weatherIcons: Record<string, typeof Sun> = {
 };
 
 export default function DailyLogsPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: logs, isLoading } = useDailyLogs();
+  const [query, setQuery] = useState("");
+
+  const filteredLogs = logs
+    ? logs.filter((log) => {
+        const q = query.trim().toLowerCase();
+        if (!q) return true;
+        const notes = (log.notes || "").toLowerCase();
+        const date = formatDate(log.date).toLowerCase();
+        return notes.includes(q) || date.includes(q);
+      })
+    : [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Nhật ký thi công</h1>
-        <Link href="/daily-logs/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Thêm nhật ký
-          </Button>
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Nhật ký thi công</h1>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm kiếm nhật ký..."
+              className="h-10 w-44 pl-8 sm:w-56"
+            />
+          </div>
+          <Link href="/daily-logs/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm nhật ký
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {isLoading ? (
@@ -49,7 +78,7 @@ export default function DailyLogsPage() {
           icon={<BookOpen className="h-8 w-8" />}
           title="Chưa có nhật ký nào"
           description="Thêm nhật ký thi công đầu tiên để theo dõi tiến độ hàng ngày."
-          action={{ label: "Thêm nhật ký", onClick: () => window.location.href = "/daily-logs/new" }}
+          action={{ label: "Thêm nhật ký", onClick: () => router.push("/daily-logs/new") }}
         />
       ) : (
         <Card className="shadow-sm">
@@ -62,14 +91,21 @@ export default function DailyLogsPage() {
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead>Ngày</TableHead>
-                    <TableHead>Thời tiết</TableHead>
+                    <TableHead className="hidden md:table-cell">Thời tiết</TableHead>
                     <TableHead>Ghi chú</TableHead>
                     <TableHead className="text-center">Công nhân</TableHead>
                     <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {logs.map((log) => {
+                  {filteredLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                        Không tìm thấy nhật ký phù hợp
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                  {filteredLogs.map((log) => {
                     const weather = log.weather ? JSON.parse(log.weather as string) : null;
                     const Icon = weather
                       ? weatherIcons[weather.condition] || Cloud
@@ -88,7 +124,7 @@ export default function DailyLogsPage() {
                             {formatDate(log.date)}
                           </Link>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           {weather ? (
                             <div className="flex items-center gap-2">
                               {Icon && (
@@ -103,28 +139,25 @@ export default function DailyLogsPage() {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-xs truncate">
+                        <TableCell className="max-w-36 md:max-w-xs truncate block">
                           {log.notes || <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell className="text-center">{log.workerCount}</TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex justify-end gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                             <Link href={`/daily-logs/${log.id}`}>
                               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-8 w-8 p-0">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <form
-                              action={() => deleteDailyLog(log.id)}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive hover:text-destructive/80 h-8 w-8 p-0"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </form>
+                            <ConfirmDeleteButton
+                              onConfirm={async () => {
+                                await deleteDailyLog(log.id);
+                                await queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+                              }}
+                              title="Xóa nhật ký này?"
+                              description="Nhật ký và ảnh đính kèm sẽ bị xóa vĩnh viễn."
+                            />
                           </div>
                         </TableCell>
                       </TableRow>

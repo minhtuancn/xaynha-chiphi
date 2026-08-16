@@ -5,7 +5,7 @@ import { createSupplier } from "@/actions/suppliers";
 export default async function NewSupplierPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Thêm nhà cung cấp mới</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Thêm nhà cung cấp mới</h1>
       <Card>
         <CardHeader>
           <CardTitle>Thông tin nhà cung cấp</CardTitle>

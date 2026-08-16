@@ -12,6 +12,8 @@ export async function getInventoryTransactions(options?: { page?: number; limit?
 
   const page = options?.page ?? 1;
   const limit = options?.limit ?? 50;
+  const safePage = Math.max(1, Math.floor(page));
+  const safeLimit = Math.min(200, Math.max(1, Math.floor(limit)));
 
   const [data, total] = await Promise.all([
     prisma.inventoryTransaction.findMany({
@@ -21,8 +23,8 @@ export async function getInventoryTransactions(options?: { page?: number; limit?
         },
       },
       orderBy: { date: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
     }),
     prisma.inventoryTransaction.count(),
   ]);
@@ -66,17 +68,6 @@ export async function createTransaction(data: InventoryFormData) {
       break;
   }
 
-  if (validated.type === "OUT" || validated.type === "USAGE") {
-    const material = await prisma.material.findUnique({
-      where: { id: validated.materialId, deletedAt: null },
-      select: { currentStock: true },
-    });
-    if (!material) throw new Error("Vật liệu không tồn tại");
-    if (Number(material.currentStock) < quantityNum) {
-      throw new Error("Số lượng xuất vượt quá tồn kho hiện tại");
-    }
-  }
-
   const txData = {
     materialId: validated.materialId,
     type: validated.type,
@@ -89,6 +80,18 @@ export async function createTransaction(data: InventoryFormData) {
   };
 
   await prisma.$transaction(async (tx) => {
+    // Check stock sufficiency INSIDE the transaction to avoid TOCTOU races.
+    if (validated.type === "OUT" || validated.type === "USAGE") {
+      const material = await tx.material.findUnique({
+        where: { id: validated.materialId, deletedAt: null },
+        select: { currentStock: true },
+      });
+      if (!material) throw new Error("Vật liệu không tồn tại");
+      if (Number(material.currentStock) < quantityNum) {
+        throw new Error("Số lượng xuất vượt quá tồn kho hiện tại");
+      }
+    }
+
     await tx.inventoryTransaction.create({ data: txData });
 
     if (validated.type === "ADJUSTMENT") {

@@ -25,6 +25,7 @@ import {
   Bell,
   X,
 } from "lucide-react";
+import { useEffect } from "react";
 import { useSidebar } from "./sidebar-provider";
 
 const navItems = [
@@ -54,6 +55,27 @@ export function Sidebar() {
   const pathname = usePathname();
   const { isOpen, close } = useSidebar();
 
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (isOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [isOpen]);
+
+  // Close drawer on Escape for accessibility.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, close]);
+
   return (
     <>
       {isOpen && (
@@ -64,7 +86,7 @@ export function Sidebar() {
       )}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card transition-transform duration-200",
+          "fixed left-0 top-0 z-40 h-dvh w-64 border-r bg-card transition-transform duration-200",
           "md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -80,7 +102,8 @@ export function Sidebar() {
           </Link>
           <button
             onClick={close}
-            className="rounded-md p-1 hover:bg-accent md:hidden"
+            aria-label="Đóng menu"
+            className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent md:hidden"
           >
             <X className="h-5 w-5" />
           </button>

@@ -143,6 +143,16 @@ test.describe('CRUD Operations', () => {
     await page.getByRole('button', { name: 'Tạo dự án' }).click();
     await page.waitForURL('**/projects', { timeout: 15000 });
     await expect(page.getByText('Test Project E2E').first()).toBeVisible({ timeout: 10000 });
+
+    // Cleanup: remove the test project so repeated runs don't accumulate junk
+    let row = page.locator('tr').filter({ hasText: 'Test Project E2E' }).first();
+    while (await row.count()) {
+      const current = row;
+      await current.locator('button').last().click();
+      await page.getByRole('alertdialog').getByRole('button', { name: 'Xóa' }).click();
+      await expect(current).toHaveCount(0, { timeout: 15000 });
+      row = page.locator('tr').filter({ hasText: 'Test Project E2E' }).first();
+    }
   });
 
   test('search in data table', async ({ page }) => {
@@ -270,5 +280,21 @@ test.describe('Mobile Responsive', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto(`${BASE_URL}/dashboard`);
     await expect(page.getByText(/Tuấn Mơ/).first()).toBeVisible({ timeout: 15000 });
+  });
+
+  test('bottom nav visible on mobile, hidden on desktop', async ({ page }) => {
+    // Mobile: bottom nav is the primary navigation
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto(`${BASE_URL}/dashboard`);
+    const nav = page.getByRole('navigation', { name: 'Điều hướng chính' });
+    await expect(nav).toBeVisible();
+    for (const label of ['Tổng quan', 'Dự án', 'Nhật ký', 'Chi phí', 'Báo cáo']) {
+      await expect(nav.getByRole('link', { name: label })).toBeVisible();
+    }
+
+    // Desktop: bottom nav hidden
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.reload();
+    await expect(nav).toBeHidden();
   });
 });

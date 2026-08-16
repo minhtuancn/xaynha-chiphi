@@ -2,25 +2,38 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { materialSchema, type MaterialFormData } from "@/schemas/material";
 import { serialize } from "@/lib/serialize";
 import { Decimal } from "@prisma/client/runtime/library";
 
+const materialCategorySchema = z.object({
+  name: z.string().min(1, "Tên danh mục không được để trống").max(100),
+  description: z.string().max(500).optional(),
+});
+
+const manualPriceSchema = z.object({
+  price: z.number().positive("Giá phải lớn hơn 0"),
+  notes: z.string().max(500).optional(),
+});
+
 export async function getMaterials(options?: { page?: number; limit?: number }) {
   await requirePermission("materials", "view");
 
   const page = options?.page ?? 1;
   const limit = options?.limit ?? 100;
+  const safePage = Math.max(1, Math.floor(page));
+  const safeLimit = Math.min(200, Math.max(1, Math.floor(limit)));
 
   const [data, total] = await Promise.all([
     prisma.material.findMany({
       where: { deletedAt: null },
       include: { category: true, supplier: true },
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
     }),
     prisma.material.count({ where: { deletedAt: null } }),
   ]);
@@ -69,13 +82,14 @@ export async function updateMaterial(id: string, data: MaterialFormData) {
 
   const validated = materialSchema.parse(data);
 
+  // currentStock is driven by inventory transactions (IN/OUT);
+  // editing a material must not clobber the ledger-derived stock.
   await prisma.material.update({
     where: { id },
     data: {
       name: validated.name,
       categoryId: validated.categoryId,
       unit: validated.unit,
-      currentStock: new Decimal(validated.currentStock),
       minStock: new Decimal(validated.minStock),
       unitCost: new Decimal(validated.unitCost),
       supplierId: validated.supplierId || null,
@@ -109,10 +123,12 @@ export async function getMaterialCategories() {
 export async function createMaterialCategory(data: { name: string; description?: string }) {
   await requirePermission("materials", "edit");
 
+  const validated = materialCategorySchema.parse(data);
+
   return prisma.materialCategory.create({
     data: {
-      name: data.name,
-      description: data.description,
+      name: validated.name.trim(),
+      description: validated.description || null,
     },
   });
 }
@@ -120,11 +136,13 @@ export async function createMaterialCategory(data: { name: string; description?:
 export async function updateMaterialCategory(id: string, data: { name: string; description?: string }) {
   await requirePermission("materials", "edit");
 
+  const validated = materialCategorySchema.parse(data);
+
   return prisma.materialCategory.update({
     where: { id },
     data: {
-      name: data.name,
-      description: data.description,
+      name: validated.name.trim(),
+      description: validated.description || null,
     },
   });
 }
@@ -155,12 +173,14 @@ export async function addManualPrice(
 ) {
   await requirePermission("materials", "edit");
 
+  const validated = manualPriceSchema.parse(data);
+
   await prisma.materialPrice.create({
     data: {
       materialId,
-      price: new Decimal(data.price),
+      price: new Decimal(validated.price),
       source: "MANUAL",
-      notes: data.notes || null,
+      notes: validated.notes || null,
     },
   });
 

@@ -73,7 +73,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Thư viện ảnh</h1>
+        <h1 className="text-2xl font-semibold tracking-tight tracking-tight">Thư viện ảnh</h1>
       </div>
 
       {error && (
@@ -157,7 +157,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
                   alt={photo.caption || ""}
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all sm:group-hover:bg-black/40 sm:group-hover:opacity-100">
                   <form
                     action={async () => {
                       await handleDelete(photo.id);
@@ -167,7 +167,7 @@ export default function PhotosPageClient({ photos }: PhotosPageClientProps) {
                       variant="destructive"
                       size="sm"
                       type="submit"
-                      className="scale-95 transition-transform group-hover:scale-100"
+                      className="bg-destructive/90 text-white opacity-100 transition-transform sm:scale-95 sm:opacity-0 sm:group-hover:scale-100 sm:group-hover:opacity-100"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

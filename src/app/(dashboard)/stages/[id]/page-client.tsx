@@ -420,7 +420,7 @@ export default function StageDetailPage({ stage }: StageDetailProps) {
             Quay lại
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">{stage.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{stage.name}</h1>
         <StatusBadge status={stage.status} labels={STAGE_STATUS_LABELS} />
       </div>
 

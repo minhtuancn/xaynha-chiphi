@@ -69,6 +69,12 @@ export async function getDashboardData() {
     getWeatherForDate(project.id, new Date()),
   ]);
 
+  const spentSum = totalExpenses._sum.amount ?? 0;
+  const budgetTotal = budget?.totalBudget ?? 0;
+  const budgetSpent = budget?.spent ?? 0;
+
+  const spentValue = Number(spentSum) > 0 ? Number(spentSum) : Number(budgetSpent);
+
   return serialize({
     project,
     stats: {
@@ -76,9 +82,9 @@ export async function getDashboardData() {
       completedStages,
       totalTasks,
       completedTasks,
-      budget: budget?.totalBudget ?? 0,
-      spent: budget?.spent ?? totalExpenses._sum.amount ?? 0,
-      remaining: budget?.remaining ?? 0,
+      budget: Number(budgetTotal),
+      spent: spentValue,
+      remaining: Number(budgetTotal) - spentValue,
     },
     stages,
     recentPhotos,

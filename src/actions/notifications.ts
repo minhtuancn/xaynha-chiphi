@@ -114,6 +114,10 @@ export async function createNotificationForCurrentUser(data: {
 
 export async function notifyAdmins(type: string, message: string) {
   try {
+    // Only authenticated callers may broadcast notifications; internal
+    // callers (other server actions) already hold a session.
+    await requirePermission("notifications", "create");
+
     const admins = await prisma.user.findMany({
       where: { role: "ADMIN", deletedAt: null, isActive: true },
       select: { id: true },

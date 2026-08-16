@@ -33,7 +33,7 @@ export default async function EditSupplierPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{supplier.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{supplier.name}</h1>
       <DetailViewTabs
         viewTab={<SupplierDetail supplier={serialize(supplier)} />}
         editTab={

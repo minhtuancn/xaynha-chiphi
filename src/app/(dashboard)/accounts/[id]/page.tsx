@@ -18,7 +18,7 @@ export default async function AccountPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{account.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{account.name}</h1>
       <DetailViewTabs
         viewTab={<AccountDetail account={serialize(account)} />}
         editTab={

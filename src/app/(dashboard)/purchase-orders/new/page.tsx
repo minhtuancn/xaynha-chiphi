@@ -21,7 +21,7 @@ export default async function NewPurchaseOrderPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tạo đơn đặt hàng</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Tạo đơn đặt hàng</h1>
       <Card>
         <CardHeader>
           <CardTitle>Thông tin đơn hàng</CardTitle>

@@ -115,7 +115,7 @@ export function TransactionForm({ accounts, onSubmit, isSubmitting = false }: Tr
                   <Input
                     type="number"
                     min={0.01}
-                    step="1"
+                    step="0.01"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />

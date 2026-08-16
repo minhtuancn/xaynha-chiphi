@@ -71,7 +71,10 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError("Vui lòng nhập tên danh mục");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -191,19 +194,21 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
                         <div className="flex gap-1">
                           <button
                             type="button"
-                            className="p-1 hover:bg-muted rounded"
+                            className="flex h-9 w-9 items-center justify-center rounded hover:bg-muted md:h-8 md:w-8"
                             onClick={() => openEdit(cat)}
                             title="Sửa"
+                            aria-label="Sửa danh mục"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
-                            className="p-1 hover:bg-muted rounded text-red-500"
+                            className="flex h-9 w-9 items-center justify-center rounded hover:bg-muted text-red-500 md:h-8 md:w-8"
                             onClick={() => handleDelete(cat.id, cat.name)}
                             title="Xóa"
+                            aria-label="Xóa danh mục"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </TableCell>

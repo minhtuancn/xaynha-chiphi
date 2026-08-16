@@ -136,7 +136,7 @@ export default function UploadDocumentPage() {
             Quay lại
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">Tải tài liệu lên</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Tải tài liệu lên</h1>
       </div>
 
       {error && (

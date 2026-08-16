@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
-import { checklistSchema } from "@/schemas/checklist";
+import { checklistSchema, checklistItemSchema } from "@/schemas/checklist";
 import { serialize } from "@/lib/serialize";
 
 export async function getChecklists() {
@@ -63,9 +63,11 @@ export async function createChecklist(data: { stageId: string; name: string }) {
 export async function updateChecklist(id: string, data: { name: string }) {
   await requirePermission("checklists", "edit");
 
+  const validated = checklistSchema.pick({ name: true }).parse(data);
+
   await prisma.checklist.update({
     where: { id },
-    data: { name: data.name },
+    data: { name: validated.name },
   });
 
   revalidatePath("/checklists");
@@ -85,6 +87,8 @@ export async function deleteChecklist(id: string) {
 export async function addChecklistItem(checklistId: string, name: string) {
   await requirePermission("checklists", "edit");
 
+  const validated = checklistItemSchema.parse({ name });
+
   const maxOrder = await prisma.checklistItem.aggregate({
     where: { checklistId, deletedAt: null },
     _max: { order: true },
@@ -93,7 +97,7 @@ export async function addChecklistItem(checklistId: string, name: string) {
   await prisma.checklistItem.create({
     data: {
       checklistId,
-      name,
+      name: validated.name,
       order: (maxOrder._max.order ?? -1) + 1,
     },
   });
@@ -103,6 +107,8 @@ export async function addChecklistItem(checklistId: string, name: string) {
 
 export async function toggleChecklistItem(id: string, completed: boolean) {
   await requirePermission("checklists", "edit");
+
+  if (typeof completed !== "boolean") throw new Error("Giá trị không hợp lệ");
 
   await prisma.checklistItem.update({
     where: { id },
